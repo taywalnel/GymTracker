@@ -1,0 +1,39 @@
+<div class="app-shell">
+  <header class="app-header">
+    <div class="app-header__brand">
+      <span class="app-header__mark">⚡</span>
+      <h1 class="app-header__title">Gym Tracker</h1>
+    </div>
+
+    <button
+      type="button"
+      class="unit-toggle"
+      (click)="units.toggle()"
+      [attr.aria-label]="'Switch to ' + (units.isMetric() ? 'imperial' : 'metric') + ' units'"
+    >
+      <span [class.is-active]="units.isMetric()">kg</span>
+      <span class="unit-toggle__sep">|</span>
+      <span [class.is-active]="!units.isMetric()">lb</span>
+    </button>
+  </header>
+
+  <main class="app-main">
+    <router-outlet></router-outlet>
+  </main>
+
+  <nav class="tab-bar">
+    <a
+      class="tab-bar__item"
+      routerLink="/"
+      routerLinkActive="is-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span class="tab-bar__icon">🏋️</span>
+      <span class="tab-bar__label">Today</span>
+    </a>
+    <a class="tab-bar__item" routerLink="/history" routerLinkActive="is-active">
+      <span class="tab-bar__icon">📜</span>
+      <span class="tab-bar__label">History</span>
+    </a>
+  </nav>
+</div>

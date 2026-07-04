@@ -1,0 +1,110 @@
+<article
+  class="exercise-card"
+  [class.is-current]="isCurrent"
+  [class.is-complete]="isComplete"
+>
+  <div class="exercise-card__accent" *ngIf="isCurrent"></div>
+
+  <header class="exercise-card__header">
+    <div class="exercise-card__title-block">
+      <h3 class="exercise-card__name">{{ exercise.name }}</h3>
+      <span class="exercise-card__target">
+        {{
+          exercise.targetWeightKg > 0
+            ? formatWeight(exercise.targetWeightKg) +
+              " " +
+              units.unitLabel() +
+              " · "
+            : ""
+        }}{{ exercise.targetReps }} reps × {{ exercise.targetSets }} sets
+      </span>
+    </div>
+
+    <a
+      class="exercise-card__history-link"
+      [routerLink]="['/history', exercise.id]"
+      title="View history for this exercise"
+    >
+      History
+    </a>
+  </header>
+
+  @if (lastLog && lastLog.completedSets.length > 0) {
+    <p class="exercise-card__last">Last time: {{ formatLastSets(lastLog) }}</p>
+  }
+
+  <div class="exercise-card__sets">
+    @for (set of workingSets; let i = $index; track set.setNumber) {
+      <div class="set-row">
+        <span class="set-row__label">Set {{ set.setNumber }}</span>
+
+        <div class="set-row__steppers">
+          <!-- Reps stepper -->
+          <div class="stepper">
+            <button
+              type="button"
+              class="stepper__btn stepper__btn--minus"
+              (click)="stepReps(i, -1)"
+              [attr.aria-label]="'Decrease reps for set ' + set.setNumber"
+            >
+              −
+            </button>
+            <div class="stepper__value">
+              <span class="stepper__number">{{ set.reps }}</span>
+              <span class="stepper__unit">reps</span>
+            </div>
+            <button
+              type="button"
+              class="stepper__btn stepper__btn--plus"
+              (click)="stepReps(i, 1)"
+              [attr.aria-label]="'Increase reps for set ' + set.setNumber"
+            >
+              +
+            </button>
+          </div>
+
+          <!-- Weight stepper -->
+          <div class="stepper stepper--weight">
+            <button
+              type="button"
+              class="stepper__btn stepper__btn--minus"
+              (click)="stepWeight(i, -1)"
+              [attr.aria-label]="'Decrease weight for set ' + set.setNumber"
+            >
+              −
+            </button>
+            <div class="stepper__value">
+              <span class="stepper__number">{{
+                formatWeight(set.weightKg)
+              }}</span>
+              <span class="stepper__unit">{{ units.unitLabel() }}</span>
+            </div>
+            <button
+              type="button"
+              class="stepper__btn stepper__btn--plus"
+              (click)="stepWeight(i, 1)"
+              [attr.aria-label]="'Increase weight for set ' + set.setNumber"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <footer class="exercise-card__footer">
+    @if (!isComplete) {
+      <button
+        type="button"
+        class="exercise-card__complete-btn"
+        [disabled]="!hasAnyLoggedReps"
+        (click)="markComplete.emit()"
+      >
+        Mark exercise done
+      </button>
+    } @else {
+      <span class="exercise-card__done-badge">✓ Done</span>
+    }
+  </footer>
+</article>

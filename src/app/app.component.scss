@@ -1,0 +1,127 @@
+.app-shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  /* keep content clear of the fixed bottom tab bar */
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  padding-top: calc(14px + env(safe-area-inset-top));
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-panel);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-header__mark {
+  font-size: 1.1rem;
+  color: var(--color-accent);
+}
+
+.app-header__title {
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* kg | lb pill toggle in the header */
+.unit-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  min-height: 36px;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+.unit-toggle:active {
+  border-color: var(--color-accent-dim);
+}
+
+.unit-toggle .is-active {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.unit-toggle__sep {
+  color: var(--color-border);
+}
+
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px 14px 32px;
+}
+
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: var(--color-panel);
+  border-top: 1px solid var(--color-border);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 20;
+}
+
+.tab-bar__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 10px 0 8px;
+  min-height: 64px;
+  text-decoration: none;
+  color: var(--color-text-muted);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-bar__icon {
+  font-size: 1.3rem;
+  line-height: 1;
+  filter: grayscale(1) opacity(0.7);
+}
+
+.tab-bar__label {
+  font-family: var(--font-display);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tab-bar__item.is-active {
+  color: var(--color-accent);
+}
+
+.tab-bar__item.is-active .tab-bar__icon {
+  filter: none;
+}

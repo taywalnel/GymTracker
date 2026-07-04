@@ -1,0 +1,236 @@
+.exercise-card {
+  position: relative;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 18px 16px 16px 20px;
+  margin-bottom: 14px;
+  transition: border-color 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+}
+
+.exercise-card.is-current {
+  background: var(--color-panel-raised);
+  border-color: var(--color-accent-dim);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
+.exercise-card.is-complete {
+  opacity: 0.55;
+}
+
+.exercise-card__accent {
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 4px;
+  background: var(--color-accent);
+  border-radius: 2px;
+}
+
+.exercise-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.exercise-card__title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.exercise-card__name {
+  font-size: 1.15rem;
+  line-height: 1.25;
+}
+
+.exercise-card__target {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.01em;
+}
+
+.exercise-card__note {
+  font-size: 0.78rem;
+  color: var(--color-warn);
+}
+
+.exercise-card__history-link {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.exercise-card__history-link:active {
+  color: var(--color-accent);
+  border-color: var(--color-accent-dim);
+}
+
+.exercise-card__last {
+  margin: 10px 0 16px;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+}
+
+.exercise-card__last--new {
+  color: var(--color-warn);
+}
+
+.exercise-card__sets {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Each set is its own row: label up top, two steppers side by side below.
+   Stacked vertically (not in a horizontal scroller) so nothing requires
+   precise small-target tapping or horizontal swiping mid-workout. */
+.set-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.set-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.set-row__label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.set-row__steppers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* The stepper: large flanking +/- buttons with the value in the middle.
+   Minimum 48px tap targets per accessibility guidance for touch interfaces. */
+.stepper {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: stretch;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  height: 56px;
+}
+
+.stepper__btn {
+  background: var(--color-panel-raised);
+  border: none;
+  color: var(--color-text);
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  transition: background 0.1s ease;
+}
+
+.stepper__btn:active {
+  background: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.stepper__btn--minus {
+  border-right: 1px solid var(--color-border);
+}
+
+.stepper__btn--plus {
+  border-left: 1px solid var(--color-border);
+}
+
+.stepper__value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  min-width: 0;
+}
+
+.stepper__number {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.stepper__unit {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+}
+
+.stepper--weight .stepper__number {
+  color: var(--color-accent);
+}
+
+.exercise-card__footer {
+  margin-top: 18px;
+  display: flex;
+  justify-content: stretch;
+}
+
+.exercise-card__complete-btn {
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  width: 100%;
+  min-height: 50px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.exercise-card__complete-btn:disabled {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+}
+
+.exercise-card__complete-btn:not(:disabled):active {
+  opacity: 0.85;
+}
+
+.exercise-card__done-badge {
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 600;
+  width: 100%;
+  text-align: center;
+  padding: 12px 0;
+}

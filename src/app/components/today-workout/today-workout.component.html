@@ -1,0 +1,70 @@
+@if (isLoading) {
+  <div class="state-message">Loading today's workout…</div>
+} @else if (today) {
+  <div class="today-header">
+    <span class="today-header__date">{{ todayDateLabel }}</span>
+    <h2 class="today-header__title">{{ today.routine.name }}</h2>
+
+    <div
+      class="progress-bar"
+      role="progressbar"
+      [attr.aria-valuenow]="completedCount"
+      [attr.aria-valuemax]="totalCount"
+    >
+      <div
+        class="progress-bar__fill"
+        [style.width.%]="
+          totalCount > 0 ? (completedCount / totalCount) * 100 : 0
+        "
+      ></div>
+    </div>
+    <span class="today-header__progress-label"
+      >{{ completedCount }} of {{ totalCount }} exercises done</span
+    >
+  </div>
+
+  @if (saveConfirmed) {
+    <div class="banner banner--success">
+      Session saved. Nice work — see you next time for
+      <strong>{{ today.routine.name }}</strong> again in two more sessions.
+    </div>
+  } @else {
+    <div class="exercise-list">
+      @for (exercise of today.routine.exercises; track exercise.id) {
+        <app-exercise-card
+          [exercise]="exercise"
+          [lastLog]="today.lastPerformance.get(exercise.id) ?? null"
+          [isCurrent]="exercise.id === currentExerciseId"
+          [isComplete]="completedExerciseIds.has(exercise.id)"
+          (setsChanged)="onSetsChanged(exercise.id, $event)"
+          (markComplete)="onMarkComplete(exercise.id)"
+        ></app-exercise-card>
+      }
+    </div>
+
+    <!-- Spacer so the last card isn't hidden behind the sticky finish bar -->
+    <div class="finish-bar-spacer"></div>
+
+    <div class="finish-bar">
+      @if (!allExercisesComplete && totalCount > 0) {
+        <span class="finish-bar__hint"
+          >You can save now and log the rest later.</span
+        >
+      }
+      <button
+        type="button"
+        class="finish-bar__btn"
+        [disabled]="!hasAnyProgress || isSaving"
+        (click)="finishSession()"
+      >
+        {{
+          isSaving
+            ? "Saving…"
+            : allExercisesComplete
+              ? "Finish & save session"
+              : "Save progress so far"
+        }}
+      </button>
+    </div>
+  }
+}

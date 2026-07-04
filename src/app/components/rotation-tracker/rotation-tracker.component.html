@@ -1,0 +1,15 @@
+<div class="loop">
+  @for (routine of routines; track routine.id; let isLast = $last) {
+    <div class="loop__row">
+      <div class="loop__node" [class.is-active]="routine.id === activeRoutineId()">
+        <span class="loop__dot"></span>
+        <span class="loop__label">{{ routine.name }}</span>
+      </div>
+    </div>
+    @if (!isLast) {
+      <span class="loop__arrow">↓</span>
+    } @else {
+      <span class="loop__arrow loop__arrow--final">↺ back to {{ routines[0].name }}</span>
+    }
+  }
+</div>

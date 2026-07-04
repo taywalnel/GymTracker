@@ -1,0 +1,124 @@
+.state-message {
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  padding: 40px 0;
+  text-align: center;
+}
+
+.today-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.today-header__date {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.today-header__title {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar__fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.today-header__progress-label {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.exercise-list {
+  margin-bottom: 8px;
+}
+
+/* Reserves space at the bottom of the scrollable content equal to the
+   sticky finish bar's height, so the last exercise card is never hidden behind it. */
+.finish-bar-spacer {
+  height: 100px;
+}
+
+/* Sticky just above the bottom tab bar (64px + safe area) so the primary
+   action is always one thumb-reach away without scrolling to the page end. */
+.finish-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(64px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 14px;
+  background: linear-gradient(to top, var(--color-bg) 60%, transparent);
+  z-index: 15;
+}
+
+.finish-bar__btn {
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 16px 24px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  width: 100%;
+  max-width: 560px;
+  min-height: 54px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.finish-bar__btn:disabled {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  box-shadow: none;
+}
+
+.finish-bar__btn:not(:disabled):active {
+  opacity: 0.9;
+}
+
+.finish-bar__hint {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.banner {
+  border-radius: var(--radius-md);
+  padding: 18px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.banner--success {
+  background: rgba(198, 241, 53, 0.1);
+  border: 1px solid var(--color-accent-dim);
+  color: var(--color-text);
+}
+
+.banner--success strong {
+  color: var(--color-accent);
+}
