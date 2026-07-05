@@ -1,0 +1,16 @@
+<div class="account-page">
+  <h2 class="account-page__title">Account</h2>
+
+  @if (auth.currentUser(); as user) {
+    <section class="account-section">
+      <div class="account-row">
+        <span class="account-row__label">Signed in as</span>
+        <span class="account-row__value">{{ user.displayName || user.email }}</span>
+      </div>
+    </section>
+
+    <section class="account-section">
+      <button class="signout-btn" (click)="auth.signOut()">Sign out</button>
+    </section>
+  }
+</div>

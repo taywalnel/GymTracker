@@ -3,6 +3,8 @@ import {
   Auth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   user,
 } from "@angular/fire/auth";
@@ -19,12 +21,29 @@ export class AuthService {
   constructor(
     private auth: Auth,
     private router: Router,
-  ) {}
+  ) {
+    this.handleRedirectResult();
+  }
+
+  private isMobile(): boolean {
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  }
+
+  private async handleRedirectResult(): Promise<void> {
+    const result = await getRedirectResult(this.auth);
+    if (result?.user) {
+      await this.router.navigate(["/"]);
+    }
+  }
 
   async signInWithGoogle(): Promise<void> {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(this.auth, provider);
-    await this.router.navigate(["/"]);
+    if (this.isMobile()) {
+      await signInWithRedirect(this.auth, provider);
+    } else {
+      await signInWithPopup(this.auth, provider);
+      await this.router.navigate(["/"]);
+    }
   }
 
   async signOut(): Promise<void> {

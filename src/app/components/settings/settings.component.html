@@ -28,18 +28,4 @@
     </div>
   </section>
 
-  <section class="settings-section">
-    <h3 class="settings-section__heading">Account</h3>
-    @if (auth.currentUser(); as user) {
-      <div class="settings-row">
-        <span class="settings-row__label">Signed in as</span>
-        <span class="settings-row__value">{{
-          user.displayName || user.email
-        }}</span>
-      </div>
-      <div class="settings-row">
-        <button class="signout-btn" (click)="auth.signOut()">Sign out</button>
-      </div>
-    }
-  </section>
 </div>

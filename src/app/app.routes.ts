@@ -5,6 +5,7 @@ import { SessionDetailComponent } from "./components/session-detail/session-deta
 import { ProgramComponent } from "./components/program/program.component";
 import { ProgramEditorComponent } from "./components/program/program-editor.component";
 import { SettingsComponent } from "./components/settings/settings.component";
+import { AccountComponent } from "./components/account/account.component";
 import { LoginComponent } from "./components/login/login.component";
 import { authGuard } from "./guards/auth.guard";
 
@@ -56,6 +57,12 @@ export const routes: Routes = [
     path: "settings",
     component: SettingsComponent,
     title: "Settings — Gym Tracker",
+    canActivate: [authGuard],
+  },
+  {
+    path: "account",
+    component: AccountComponent,
+    title: "Account — Gym Tracker",
     canActivate: [authGuard],
   },
   { path: "**", redirectTo: "" },
