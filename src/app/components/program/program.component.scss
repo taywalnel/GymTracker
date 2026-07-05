@@ -1,0 +1,183 @@
+.program-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.program-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.program-title {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+.program-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: var(--color-accent);
+  color: var(--color-bg);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  &:active {
+    opacity: 0.85;
+  }
+}
+
+.loading,
+.empty-state {
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  padding: 40px 0;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.routine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.routine-card {
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.routine-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px 10px;
+}
+
+.routine-card__title {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.routine-card__badge {
+  display: inline-block;
+  padding: 3px 10px;
+  background: var(--color-panel-raised);
+  color: var(--color-text-muted);
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.routine-card__exercises {
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px 12px;
+  gap: 0;
+}
+
+.exercise-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &--more {
+    color: var(--color-text-muted);
+    font-size: 0.78rem;
+    justify-content: flex-start;
+    padding-top: 8px;
+    border-bottom: none;
+  }
+}
+
+.exercise-item__name {
+  font-weight: 500;
+  flex: 1;
+}
+
+.exercise-item__meta {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  margin-left: 8px;
+  font-family: var(--font-display);
+}
+
+.routine-card__actions {
+  display: flex;
+  gap: 1px;
+  border-top: 1px solid var(--color-border);
+}
+
+.routine-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  padding: 12px;
+  border: none;
+  background: var(--color-panel-raised);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  text-decoration: none;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  &--edit {
+    color: var(--color-accent);
+
+    &:active {
+      background: color-mix(
+        in srgb,
+        var(--color-accent) 12%,
+        var(--color-panel-raised)
+      );
+    }
+  }
+
+  &--delete {
+    color: var(--color-danger);
+    border-left: 1px solid var(--color-border);
+
+    &:active {
+      background: color-mix(
+        in srgb,
+        var(--color-danger) 12%,
+        var(--color-panel-raised)
+      );
+    }
+  }
+}

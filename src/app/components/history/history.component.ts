@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { WorkoutSession, ExerciseLog } from '../../models/workout.models';
-import { WorkoutService } from '../../services/workout.service';
-import { UnitPreferenceService } from '../../services/unit-preference.service';
+import { Component, OnInit } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { ActivatedRoute, RouterLink } from "@angular/router";
+import { WorkoutSession, ExerciseLog } from "../../models/workout.models";
+import { WorkoutService } from "../../services/workout.service";
+import { UnitPreferenceService } from "../../services/unit-preference.service";
 
 interface ExerciseHistoryEntry {
   date: string;
@@ -19,16 +19,15 @@ interface CalendarDay {
 }
 
 @Component({
-  selector: 'app-history',
+  selector: "app-history",
   standalone: true,
   imports: [CommonModule, RouterLink],
-  templateUrl: './history.component.html',
-  styleUrl: './history.component.scss',
+  templateUrl: "./history.component.html",
+  styleUrl: "./history.component.scss",
 })
 export class HistoryComponent implements OnInit {
   // Session-list mode
   sessions: WorkoutSession[] = [];
-  expandedSessionId: string | null = null;
 
   // Single-exercise mode
   exerciseId: string | null = null;
@@ -38,7 +37,7 @@ export class HistoryComponent implements OnInit {
   // Calendar state
   calendarDays: CalendarDay[] = [];
   calendarMonth: Date = new Date();
-  calendarMonthLabel = '';
+  calendarMonthLabel = "";
   workoutDateSet = new Set<string>();
 
   isLoading = true;
@@ -51,7 +50,7 @@ export class HistoryComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
-      this.exerciseId = params.get('exerciseId');
+      this.exerciseId = params.get("exerciseId");
       if (this.exerciseId) {
         this.loadExerciseHistory(this.exerciseId);
       } else {
@@ -74,13 +73,14 @@ export class HistoryComponent implements OnInit {
     this.isLoading = true;
     this.workoutService.getExerciseHistory(exerciseId).subscribe((entries) => {
       this.exerciseEntries = entries;
-      this.exerciseName = entries[0]?.log.exerciseName ?? this.humanizeId(exerciseId);
+      this.exerciseName =
+        entries[0]?.log.exerciseName ?? this.humanizeId(exerciseId);
       this.isLoading = false;
     });
   }
 
   private humanizeId(id: string): string {
-    return id.replace('ex-', '').replace(/-/g, ' ');
+    return id.replace("ex-", "").replace(/-/g, " ");
   }
 
   // ---- Calendar ----
@@ -90,8 +90,8 @@ export class HistoryComponent implements OnInit {
     const month = this.calendarMonth.getMonth();
 
     this.calendarMonthLabel = this.calendarMonth.toLocaleDateString(undefined, {
-      month: 'long',
-      year: 'numeric',
+      month: "long",
+      year: "numeric",
     });
 
     const days: CalendarDay[] = [];
@@ -113,7 +113,11 @@ export class HistoryComponent implements OnInit {
 
     // Pad end to fill the last row (up to 42 cells total for a 6-row grid)
     while (days.length % 7 !== 0) {
-      const date = new Date(year, month + 1, days.length - startDow - lastDay.getDate() + 1);
+      const date = new Date(
+        year,
+        month + 1,
+        days.length - startDow - lastDay.getDate() + 1,
+      );
       days.push(this.makeDay(date, todayStr, false));
     }
 
@@ -151,24 +155,25 @@ export class HistoryComponent implements OnInit {
 
   // ---- Session list ----
 
-  toggleSession(sessionId: string): void {
-    this.expandedSessionId = this.expandedSessionId === sessionId ? null : sessionId;
-  }
-
   formatSetReps(log: ExerciseLog): string {
-    return log.completedSets.map((s) => s.reps).join(' / ') || '—';
+    return log.completedSets.map((s) => s.reps).join(" / ") || "—";
   }
 
   formatSetWeight(log: ExerciseLog): string {
-    if (!log.completedSets.length || log.completedSets[0].weightKg === 0) return '';
-    return this.units.formatWeight(log.completedSets[0].weightKg) + ' ' + this.units.unitLabel();
+    if (!log.completedSets.length || log.completedSets[0].weightKg === 0)
+      return "";
+    return (
+      this.units.formatWeight(log.completedSets[0].weightKg) +
+      " " +
+      this.units.unitLabel()
+    );
   }
 
   formatDate(dateStr: string): string {
     return new Date(dateStr).toLocaleDateString(undefined, {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
+      weekday: "short",
+      month: "short",
+      day: "numeric",
     });
   }
 }

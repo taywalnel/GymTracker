@@ -1,21 +1,38 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { ExercisePrescription, ExerciseLog, CompletedSet } from '../../models/workout.models';
-import { UnitPreferenceService } from '../../services/unit-preference.service';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  OnInit,
+  OnChanges,
+  SimpleChanges,
+} from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { RouterLink } from "@angular/router";
+import {
+  ExercisePrescription,
+  ExerciseLog,
+  CompletedSet,
+} from "../../models/workout.models";
+import { UnitPreferenceService } from "../../services/unit-preference.service";
+import { RestTimerService } from "../../services/rest-timer.service";
+import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
 
 @Component({
-  selector: 'app-exercise-card',
+  selector: "app-exercise-card",
   standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: './exercise-card.component.html',
-  styleUrl: './exercise-card.component.scss',
+  imports: [CommonModule, RouterLink, NavDotsComponent],
+  templateUrl: "./exercise-card.component.html",
+  styleUrl: "./exercise-card.component.scss",
 })
 export class ExerciseCardComponent implements OnInit, OnChanges {
   @Input({ required: true }) exercise!: ExercisePrescription;
   @Input() lastLog: ExerciseLog | null = null;
   @Input() isCurrent = false;
   @Input() isComplete = false;
+  @Input() routineId: string | null = null;
+  /** Previously saved sets to restore when navigating back to this exercise */
+  @Input() savedSets: CompletedSet[] | null = null;
 
   /** Emits the updated set data every time the person edits a rep/weight value */
   @Output() setsChanged = new EventEmitter<CompletedSet[]>();
@@ -25,30 +42,122 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
   /** Working sets, always stored internally in kg regardless of display unit. */
   workingSets: CompletedSet[] = [];
 
+  /** Index of the set currently shown in the stepper. */
+  activeSetIndex = 0;
+
+  /** Set indices that have been marked complete. */
+  completedSetIndices = new Set<number>();
+
   /** Whether each set's reps stepper has been "started" — controls 0-state vs target-prefill behavior */
   private setStarted: boolean[] = [];
+  /** Whether each set's reps stepper has ever been touched — never resets to false */
+  protected setTouched: boolean[] = [];
 
   readonly repStep = 1;
 
-  constructor(public units: UnitPreferenceService) {}
+  constructor(
+    public units: UnitPreferenceService,
+    public restTimer: RestTimerService,
+  ) {}
 
   ngOnInit(): void {
     this.initSets();
   }
 
-  ngOnChanges(): void {
-    if (this.workingSets.length === 0) {
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes["exercise"]) {
+      this.initSets();
+    } else if (this.workingSets.length === 0) {
       this.initSets();
     }
   }
 
   private initSets(): void {
-    this.workingSets = Array.from({ length: this.exercise.targetSets }, (_, i) => ({
-      setNumber: i + 1,
-      reps: 0,
-      weightKg: this.exercise.targetWeightKg,
+    if (this.savedSets && this.savedSets.length === this.exercise.targetSets) {
+      this.workingSets = this.savedSets.map((s) => ({ ...s }));
+      this.setStarted = this.savedSets.map((s) => s.reps > 0);
+      this.setTouched = this.savedSets.map((s) => s.reps > 0);
+      this.completedSetIndices = new Set(
+        this.savedSets
+          .map((s, i) => (s.reps > 0 ? i : -1))
+          .filter((i) => i !== -1),
+      );
+      // Start on the first incomplete set, or the last set if all are done
+      const firstIncomplete = this.workingSets.findIndex(
+        (_, i) => !this.completedSetIndices.has(i),
+      );
+      this.activeSetIndex =
+        firstIncomplete !== -1 ? firstIncomplete : this.workingSets.length - 1;
+    } else {
+      this.workingSets = Array.from(
+        { length: this.exercise.targetSets },
+        (_, i) => ({
+          setNumber: i + 1,
+          reps: 0,
+          weightKg: this.exercise.targetWeightKg,
+        }),
+      );
+      this.setStarted = Array.from(
+        { length: this.exercise.targetSets },
+        () => false,
+      );
+      this.setTouched = Array.from(
+        { length: this.exercise.targetSets },
+        () => false,
+      );
+      this.activeSetIndex = 0;
+      this.completedSetIndices = new Set<number>();
+    }
+  }
+
+  get setNavItems(): NavDotItem[] {
+    return this.workingSets.map((set, i) => ({
+      id: i,
+      isActive: this.activeSetIndex === i,
+      isComplete: this.completedSetIndices.has(i),
+      label: this.completedSetIndices.has(i) ? set.reps : undefined,
+      ariaLabel:
+        `Set ${set.setNumber}` +
+        (this.completedSetIndices.has(i) ? `: ${set.reps} reps` : ""),
     }));
-    this.setStarted = Array.from({ length: this.exercise.targetSets }, () => false);
+  }
+
+  navigateToSet(index: number): void {
+    this.activeSetIndex = index;
+  }
+
+  completeCurrentSet(): void {
+    const idx = this.activeSetIndex;
+    // If the stepper was never touched, the displayed value is targetReps — persist that.
+    if (!this.setTouched[idx]) {
+      this.workingSets[idx] = {
+        ...this.workingSets[idx],
+        reps: this.exercise.targetReps,
+      };
+      this.setStarted[idx] = true;
+    }
+
+    this.completedSetIndices = new Set([...this.completedSetIndices, idx]);
+    this.setsChanged.emit(this.workingSets);
+
+    const total = this.workingSets.length;
+    let advanced = false;
+    for (let offset = 1; offset <= total; offset++) {
+      const next = (this.activeSetIndex + offset) % total;
+      if (!this.completedSetIndices.has(next)) {
+        this.activeSetIndex = next;
+        advanced = true;
+        break;
+      }
+    }
+
+    if (!advanced) {
+      // All sets complete
+      this.markComplete.emit();
+      return;
+    }
+
+    this.restTimer.start();
   }
 
   /**
@@ -60,16 +169,17 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
     const current = this.workingSets[setIndex];
     let nextReps: number;
 
-    if (!this.setStarted[setIndex] && direction === 1) {
-      nextReps = this.exercise.targetReps;
-      this.setStarted[setIndex] = true;
+    if (!this.setStarted[setIndex]) {
+      nextReps = Math.max(
+        0,
+        this.exercise.targetReps + direction * this.repStep,
+      );
+      this.setStarted[setIndex] = nextReps > 0;
     } else {
       nextReps = Math.max(0, current.reps + direction * this.repStep);
-      if (nextReps === 0) {
-        this.setStarted[setIndex] = false;
-      }
     }
 
+    this.setTouched[setIndex] = true;
     this.workingSets[setIndex] = { ...current, reps: nextReps };
     this.setsChanged.emit(this.workingSets);
   }
@@ -82,7 +192,10 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
   stepWeight(setIndex: number, direction: 1 | -1): void {
     const current = this.workingSets[setIndex];
     const displayValue = this.units.fromKg(current.weightKg);
-    const nextDisplayValue = Math.max(0, displayValue + direction * this.units.weightStep);
+    const nextDisplayValue = Math.max(
+      0,
+      displayValue + direction * this.units.weightStep,
+    );
     const nextWeightKg = this.units.toKg(nextDisplayValue);
     this.workingSets[setIndex] = { ...current, weightKg: nextWeightKg };
     this.setsChanged.emit(this.workingSets);
@@ -99,6 +212,6 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
 
   /** Renders the last session's sets as a compact string, e.g. "10 / 8 / 6" */
   formatLastSets(log: ExerciseLog): string {
-    return log.completedSets.map((s) => s.reps).join(' / ');
+    return log.completedSets.map((s) => s.reps).join(" / ");
   }
 }

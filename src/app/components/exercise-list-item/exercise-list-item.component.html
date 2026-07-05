@@ -1,0 +1,18 @@
+<div class="top" [class.top--with-btn]="showEditBtn">
+  @if (nameLink) {
+    <a class="name" [routerLink]="nameLink">{{ name }}</a>
+  } @else {
+    <span class="name">{{ name }}</span>
+  }
+  @if (showEditBtn) {
+    <button class="edit-btn" type="button" aria-label="Edit exercise">✏</button>
+  } @else if (meta) {
+    <span class="meta">{{ meta }}</span>
+  }
+</div>
+@if (showEditBtn && meta) {
+  <span class="subtitle">{{ meta }}</span>
+}
+@if (navDots) {
+  <app-nav-dots [items]="navDots" [layout]="navDotsLayout" />
+}

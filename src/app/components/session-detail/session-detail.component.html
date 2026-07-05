@@ -1,0 +1,26 @@
+@if (isLoading) {
+  <div class="state-message">Loading…</div>
+} @else if (!session) {
+  <a routerLink="/history" class="back-link">← All history</a>
+  <p class="state-message state-message--left">Session not found.</p>
+} @else {
+  <div class="detail-fixed">
+    <a routerLink="/history" class="back-link">← All history</a>
+
+    <div class="session-header">
+      <h2 class="session-header__routine">{{ session.routineName }}</h2>
+      <span class="session-header__date">{{ formatDate(session.date) }}</span>
+    </div>
+  </div>
+
+  <ul class="exercise-list">
+    @for (ex of exercises; track ex.log.exerciseId) {
+      <app-exercise-list-item
+        [name]="ex.log.exerciseName"
+        [nameLink]="['/history', ex.log.exerciseId]"
+        [meta]="formatWeight(ex.log)"
+        [navDots]="ex.dots"
+      />
+    }
+  </ul>
+}

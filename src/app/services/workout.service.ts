@@ -1,152 +1,263 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, of, delay } from 'rxjs';
+import { Injectable, signal } from "@angular/core";
+import { Observable, from, map } from "rxjs";
+import {
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  setDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  writeBatch,
+} from "@angular/fire/firestore";
+import { Auth } from "@angular/fire/auth";
 import {
   Routine,
   WorkoutSession,
   TodayWorkout,
   ExerciseLog,
   CompletedSet,
-} from '../models/workout.models';
-import { MOCK_ROUTINES, MOCK_SESSIONS } from './mock-data';
+} from "../models/workout.models";
 
-/**
- * WorkoutService is the single boundary between the UI and "where data lives".
- *
- * Right now it's backed by in-memory arrays seeded from mock-data.ts.
- * When a real backend exists, every method here gets reimplemented with
- * HttpClient calls (e.g. this.http.get<Routine[]>('/api/routines')) and
- * every component that depends on this service stays untouched, because
- * they only ever talk to these method signatures, never to the mock arrays
- * directly.
- *
- * The artificial `delay(150)` on each call exists so the UI's loading states
- * get exercised now, instead of only appearing once a real network is involved.
- */
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class WorkoutService {
-  private routines: Routine[] = MOCK_ROUTINES;
-  private sessions: WorkoutSession[] = [...MOCK_SESSIONS];
+  /** Reactive cache of all sessions — updated after every read/write. */
+  readonly sessionsSignal = signal<WorkoutSession[]>([]);
 
-  /** Simple reactive cache of all sessions, useful for the history view */
-  readonly sessionsSignal = signal<WorkoutSession[]>(this.sessions);
+  /** Reactive cache of all routines — updated after every read/write. */
+  readonly routinesSignal = signal<Routine[]>([]);
 
-  /**
-   * Determine which routine comes next in the rotation, then bundle it with
-   * the most recent prior performance for each of its exercises.
-   *
-   * Rotation logic: find the most recently completed session (by date),
-   * look up its routine's rotationOrder, and return the routine at the
-   * next rotationOrder (wrapping around). If there's no history at all,
-   * start at rotationOrder 0.
-   */
+  constructor(
+    private firestore: Firestore,
+    private auth: Auth,
+  ) {}
+
+  private get uid(): string {
+    const uid = this.auth.currentUser?.uid;
+    if (!uid) throw new Error("User not authenticated");
+    return uid;
+  }
+
+  private routinesCol() {
+    return collection(this.firestore, `users/${this.uid}/routines`);
+  }
+
+  private sessionsCol() {
+    return collection(this.firestore, `users/${this.uid}/sessions`);
+  }
+
+  // ---- reads ------------------------------------------------------------
+
   getTodayWorkout(): Observable<TodayWorkout> {
-    const nextRoutine = this.determineNextRoutine();
-    const previousSession = this.findMostRecentSessionForRoutine(nextRoutine.id);
-    const lastPerformance = this.buildLastPerformanceMap(nextRoutine.id);
-
-    const result: TodayWorkout = {
-      routine: nextRoutine,
-      previousSession,
-      lastPerformance,
-    };
-
-    return of(result).pipe(delay(150));
+    return from(this._getTodayWorkout());
   }
 
-  /** All routines, in rotation order. Useful for the rotation tracker UI. */
   getAllRoutines(): Observable<Routine[]> {
-    const sorted = [...this.routines].sort((a, b) => a.rotationOrder - b.rotationOrder);
-    return of(sorted).pipe(delay(150));
-  }
-
-  /** Full session history, most recent first. */
-  getSessionHistory(): Observable<WorkoutSession[]> {
-    const sorted = [...this.sessions].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    return from(this._fetchRoutines()).pipe(
+      map((routines) => {
+        this.routinesSignal.set(routines);
+        return routines;
+      }),
     );
-    return of(sorted).pipe(delay(150));
   }
 
-  /** History of a single exercise across all past sessions, most recent first. */
-  getExerciseHistory(exerciseId: string): Observable<{ date: string; log: ExerciseLog }[]> {
-    const entries = this.sessions
-      .filter((s) => !s.inProgress)
-      .map((s) => {
-        const log = s.exerciseLogs.find((l) => l.exerciseId === exerciseId);
-        return log ? { date: s.date, log } : null;
-      })
-      .filter((entry): entry is { date: string; log: ExerciseLog } => entry !== null)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    return of(entries).pipe(delay(150));
+  getSessionHistory(): Observable<WorkoutSession[]> {
+    return from(this._fetchSessions()).pipe(
+      map((sessions) => {
+        this.sessionsSignal.set(sessions);
+        return sessions;
+      }),
+    );
   }
 
-  /**
-   * Save a completed (or in-progress) session. If a session with this id
-   * already exists, it's updated in place; otherwise it's added.
-   */
-  saveSession(session: WorkoutSession): Observable<WorkoutSession> {
-    const existingIndex = this.sessions.findIndex((s) => s.id === session.id);
-    if (existingIndex >= 0) {
-      this.sessions[existingIndex] = session;
-    } else {
-      this.sessions.push(session);
-    }
-    this.sessionsSignal.set([...this.sessions]);
-    return of(session).pipe(delay(150));
+  getExerciseHistory(
+    exerciseId: string,
+  ): Observable<{ date: string; log: ExerciseLog }[]> {
+    return from(this._fetchSessions()).pipe(
+      map((sessions) =>
+        sessions
+          .filter((s) => !s.inProgress)
+          .flatMap((s) => {
+            const log = s.exerciseLogs.find((l) => l.exerciseId === exerciseId);
+            return log ? [{ date: s.date, log }] : [];
+          }),
+      ),
+    );
   }
 
-  /** Generates a fresh session id. Swap for a server-issued id once a backend exists. */
-  generateSessionId(): string {
-    return `session-${Date.now()}`;
-  }
-
-  /**
-   * Returns the set of ISO dates (YYYY-MM-DD) on which a session was
-   * completed. Used to highlight workout days on the history calendar.
-   */
   getSessionDates(): Observable<string[]> {
-    const dates = this.sessions.filter((s) => !s.inProgress).map((s) => s.date);
-    return of(dates).pipe(delay(150));
+    return from(this._fetchSessions()).pipe(
+      map((sessions) =>
+        sessions.filter((s) => !s.inProgress).map((s) => s.date),
+      ),
+    );
+  }
+
+  getSessionById(sessionId: string): Observable<WorkoutSession | null> {
+    return from(
+      getDoc(doc(this.sessionsCol(), sessionId)).then((snap) =>
+        snap.exists() ? (snap.data() as WorkoutSession) : null,
+      ),
+    );
+  }
+
+  getRoutineById(id: string): Observable<Routine | null> {
+    return from(
+      getDoc(doc(this.routinesCol(), id)).then((snap) =>
+        snap.exists() ? (snap.data() as Routine) : null,
+      ),
+    );
+  }
+
+  // ---- writes -----------------------------------------------------------
+
+  saveSession(session: WorkoutSession): Observable<WorkoutSession> {
+    return from(
+      setDoc(doc(this.sessionsCol(), session.id), session).then(() => {
+        const current = this.sessionsSignal();
+        const idx = current.findIndex((s) => s.id === session.id);
+        if (idx >= 0) {
+          const updated = [...current];
+          updated[idx] = session;
+          this.sessionsSignal.set(updated);
+        } else {
+          this.sessionsSignal.set([session, ...current]);
+        }
+        return session;
+      }),
+    );
+  }
+
+  saveRoutine(routine: Routine): Observable<Routine> {
+    return from(this._saveRoutine(routine));
+  }
+
+  deleteRoutine(id: string): Observable<boolean> {
+    return from(this._deleteRoutine(id));
+  }
+
+  // ---- id generators ----------------------------------------------------
+
+  generateSessionId(): string {
+    return doc(this.sessionsCol()).id;
+  }
+
+  generateRoutineId(): string {
+    return doc(this.routinesCol()).id;
+  }
+
+  generateExerciseId(): string {
+    // Re-uses the auto-ID mechanism; the doc is never actually written.
+    return doc(collection(this.firestore, `users/${this.uid}/exercises`)).id;
   }
 
   // ---- internal helpers -------------------------------------------------
 
-  private determineNextRoutine(): Routine {
-    const sortedByDate = [...this.sessions]
+  private async _fetchRoutines(): Promise<Routine[]> {
+    const snap = await getDocs(
+      query(this.routinesCol(), orderBy("rotationOrder")),
+    );
+    return snap.docs.map((d) => d.data() as Routine);
+  }
+
+  private async _fetchSessions(): Promise<WorkoutSession[]> {
+    const snap = await getDocs(
+      query(this.sessionsCol(), orderBy("date", "desc")),
+    );
+    return snap.docs.map((d) => d.data() as WorkoutSession);
+  }
+
+  private async _getTodayWorkout(): Promise<TodayWorkout> {
+    const [routines, sessions] = await Promise.all([
+      this._fetchRoutines(),
+      this._fetchSessions(),
+    ]);
+    this.routinesSignal.set(routines);
+    this.sessionsSignal.set(sessions);
+
+    const nextRoutine = this._determineNextRoutine(routines, sessions);
+    const sessionsForRoutine = sessions.filter(
+      (s) => s.routineId === nextRoutine.id && !s.inProgress,
+    );
+    // sessions are already newest-first from the query
+    const previousSession = sessionsForRoutine[0] ?? null;
+    const lastPerformance = this._buildLastPerformanceMap(sessionsForRoutine);
+
+    return { routine: nextRoutine, previousSession, lastPerformance };
+  }
+
+  private async _saveRoutine(routine: Routine): Promise<Routine> {
+    const current = [...this.routinesSignal()];
+    const idx = current.findIndex((r) => r.id === routine.id);
+    if (idx >= 0) {
+      current[idx] = routine;
+    } else {
+      current.push(routine);
+    }
+    current.forEach((r, i) => {
+      r.rotationOrder = i;
+    });
+
+    const batch = writeBatch(this.firestore);
+    for (const r of current) {
+      batch.set(doc(this.routinesCol(), r.id), r);
+    }
+    await batch.commit();
+    this.routinesSignal.set([...current]);
+    return routine;
+  }
+
+  private async _deleteRoutine(id: string): Promise<boolean> {
+    const remaining = [...this.routinesSignal()].filter((r) => r.id !== id);
+    remaining.forEach((r, i) => {
+      r.rotationOrder = i;
+    });
+
+    const batch = writeBatch(this.firestore);
+    batch.delete(doc(this.routinesCol(), id));
+    for (const r of remaining) {
+      batch.set(doc(this.routinesCol(), r.id), r);
+    }
+    await batch.commit();
+    this.routinesSignal.set([...remaining]);
+    return true;
+  }
+
+  private _determineNextRoutine(
+    routines: Routine[],
+    sessions: WorkoutSession[],
+  ): Routine {
+    if (routines.length === 0) throw new Error("No routines found");
+
+    const completed = sessions
       .filter((s) => !s.inProgress)
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    if (sortedByDate.length === 0) {
-      return this.routines.find((r) => r.rotationOrder === 0) ?? this.routines[0];
+    if (completed.length === 0) {
+      return routines.find((r) => r.rotationOrder === 0) ?? routines[0];
     }
 
-    const lastRoutine = this.routines.find((r) => r.id === sortedByDate[0].routineId);
+    const lastRoutine = routines.find((r) => r.id === completed[0].routineId);
     if (!lastRoutine) {
-      return this.routines.find((r) => r.rotationOrder === 0) ?? this.routines[0];
+      return routines.find((r) => r.rotationOrder === 0) ?? routines[0];
     }
 
-    const maxOrder = Math.max(...this.routines.map((r) => r.rotationOrder));
-    const nextOrder = lastRoutine.rotationOrder === maxOrder ? 0 : lastRoutine.rotationOrder + 1;
-    return this.routines.find((r) => r.rotationOrder === nextOrder) ?? this.routines[0];
+    const maxOrder = Math.max(...routines.map((r) => r.rotationOrder));
+    const nextOrder =
+      lastRoutine.rotationOrder === maxOrder
+        ? 0
+        : lastRoutine.rotationOrder + 1;
+    return routines.find((r) => r.rotationOrder === nextOrder) ?? routines[0];
   }
 
-  private findMostRecentSessionForRoutine(routineId: string): WorkoutSession | null {
-    const matches = this.sessions
-      .filter((s) => s.routineId === routineId && !s.inProgress)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    return matches[0] ?? null;
-  }
-
-  private buildLastPerformanceMap(routineId: string): Map<string, ExerciseLog> {
+  private _buildLastPerformanceMap(
+    sessionsNewestFirst: WorkoutSession[],
+  ): Map<string, ExerciseLog> {
     const map = new Map<string, ExerciseLog>();
-    const sessionsForRoutine = this.sessions
-      .filter((s) => s.routineId === routineId && !s.inProgress)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    // Walk from oldest to newest within the filtered set so newer logs
-    // overwrite older ones, leaving the single most recent log per exercise.
-    for (const session of [...sessionsForRoutine].reverse()) {
+    // Walk oldest→newest so newer logs overwrite older ones.
+    for (const session of [...sessionsNewestFirst].reverse()) {
       for (const log of session.exerciseLogs) {
         if (log.completedSets.length > 0) {
           map.set(log.exerciseId, log);
@@ -159,5 +270,9 @@ export class WorkoutService {
 
 /** Small helper used by components to build an empty CompletedSet array for a fresh log. */
 export function emptySets(count: number): CompletedSet[] {
-  return Array.from({ length: count }, (_, i) => ({ setNumber: i + 1, reps: 0, weightKg: 0 }));
+  return Array.from({ length: count }, (_, i) => ({
+    setNumber: i + 1,
+    reps: 0,
+    weightKg: 0,
+  }));
 }

@@ -1,46 +1,86 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { TodayWorkout, WorkoutSession, ExerciseLog, CompletedSet } from '../../models/workout.models';
-import { WorkoutService } from '../../services/workout.service';
-import { RotationTrackerComponent } from '../rotation-tracker/rotation-tracker.component';
-import { ExerciseCardComponent } from '../exercise-card/exercise-card.component';
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { CommonModule, DatePipe } from "@angular/common";
+import { Router } from "@angular/router";
+import {
+  TodayWorkout,
+  WorkoutSession,
+  ExerciseLog,
+  CompletedSet,
+} from "../../models/workout.models";
+import { WorkoutService } from "../../services/workout.service";
+import { RestTimerService } from "../../services/rest-timer.service";
+import { ExerciseCardComponent } from "../exercise-card/exercise-card.component";
+import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
 
 @Component({
-  selector: 'app-today-workout',
+  selector: "app-today-workout",
   standalone: true,
-  imports: [CommonModule, RotationTrackerComponent, ExerciseCardComponent],
-  templateUrl: './today-workout.component.html',
-  styleUrl: './today-workout.component.scss',
+  imports: [CommonModule, ExerciseCardComponent, NavDotsComponent, DatePipe],
+  templateUrl: "./today-workout.component.html",
+  styleUrl: "./today-workout.component.scss",
 })
-export class TodayWorkoutComponent implements OnInit {
+export class TodayWorkoutComponent implements OnInit, OnDestroy {
   today: TodayWorkout | null = null;
   isLoading = true;
   isSaving = false;
-  saveConfirmed = false;
+  noRoutines = false;
 
   /** Tracks which exercises have been marked done this session, by exercise id */
   completedExerciseIds = new Set<string>();
+  /** When set, overrides auto-advance and shows this exercise */
+  activeExerciseId: string | null = null;
   /** Working copy of sets per exercise id, kept in sync as the person types */
   workingSetsByExerciseId = new Map<string, CompletedSet[]>();
 
-  todayDateLabel = '';
+  todayDateLabel = "";
+  currentTime = "";
+  private clockInterval: ReturnType<typeof setInterval> | null = null;
 
-  constructor(private workoutService: WorkoutService) {}
+  constructor(
+    private workoutService: WorkoutService,
+    private router: Router,
+    private restTimer: RestTimerService,
+  ) {}
 
   ngOnInit(): void {
     this.todayDateLabel = new Date().toLocaleDateString(undefined, {
-      weekday: 'long',
-      month: 'short',
-      day: 'numeric',
+      weekday: "long",
+      month: "short",
+      day: "numeric",
     });
+    this.updateTime();
+    this.clockInterval = setInterval(() => this.updateTime(), 1000);
     this.loadToday();
+  }
+
+  ngOnDestroy(): void {
+    if (this.clockInterval !== null) {
+      clearInterval(this.clockInterval);
+    }
+  }
+
+  private updateTime(): void {
+    this.currentTime = new Date().toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
   }
 
   private loadToday(): void {
     this.isLoading = true;
-    this.workoutService.getTodayWorkout().subscribe((today) => {
-      this.today = today;
-      this.isLoading = false;
+    this.noRoutines = false;
+    this.workoutService.getTodayWorkout().subscribe({
+      next: (today) => {
+        this.today = today;
+        this.isLoading = false;
+      },
+      error: (err: Error) => {
+        this.isLoading = false;
+        if (err?.message === 'No routines found') {
+          this.noRoutines = true;
+        }
+      },
     });
   }
 
@@ -53,9 +93,31 @@ export class TodayWorkoutComponent implements OnInit {
     return next?.id ?? null;
   }
 
+  get currentExercise() {
+    if (!this.today) return null;
+    const id = this.activeExerciseId ?? this.currentExerciseId;
+    return this.today.routine.exercises.find((ex) => ex.id === id) ?? null;
+  }
+
+  get exerciseNavItems(): NavDotItem[] {
+    if (!this.today) return [];
+    return this.today.routine.exercises.map((ex) => ({
+      id: ex.id,
+      isActive: (this.activeExerciseId ?? this.currentExerciseId) === ex.id,
+      isComplete: this.completedExerciseIds.has(ex.id),
+      ariaLabel: ex.name,
+    }));
+  }
+
+  navigateTo(exerciseId: string): void {
+    this.activeExerciseId = exerciseId;
+  }
+
   get allExercisesComplete(): boolean {
     if (!this.today) return false;
-    return this.today.routine.exercises.every((ex) => this.completedExerciseIds.has(ex.id));
+    return this.today.routine.exercises.every((ex) =>
+      this.completedExerciseIds.has(ex.id),
+    );
   }
 
   get completedCount(): number {
@@ -72,22 +134,26 @@ export class TodayWorkoutComponent implements OnInit {
 
   onMarkComplete(exerciseId: string): void {
     this.completedExerciseIds.add(exerciseId);
+    this.activeExerciseId = null;
   }
 
   /** Persists the whole session (all exercises logged so far) as a finished workout. */
   finishSession(): void {
     if (!this.today) return;
+    this.restTimer.clear();
     this.isSaving = true;
 
-    const exerciseLogs: ExerciseLog[] = this.today.routine.exercises.map((ex) => {
-      const sets = this.workingSetsByExerciseId.get(ex.id) ?? [];
-      const loggedSets = sets.filter((s) => s.reps > 0);
-      return {
-        exerciseId: ex.id,
-        exerciseName: ex.name,
-        completedSets: loggedSets,
-      };
-    });
+    const exerciseLogs: ExerciseLog[] = this.today.routine.exercises.map(
+      (ex) => {
+        const sets = this.workingSetsByExerciseId.get(ex.id) ?? [];
+        const loggedSets = sets.filter((s) => s.reps > 0);
+        return {
+          exerciseId: ex.id,
+          exerciseName: ex.name,
+          completedSets: loggedSets,
+        };
+      },
+    );
 
     const session: WorkoutSession = {
       id: this.workoutService.generateSessionId(),
@@ -98,14 +164,18 @@ export class TodayWorkoutComponent implements OnInit {
       inProgress: false,
     };
 
-    this.workoutService.saveSession(session).subscribe(() => {
+    this.workoutService.saveSession(session).subscribe((saved) => {
       this.isSaving = false;
-      this.saveConfirmed = true;
+      this.router.navigate(["/history/session", saved.id]);
     });
   }
 
   get hasAnyProgress(): boolean {
-    return this.workingSetsByExerciseId.size > 0 &&
-      Array.from(this.workingSetsByExerciseId.values()).some((sets) => sets.some((s) => s.reps > 0));
+    return (
+      this.workingSetsByExerciseId.size > 0 &&
+      Array.from(this.workingSetsByExerciseId.values()).some((sets) =>
+        sets.some((s) => s.reps > 0),
+      )
+    );
   }
 }

@@ -1,27 +1,28 @@
 @if (isLoading) {
   <div class="state-message">Loading history…</div>
 } @else if (exerciseId) {
-
   <!-- ── Single exercise history ── -->
   <a routerLink="/history" class="back-link">← All history</a>
   <h2 class="history-title">{{ exerciseName }}</h2>
 
   @if (exerciseEntries.length === 0) {
-    <p class="state-message state-message--left">No history yet for this exercise.</p>
+    <p class="state-message state-message--left">
+      No history yet for this exercise.
+    </p>
   } @else {
     <ul class="entry-list">
       @for (entry of exerciseEntries; track entry.date) {
         <li class="entry-row">
           <span class="entry-row__date">{{ formatDate(entry.date) }}</span>
           <span class="entry-row__reps">{{ formatSetReps(entry.log) }}</span>
-          <span class="entry-row__weight">{{ formatSetWeight(entry.log) }}</span>
+          <span class="entry-row__weight">{{
+            formatSetWeight(entry.log)
+          }}</span>
         </li>
       }
     </ul>
   }
-
 } @else {
-
   <!-- ── Full session history ── -->
   <h2 class="history-title">Session history</h2>
 
@@ -29,9 +30,23 @@
   @if (!isLoading) {
     <div class="calendar">
       <div class="calendar__nav">
-        <button type="button" class="calendar__nav-btn" (click)="prevMonth()" aria-label="Previous month">‹</button>
+        <button
+          type="button"
+          class="calendar__nav-btn"
+          (click)="prevMonth()"
+          aria-label="Previous month"
+        >
+          ‹
+        </button>
         <span class="calendar__month-label">{{ calendarMonthLabel }}</span>
-        <button type="button" class="calendar__nav-btn" (click)="nextMonth()" aria-label="Next month">›</button>
+        <button
+          type="button"
+          class="calendar__nav-btn"
+          (click)="nextMonth()"
+          aria-label="Next month"
+        >
+          ›
+        </button>
       </div>
 
       <div class="calendar__grid">
@@ -67,36 +82,20 @@
     <ul class="session-list">
       @for (session of sessions; track session.id) {
         <li class="session-item">
-          <button
-            type="button"
+          <a
             class="session-item__header"
-            (click)="toggleSession(session.id)"
-            [attr.aria-expanded]="expandedSessionId === session.id"
+            [routerLink]="['/history/session', session.id]"
           >
             <div class="session-item__meta">
-              <span class="session-item__routine">{{ session.routineName }}</span>
-              <span class="session-item__date">{{ formatDate(session.date) }}</span>
+              <span class="session-item__routine">{{
+                session.routineName
+              }}</span>
+              <span class="session-item__date">{{
+                formatDate(session.date)
+              }}</span>
             </div>
-            <span class="session-item__chevron" [class.is-open]="expandedSessionId === session.id">⌄</span>
-          </button>
-
-          @if (expandedSessionId === session.id) {
-            <div class="session-item__detail">
-              @for (log of session.exerciseLogs; track log.exerciseId) {
-                @if (log.completedSets.length > 0) {
-                  <div class="detail-row">
-                    <a class="detail-row__name" [routerLink]="['/history', log.exerciseId]">{{ log.exerciseName }}</a>
-                    <span class="detail-row__stats">
-                      <span class="detail-row__reps">{{ formatSetReps(log) }}</span>
-                      @if (formatSetWeight(log)) {
-                        <span class="detail-row__weight">{{ formatSetWeight(log) }}</span>
-                      }
-                    </span>
-                  </div>
-                }
-              }
-            </div>
-          }
+            <span class="session-item__chevron">›</span>
+          </a>
         </li>
       }
     </ul>

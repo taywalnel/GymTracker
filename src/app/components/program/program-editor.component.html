@@ -1,0 +1,137 @@
+<div class="detail-fixed">
+  <a routerLink="/program" class="back-link">← Program</a>
+  <div class="page-header">
+    <h2 class="page-header__title">
+      {{ routineId ? "Edit Routine" : "New Routine" }}
+    </h2>
+  </div>
+</div>
+
+<div *ngIf="loading" class="state-message">Loading…</div>
+
+<form *ngIf="!loading" class="routine-form">
+  <div class="form-group">
+    <label for="routineName" class="form-label">Routine Name</label>
+    <input
+      id="routineName"
+      type="text"
+      class="form-input"
+      [(ngModel)]="routine.name"
+      name="routineName"
+      placeholder="e.g., Chest / Triceps"
+    />
+  </div>
+
+  <ul class="exercise-list">
+    @if (routine.exercises.length === 0) {
+      <li class="empty-exercises">No exercises yet. Add your first below.</li>
+    }
+    @for (ex of routine.exercises; track ex.id; let i = $index) {
+      <li class="exercise-item">
+        <div class="exercise-item__header">
+          <input
+            type="text"
+            class="form-input exercise-name-input"
+            [(ngModel)]="ex.name"
+            [name]="'exerciseName_' + ex.id"
+            placeholder="Exercise name"
+          />
+          <button
+            type="button"
+            class="remove-btn"
+            (click)="removeExercise(i)"
+            aria-label="Remove exercise"
+          >
+            ✕
+          </button>
+        </div>
+        <div class="exercise-item__controls">
+          <div class="stepper-group">
+            <span class="stepper-label">Sets</span>
+            <div class="stepper">
+              <button
+                type="button"
+                class="stepper__btn"
+                (click)="
+                  ex.targetSets = ex.targetSets > 1 ? ex.targetSets - 1 : 1
+                "
+              >
+                −
+              </button>
+              <span class="stepper__value">{{ ex.targetSets }}</span>
+              <button
+                type="button"
+                class="stepper__btn"
+                (click)="ex.targetSets = ex.targetSets + 1"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div class="stepper-group">
+            <span class="stepper-label">Reps</span>
+            <div class="stepper">
+              <button
+                type="button"
+                class="stepper__btn"
+                (click)="
+                  ex.targetReps = ex.targetReps > 1 ? ex.targetReps - 1 : 1
+                "
+              >
+                −
+              </button>
+              <span class="stepper__value">{{ ex.targetReps }}</span>
+              <button
+                type="button"
+                class="stepper__btn"
+                (click)="ex.targetReps = ex.targetReps + 1"
+              >
+                +
+              </button>
+            </div>
+          </div>
+          <div class="weight-group">
+            <span class="stepper-label"
+              >Weight ({{ unitPref.unitLabel() }})</span
+            >
+            <input
+              type="number"
+              class="weight-input"
+              [value]="unitPref.fromKg(ex.targetWeightKg)"
+              (change)="
+                ex.targetWeightKg = unitPref.toKg(+$any($event.target).value)
+              "
+              [name]="'weight_' + ex.id"
+              [step]="unitPref.weightStep"
+              min="0"
+            />
+          </div>
+        </div>
+      </li>
+    }
+  </ul>
+
+  <div class="form-footer">
+    <button type="button" (click)="addExercise()" class="add-exercise-btn">
+      <span>+</span> Add Exercise
+    </button>
+    <div class="form-actions">
+      <button
+        type="button"
+        (click)="cancel()"
+        class="btn btn--secondary"
+        [disabled]="saving"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        (click)="save()"
+        class="btn btn--primary"
+        [disabled]="saving"
+      >
+        {{ saving ? "Saving..." : "Save Routine" }}
+      </button>
+    </div>
+  </div>
+</form>

@@ -5,27 +5,20 @@
   border-radius: var(--radius-md);
   padding: 18px 16px 16px 20px;
   margin-bottom: 14px;
-  transition: border-color 0.2s ease, background 0.2s ease, opacity 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    opacity 0.2s ease;
 }
 
 .exercise-card.is-current {
-  background: var(--color-panel-raised);
+  background: var(--color-panel);
   border-color: var(--color-accent-dim);
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
 }
 
 .exercise-card.is-complete {
   opacity: 0.55;
-}
-
-.exercise-card__accent {
-  position: absolute;
-  left: 0;
-  top: 14px;
-  bottom: 14px;
-  width: 4px;
-  background: var(--color-accent);
-  border-radius: 2px;
 }
 
 .exercise-card__header {
@@ -42,20 +35,48 @@
 }
 
 .exercise-card__name {
-  font-size: 1.15rem;
-  line-height: 1.25;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
 }
 
 .exercise-card__target {
   font-family: var(--font-display);
-  font-size: 0.85rem;
+  font-size: 1.1rem;
   color: var(--color-text-muted);
   letter-spacing: 0.01em;
+  line-height: 1.4;
 }
 
 .exercise-card__note {
   font-size: 0.78rem;
   color: var(--color-warn);
+}
+
+.exercise-card__header-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.exercise-card__edit-link {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.exercise-card__edit-link:active {
+  color: var(--color-accent);
+  border-color: var(--color-accent-dim);
 }
 
 .exercise-card__history-link {
@@ -119,9 +140,11 @@
 }
 
 .set-row__steppers {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  display: flex;
+}
+
+.set-row__steppers .stepper {
+  flex: 1;
 }
 
 /* The stepper: large flanking +/- buttons with the value in the middle.
@@ -189,48 +212,25 @@
   color: var(--color-text-muted);
 }
 
-.stepper--weight .stepper__number {
-  color: var(--color-accent);
-}
-
-.exercise-card__footer {
-  margin-top: 18px;
-  display: flex;
-  justify-content: stretch;
-}
-
-.exercise-card__complete-btn {
-  background: var(--color-accent);
-  color: var(--color-bg);
+.set-row__complete-btn {
+  width: 100%;
   border: none;
   border-radius: var(--radius-md);
-  padding: 14px 16px;
+  background: var(--color-accent);
+  color: var(--color-bg);
   font-family: var(--font-display);
-  font-size: 0.88rem;
+  font-size: 1rem;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  font-weight: 600;
-  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
   min-height: 50px;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-}
 
-.exercise-card__complete-btn:disabled {
-  background: var(--color-border);
-  color: var(--color-text-muted);
-}
-
-.exercise-card__complete-btn:not(:disabled):active {
-  opacity: 0.85;
-}
-
-.exercise-card__done-badge {
-  color: var(--color-accent);
-  font-family: var(--font-display);
-  font-size: 0.88rem;
-  font-weight: 600;
-  width: 100%;
-  text-align: center;
-  padding: 12px 0;
+  &:active {
+    opacity: 0.85;
+  }
 }

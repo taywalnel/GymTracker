@@ -1,6 +1,5 @@
 .app-shell {
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   /* keep content clear of the fixed bottom tab bar */
@@ -19,6 +18,7 @@
   position: sticky;
   top: 0;
   z-index: 10;
+  min-height: 80px;
 }
 
 .app-header__brand {
@@ -71,8 +71,62 @@
   color: var(--color-border);
 }
 
+.rest-timer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-accent-dim);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+}
+
+.rest-timer__label {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.rest-timer__countdown {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  line-height: 1;
+  min-width: 3ch;
+  text-align: right;
+}
+
+.rest-timer__skip {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 5px 9px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  &:active {
+    color: var(--color-accent);
+    border-color: var(--color-accent-dim);
+  }
+}
+
 .app-main {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 600px;
   margin: 0 auto;

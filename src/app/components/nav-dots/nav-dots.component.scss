@@ -1,0 +1,51 @@
+.nav-dots {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0 16px;
+
+  &--spread {
+    justify-content: space-between;
+    width: 100%;
+    gap: 0;
+    margin: 4px 0 0;
+  }
+}
+
+.nav-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-border);
+  color: transparent;
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s,
+    box-shadow 0.15s;
+  -webkit-tap-highlight-color: transparent;
+
+  &.is-active {
+    background: var(--color-panel);
+    box-shadow: 0 0 0 2px var(--color-accent);
+  }
+
+  &.is-complete {
+    background: var(--color-accent);
+    opacity: 0.8;
+    color: var(--color-bg);
+  }
+
+  &.is-active.is-complete {
+    opacity: 1;
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-accent);
+  }
+}

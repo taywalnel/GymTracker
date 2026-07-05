@@ -1,0 +1,45 @@
+<div class="settings-page">
+  <h2 class="settings-page__title">Settings</h2>
+
+  <section class="settings-section">
+    <h3 class="settings-section__heading">Units</h3>
+    <div class="settings-row">
+      <span class="settings-row__label">Weight unit</span>
+      <div class="unit-toggle" role="group" aria-label="Weight unit">
+        <button
+          type="button"
+          class="unit-toggle__option"
+          [class.is-active]="units.isMetric()"
+          (click)="units.isMetric() || units.toggle()"
+          aria-label="Kilograms"
+        >
+          kg
+        </button>
+        <button
+          type="button"
+          class="unit-toggle__option"
+          [class.is-active]="!units.isMetric()"
+          (click)="units.isMetric() && units.toggle()"
+          aria-label="Pounds"
+        >
+          lb
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <section class="settings-section">
+    <h3 class="settings-section__heading">Account</h3>
+    @if (auth.currentUser(); as user) {
+      <div class="settings-row">
+        <span class="settings-row__label">Signed in as</span>
+        <span class="settings-row__value">{{
+          user.displayName || user.email
+        }}</span>
+      </div>
+      <div class="settings-row">
+        <button class="signout-btn" (click)="auth.signOut()">Sign out</button>
+      </div>
+    }
+  </section>
+</div>

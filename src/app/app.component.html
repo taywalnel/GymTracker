@@ -5,16 +5,19 @@
       <h1 class="app-header__title">Gym Tracker</h1>
     </div>
 
-    <button
-      type="button"
-      class="unit-toggle"
-      (click)="units.toggle()"
-      [attr.aria-label]="'Switch to ' + (units.isMetric() ? 'imperial' : 'metric') + ' units'"
-    >
-      <span [class.is-active]="units.isMetric()">kg</span>
-      <span class="unit-toggle__sep">|</span>
-      <span [class.is-active]="!units.isMetric()">lb</span>
-    </button>
+    @if (restTimer.secondsLeft !== null) {
+      <div class="rest-timer">
+        <span class="rest-timer__label">Rest</span>
+        <span class="rest-timer__countdown">{{ restTimer.secondsLeft }}s</span>
+        <button
+          type="button"
+          class="rest-timer__skip"
+          (click)="restTimer.clear()"
+        >
+          Skip
+        </button>
+      </div>
+    }
   </header>
 
   <main class="app-main">
@@ -31,9 +34,21 @@
       <span class="tab-bar__icon">🏋️</span>
       <span class="tab-bar__label">Today</span>
     </a>
+    <a class="tab-bar__item" routerLink="/program" routerLinkActive="is-active">
+      <span class="tab-bar__icon">📋</span>
+      <span class="tab-bar__label">Program</span>
+    </a>
     <a class="tab-bar__item" routerLink="/history" routerLinkActive="is-active">
       <span class="tab-bar__icon">📜</span>
       <span class="tab-bar__label">History</span>
+    </a>
+    <a
+      class="tab-bar__item"
+      routerLink="/settings"
+      routerLinkActive="is-active"
+    >
+      <span class="tab-bar__icon">⚙️</span>
+      <span class="tab-bar__label">Settings</span>
     </a>
   </nav>
 </div>
