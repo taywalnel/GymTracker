@@ -1,3 +1,11 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
 .login-page {
   display: flex;
   align-items: center;
