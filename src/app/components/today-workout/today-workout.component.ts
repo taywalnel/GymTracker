@@ -77,7 +77,7 @@ export class TodayWorkoutComponent implements OnInit, OnDestroy {
       },
       error: (err: Error) => {
         this.isLoading = false;
-        if (err?.message === 'No routines found') {
+        if (err?.message === "No routines found") {
           this.noRoutines = true;
         }
       },
