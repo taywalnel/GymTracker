@@ -19,12 +19,13 @@ export class AuthService {
   readonly isLoggedIn = computed(() => this._user() !== null);
   readonly isLoading = signal(false);
   readonly authError = signal<string | null>(null);
+  readonly redirectResultReady: Promise<void>;
 
   constructor(
     private auth: Auth,
     private router: Router,
   ) {
-    this.handleRedirectResult();
+    this.redirectResultReady = this.handleRedirectResult();
   }
 
   private isMobile(): boolean {
@@ -33,10 +34,7 @@ export class AuthService {
 
   private async handleRedirectResult(): Promise<void> {
     try {
-      const result = await getRedirectResult(this.auth);
-      if (result?.user) {
-        await this.router.navigate(["/"]);
-      }
+      await getRedirectResult(this.auth);
     } catch (error: any) {
       console.error("Redirect result error:", error);
       this.authError.set(error?.message ?? "Sign-in failed. Please try again.");
