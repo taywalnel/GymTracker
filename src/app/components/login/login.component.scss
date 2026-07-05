@@ -66,6 +66,19 @@
     &:active {
       background: #f0f0f0;
     }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__error {
+    font-size: 0.875rem;
+    color: var(--color-danger, #d93025);
+    margin: 0;
+    text-align: center;
+    max-width: 280px;
   }
 
   &__google-icon {

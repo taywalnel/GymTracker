@@ -17,6 +17,8 @@ export class AuthService {
 
   readonly currentUser = this._user;
   readonly isLoggedIn = computed(() => this._user() !== null);
+  readonly isLoading = signal(false);
+  readonly authError = signal<string | null>(null);
 
   constructor(
     private auth: Auth,
@@ -30,19 +32,32 @@ export class AuthService {
   }
 
   private async handleRedirectResult(): Promise<void> {
-    const result = await getRedirectResult(this.auth);
-    if (result?.user) {
-      await this.router.navigate(["/"]);
+    try {
+      const result = await getRedirectResult(this.auth);
+      if (result?.user) {
+        await this.router.navigate(["/"]);
+      }
+    } catch (error: any) {
+      console.error("Redirect result error:", error);
+      this.authError.set(error?.message ?? "Sign-in failed. Please try again.");
     }
   }
 
   async signInWithGoogle(): Promise<void> {
-    const provider = new GoogleAuthProvider();
-    if (this.isMobile()) {
-      await signInWithRedirect(this.auth, provider);
-    } else {
-      await signInWithPopup(this.auth, provider);
-      await this.router.navigate(["/"]);
+    this.authError.set(null);
+    this.isLoading.set(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      if (this.isMobile()) {
+        await signInWithRedirect(this.auth, provider);
+      } else {
+        await signInWithPopup(this.auth, provider);
+        await this.router.navigate(["/"]);
+      }
+    } catch (error: any) {
+      console.error("Sign-in error:", error);
+      this.authError.set(error?.message ?? "Sign-in failed. Please try again.");
+      this.isLoading.set(false);
     }
   }
 
