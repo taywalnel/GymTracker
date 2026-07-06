@@ -1,5 +1,6 @@
-import { Component } from "@angular/core";
+import { Component, effect } from "@angular/core";
 import { CommonModule } from "@angular/common";
+import { Router } from "@angular/router";
 import { AuthService } from "../../services/auth.service";
 
 @Component({
@@ -10,5 +11,14 @@ import { AuthService } from "../../services/auth.service";
   styleUrl: "./login.component.scss",
 })
 export class LoginComponent {
-  constructor(public auth: AuthService) {}
+  constructor(
+    public auth: AuthService,
+    private router: Router,
+  ) {
+    effect(() => {
+      if (this.auth.currentUser()) {
+        void this.router.navigate(["/"]);
+      }
+    });
+  }
 }
