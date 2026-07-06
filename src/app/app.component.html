@@ -1,5 +1,13 @@
 <div class="app-shell">
-  <header class="app-header">
+  <header
+    class="app-header"
+    [class.has-rest]="restTimer.secondsLeft !== null"
+    [style.--rest-progress]="
+      restTimer.secondsLeft !== null
+        ? (1 - restTimer.secondsLeft / restTimer.duration) * 100 + '%'
+        : '0%'
+    "
+  >
     <div class="app-header__brand">
       <span class="app-header__mark">⚡</span>
       <h1 class="app-header__title">Gym Tracker</h1>
@@ -26,6 +34,7 @@
       routerLink="/"
       routerLinkActive="is-active"
       [routerLinkActiveOptions]="{ exact: true }"
+      (click)="onTodayTabClick($event)"
     >
       <span class="tab-bar__icon">🏋️</span>
       <span class="tab-bar__label">Today</span>

@@ -18,7 +18,39 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  min-height: 40px;
+  height: 62px;
+}
+
+/* progress overlay for rest timer (uses --rest-progress 0%..100%) */
+.app-header {
+  --rest-progress: 0%;
+  box-sizing: border-box;
+  min-height: 52px;
+}
+
+.app-header::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: var(--rest-progress);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-accent) 20%, transparent),
+    color-mix(in srgb, var(--color-accent) 10%, transparent)
+  );
+  pointer-events: none;
+  transition: width 0.35s linear;
+  z-index: 0;
+  border-bottom-left-radius: inherit;
+  border-top-left-radius: inherit;
+}
+
+/* keep header content above the progress overlay */
+.app-header > * {
+  position: relative;
+  z-index: 1;
 }
 
 .app-header__brand {
@@ -74,11 +106,16 @@
 .rest-timer {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: var(--color-bg);
-  border: 1px solid var(--color-accent-dim);
-  border-radius: var(--radius-md);
-  padding: 8px 12px;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 10px;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-height: 32px;
+  box-sizing: border-box;
 }
 
 .rest-timer__label {
@@ -92,8 +129,8 @@
 
 .rest-timer__countdown {
   font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.05rem;
+  font-weight: 700;
   color: var(--color-accent);
   line-height: 1;
   min-width: 3ch;

@@ -21,6 +21,14 @@ import {
   CompletedSet,
 } from "../models/workout.models";
 
+/** Serializable snapshot of an in-progress Today session for restore after navigation. */
+export interface InProgressState {
+  today: TodayWorkout;
+  completedExerciseIds: string[];
+  activeExerciseId: string | null;
+  workingSets: { exerciseId: string; sets: CompletedSet[] }[];
+}
+
 @Injectable({ providedIn: "root" })
 export class WorkoutService {
   /** Reactive cache of all sessions — updated after every read/write. */
@@ -33,6 +41,71 @@ export class WorkoutService {
     private firestore: Firestore,
     private auth: Auth,
   ) {}
+
+  // transient in-memory store for an in-progress session; persisted to sessionStorage
+  private inProgressState: InProgressState | null = null;
+
+  saveInProgressState(state: InProgressState | null): void {
+    this.inProgressState = state;
+    try {
+      if (state === null) {
+        sessionStorage.removeItem("gym:inProgressState");
+      } else {
+        // Convert any Maps (notably TodayWorkout.lastPerformance) into serializable form.
+        // Use a shallow-clone to avoid relying on structuredClone availability.
+        const serializable: any = {
+          ...state,
+          today: state.today ? { ...state.today } : state.today,
+        };
+        try {
+          const lp = (serializable as any).today?.lastPerformance;
+          if (lp instanceof Map) {
+            (serializable as any).today.lastPerformance = Array.from(
+              lp.entries(),
+            );
+          }
+        } catch (e) {
+          // ignore
+        }
+        sessionStorage.setItem(
+          "gym:inProgressState",
+          JSON.stringify(serializable),
+        );
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
+  }
+
+  getInProgressState(): InProgressState | null {
+    if (this.inProgressState) return this.inProgressState;
+    try {
+      const raw = sessionStorage.getItem("gym:inProgressState");
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as any;
+      // Restore Map for today.lastPerformance if it was serialized as entries array or object
+      try {
+        if (parsed?.today?.lastPerformance) {
+          const lp = parsed.today.lastPerformance;
+          if (Array.isArray(lp)) {
+            parsed.today.lastPerformance = new Map(lp);
+          } else if (typeof lp === "object") {
+            parsed.today.lastPerformance = new Map(Object.entries(lp));
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+      this.inProgressState = parsed as InProgressState;
+      return this.inProgressState;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  clearInProgressState(): void {
+    this.saveInProgressState(null);
+  }
 
   private get uid(): string {
     const uid = this.auth.currentUser?.uid;
@@ -52,6 +125,50 @@ export class WorkoutService {
 
   getTodayWorkout(): Observable<TodayWorkout> {
     return from(this._getTodayWorkout());
+  }
+
+  /**
+   * Returns all routines along with which one is up next in the rotation.
+   * Used by the Today tab workout-picker screen.
+   */
+  getRoutinesWithNext(): Observable<{
+    routines: Routine[];
+    nextRoutineId: string;
+  }> {
+    return from(
+      Promise.all([this._fetchRoutines(), this._fetchSessions()]).then(
+        ([routines, sessions]) => {
+          this.routinesSignal.set(routines);
+          this.sessionsSignal.set(sessions);
+          const next = this._determineNextRoutine(routines, sessions);
+          return { routines, nextRoutineId: next.id };
+        },
+      ),
+    );
+  }
+
+  /** Builds a TodayWorkout for a specific routine (used when user manually picks). */
+  getWorkoutForRoutine(routineId: string): Observable<TodayWorkout> {
+    return from(
+      Promise.all([this._fetchRoutines(), this._fetchSessions()]).then(
+        ([routines, sessions]) => {
+          this.routinesSignal.set(routines);
+          this.sessionsSignal.set(sessions);
+          const routine = routines.find((r) => r.id === routineId);
+          if (!routine) throw new Error("Routine not found");
+          const sessionsForRoutine = sessions.filter(
+            (s) => s.routineId === routine.id && !s.inProgress,
+          );
+          const lastPerformance =
+            this._buildLastPerformanceMap(sessionsForRoutine);
+          return {
+            routine,
+            previousSession: sessionsForRoutine[0] ?? null,
+            lastPerformance,
+          } as TodayWorkout;
+        },
+      ),
+    );
   }
 
   getAllRoutines(): Observable<Routine[]> {
