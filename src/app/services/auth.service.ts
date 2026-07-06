@@ -32,6 +32,10 @@ export class AuthService {
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   }
 
+  private isLocalDevelopmentHost(): boolean {
+    return ["localhost", "127.0.0.1"].includes(window.location.hostname);
+  }
+
   private async handleRedirectResult(): Promise<void> {
     try {
       await getRedirectResult(this.auth);
@@ -48,7 +52,7 @@ export class AuthService {
     this.isLoading.set(true);
     try {
       const provider = new GoogleAuthProvider();
-      if (this.isMobile()) {
+      if (this.isMobile() && !this.isLocalDevelopmentHost()) {
         await signInWithRedirect(this.auth, provider);
       } else {
         await signInWithPopup(this.auth, provider);
