@@ -38,7 +38,10 @@ export class AuthService {
 
   private async handleRedirectResult(): Promise<void> {
     try {
-      await getRedirectResult(this.auth);
+      const result = await getRedirectResult(this.auth);
+      if (result?.user) {
+        await this.router.navigate(["/"]);
+      }
     } catch (error: any) {
       console.error("Redirect result error:", error);
       this.authError.set(error?.message ?? "Sign-in failed. Please try again.");
