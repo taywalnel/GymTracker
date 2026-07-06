@@ -42,10 +42,31 @@ Then open http://localhost:4200. For the truest sense of the design, open
 dev tools and switch to a mobile device emulation (e.g. iPhone), or load it
 on an actual phone on your local network.
 
+## Firebase auth redirect requirement
+
+Google sign-in on mobile uses Firebase Auth's redirect flow. That flow depends
+on Firebase Hosting's reserved helper endpoints under `/__/auth/*` and
+`/__/firebase/init.json` on the configured `authDomain`.
+
+This project uses `gymtracker-8fc1b.firebaseapp.com` as its auth domain. If
+that domain has not been provisioned via Firebase Hosting, mobile Google sign-in
+will return to the app but fail to restore the session because the helper will
+404 on `/__/firebase/init.json`.
+
+To provision the required endpoints for this repo:
+
+```bash
+npm run build
+firebase deploy --only hosting
+```
+
+If you're testing from `http://localhost:4200`, also make sure that origin is
+listed in Firebase Authentication's authorized domains.
+
 ## How the rotation logic works
 
 `WorkoutService.getTodayWorkout()` looks at the most recently completed session
-(by date), finds that session's routine, and returns the *next* routine in
+(by date), finds that session's routine, and returns the _next_ routine in
 `rotationOrder` (wrapping back to 0 after the last one). If there's no history
 at all, it starts at rotation order 0 (Chest/Triceps).
 
