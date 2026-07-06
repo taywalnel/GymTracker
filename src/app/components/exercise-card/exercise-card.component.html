@@ -9,12 +9,9 @@
       <span class="exercise-card__target">
         {{
           exercise.targetWeightKg > 0
-            ? formatWeight(exercise.targetWeightKg) +
-              " " +
-              units.unitLabel() +
-              " · "
+            ? formatWeight(exercise.targetWeightKg) + " " + units.unitLabel()
             : ""
-        }}{{ exercise.targetReps }} reps × {{ exercise.targetSets }} sets
+        }}
       </span>
     </div>
   </header>
