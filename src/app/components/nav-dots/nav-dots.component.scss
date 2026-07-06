@@ -1,7 +1,7 @@
 .nav-dots {
   display: flex;
-  gap: 8px;
-  margin: 14px 0 16px;
+  gap: 6px;
+  margin: 0;
 
   &--spread {
     justify-content: space-between;
@@ -12,8 +12,8 @@
 }
 
 .nav-dot {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: none;
   background: var(--color-border);
@@ -31,6 +31,10 @@
     box-shadow 0.15s;
   -webkit-tap-highlight-color: transparent;
 
+  &:not(.is-complete) {
+    color: var(--color-text-muted);
+  }
+
   &.is-active {
     background: var(--color-panel);
     box-shadow: 0 0 0 2px var(--color-accent);
@@ -42,10 +46,34 @@
     color: var(--color-bg);
   }
 
+  &.is-complete.is-short {
+    background: var(--color-warn);
+  }
+
   &.is-active.is-complete {
     opacity: 1;
     box-shadow:
       0 0 0 2px var(--color-bg),
       0 0 0 4px var(--color-accent);
+  }
+
+  &.is-active.is-complete.is-short {
+    box-shadow:
+      0 0 0 2px var(--color-bg),
+      0 0 0 4px var(--color-warn);
+  }
+}
+
+.nav-dots--muted .nav-dot {
+  pointer-events: none;
+  opacity: 0.45;
+
+  &.is-complete {
+    background: var(--color-text-muted);
+    color: var(--color-bg);
+  }
+
+  &.is-complete.is-short {
+    background: var(--color-warn);
   }
 }

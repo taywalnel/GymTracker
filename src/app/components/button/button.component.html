@@ -1,0 +1,15 @@
+<button
+  [type]="type"
+  [disabled]="disabled || null"
+  class="app-btn"
+  [class.app-btn--primary]="variant === 'primary'"
+  [class.app-btn--secondary]="variant === 'secondary'"
+  [class.app-btn--ghost]="variant === 'ghost'"
+  [class.app-btn--icon]="variant === 'icon'"
+  [class.app-btn--sm]="size === 'sm'"
+  [class.app-btn--full]="fullWidth"
+  [class.app-btn--danger]="danger"
+  [style.height]="height"
+>
+  <ng-content></ng-content>
+</button>

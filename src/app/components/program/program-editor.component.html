@@ -36,14 +36,13 @@
             [name]="'exerciseName_' + ex.id"
             placeholder="Exercise name"
           />
-          <button
-            type="button"
-            class="remove-btn"
+          <app-button
+            variant="icon"
+            [danger]="true"
             (click)="removeExercise(i)"
             aria-label="Remove exercise"
+            >✕</app-button
           >
-            ✕
-          </button>
         </div>
         <div class="exercise-item__controls">
           <div class="stepper-group">
@@ -112,26 +111,26 @@
   </ul>
 
   <div class="form-footer">
-    <button type="button" (click)="addExercise()" class="add-exercise-btn">
+    <app-button variant="ghost" [fullWidth]="true" (click)="addExercise()">
       <span>+</span> Add Exercise
-    </button>
+    </app-button>
     <div class="form-actions">
-      <button
-        type="button"
-        (click)="cancel()"
-        class="btn btn--secondary"
+      <app-button
+        variant="secondary"
+        [fullWidth]="true"
         [disabled]="saving"
+        (click)="cancel()"
       >
         Cancel
-      </button>
-      <button
-        type="button"
-        (click)="save()"
-        class="btn btn--primary"
+      </app-button>
+      <app-button
+        variant="primary"
+        [fullWidth]="true"
         [disabled]="saving"
+        (click)="save()"
       >
         {{ saving ? "Saving..." : "Save Routine" }}
-      </button>
+      </app-button>
     </div>
   </div>
 </form>

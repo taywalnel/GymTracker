@@ -3,8 +3,11 @@
   background: var(--color-panel);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: 18px 16px 16px 20px;
+  padding: 15px;
   margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   transition:
     border-color 0.2s ease,
     background 0.2s ease,
@@ -79,6 +82,28 @@
   border-color: var(--color-accent-dim);
 }
 
+.exercise-card__section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.exercise-card__session-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin-bottom: 4px;
+  margin-top: 0;
+}
+
+.exercise-card__section--last-session {
+  ::ng-deep .nav-dot {
+    width: 30px;
+    height: 30px;
+  }
+}
+
 .exercise-card__history-link {
   flex-shrink: 0;
   font-size: 0.72rem;
@@ -112,7 +137,7 @@
 .exercise-card__sets {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 15px;
 }
 
 /* Each set is its own row: label up top, two steppers side by side below.
@@ -131,16 +156,9 @@
   padding-bottom: 0;
 }
 
-.set-row__label {
-  font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
-  font-weight: 600;
-}
-
 .set-row__steppers {
   display: flex;
+  gap: 15px;
 }
 
 .set-row__steppers .stepper {
@@ -212,25 +230,6 @@
   color: var(--color-text-muted);
 }
 
-.set-row__complete-btn {
-  width: 100%;
-  border: none;
-  border-radius: var(--radius-md);
-  background: var(--color-accent);
-  color: var(--color-bg);
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 14px;
-  margin-top: 10px;
-  min-height: 50px;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-
-  &:active {
-    opacity: 0.85;
-  }
+.flex-basis-50 {
+  flex-basis: 50%;
 }

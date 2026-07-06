@@ -17,11 +17,12 @@ import {
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { RestTimerService } from "../../services/rest-timer.service";
 import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
+import { ButtonComponent } from "../button/button.component";
 
 @Component({
   selector: "app-exercise-card",
   standalone: true,
-  imports: [CommonModule, RouterLink, NavDotsComponent],
+  imports: [CommonModule, RouterLink, NavDotsComponent, ButtonComponent],
   templateUrl: "./exercise-card.component.html",
   styleUrl: "./exercise-card.component.scss",
 })
@@ -111,15 +112,18 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
   }
 
   get setNavItems(): NavDotItem[] {
-    return this.workingSets.map((set, i) => ({
-      id: i,
-      isActive: this.activeSetIndex === i,
-      isComplete: this.completedSetIndices.has(i),
-      label: this.completedSetIndices.has(i) ? set.reps : undefined,
-      ariaLabel:
-        `Set ${set.setNumber}` +
-        (this.completedSetIndices.has(i) ? `: ${set.reps} reps` : ""),
-    }));
+    return this.workingSets.map((set, i) => {
+      const isComplete = this.completedSetIndices.has(i);
+      return {
+        id: i,
+        isActive: this.activeSetIndex === i,
+        isComplete,
+        isShort: isComplete && set.reps < this.exercise.targetReps,
+        label: isComplete ? set.reps : this.exercise.targetReps,
+        ariaLabel:
+          `Set ${set.setNumber}` + (isComplete ? `: ${set.reps} reps` : ""),
+      };
+    });
   }
 
   navigateToSet(index: number): void {
@@ -213,5 +217,20 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
   /** Renders the last session's sets as a compact string, e.g. "10 / 8 / 6" */
   formatLastSets(log: ExerciseLog): string {
     return log.completedSets.map((s) => s.reps).join(" / ");
+  }
+
+  get lastSessionNavItems(): NavDotItem[] {
+    if (!this.lastLog) return [];
+    return this.lastLog.completedSets.map((set, i) => ({
+      id: `last-${i}`,
+      isActive: false,
+      isComplete: true,
+      isShort:
+        this.lastLog!.targetReps != null
+          ? set.reps < this.lastLog!.targetReps
+          : false,
+      label: set.reps,
+      ariaLabel: `Last session set ${set.setNumber}: ${set.reps} reps`,
+    }));
   }
 }

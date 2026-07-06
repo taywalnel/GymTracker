@@ -1,11 +1,12 @@
 import { Component, Input } from "@angular/core";
 import { RouterLink } from "@angular/router";
 import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
+import { ButtonComponent } from "../button/button.component";
 
 @Component({
   selector: "app-exercise-list-item",
   standalone: true,
-  imports: [RouterLink, NavDotsComponent],
+  imports: [RouterLink, NavDotsComponent, ButtonComponent],
   templateUrl: "./exercise-list-item.component.html",
   styleUrl: "./exercise-list-item.component.scss",
 })

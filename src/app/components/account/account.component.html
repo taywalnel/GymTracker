@@ -5,12 +5,16 @@
     <section class="account-section">
       <div class="account-row">
         <span class="account-row__label">Signed in as</span>
-        <span class="account-row__value">{{ user.displayName || user.email }}</span>
+        <span class="account-row__value">{{
+          user.displayName || user.email
+        }}</span>
       </div>
     </section>
 
     <section class="account-section">
-      <button class="signout-btn" (click)="auth.signOut()">Sign out</button>
+      <app-button variant="secondary" (click)="auth.signOut()"
+        >Sign out</app-button
+      >
     </section>
   }
 </div>

@@ -9,13 +9,9 @@
       <div class="rest-timer">
         <span class="rest-timer__label">Rest</span>
         <span class="rest-timer__countdown">{{ restTimer.secondsLeft }}s</span>
-        <button
-          type="button"
-          class="rest-timer__skip"
-          (click)="restTimer.clear()"
-        >
+        <app-button variant="secondary" size="sm" (click)="restTimer.clear()">
           Skip
-        </button>
+        </app-button>
       </div>
     }
   </header>
@@ -50,11 +46,7 @@
       <span class="tab-bar__icon">⚙️</span>
       <span class="tab-bar__label">Settings</span>
     </a>
-    <a
-      class="tab-bar__item"
-      routerLink="/account"
-      routerLinkActive="is-active"
-    >
+    <a class="tab-bar__item" routerLink="/account" routerLinkActive="is-active">
       <span class="tab-bar__icon">👤</span>
       <span class="tab-bar__label">Account</span>
     </a>

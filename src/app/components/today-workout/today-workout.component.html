@@ -10,9 +10,6 @@
 } @else if (today) {
   <div class="today-wrapper">
     <div class="today-header">
-      <span class="today-header__date"
-        >{{ todayDateLabel }} · {{ currentTime }}</span
-      >
       <h2 class="today-header__title">{{ today.routine.name }}</h2>
 
       <app-nav-dots
@@ -24,14 +21,14 @@
     @if (allExercisesComplete) {
       <div class="all-done">
         <p class="all-done__message">All exercises done — great work!</p>
-        <button
-          type="button"
-          class="finish-bar__btn"
+        <app-button
+          variant="primary"
+          [fullWidth]="true"
           [disabled]="!hasAnyProgress || isSaving"
           (click)="finishSession()"
         >
           {{ isSaving ? "Saving…" : "Finish & save session" }}
-        </button>
+        </app-button>
       </div>
     } @else {
       @if (currentExercise) {
@@ -50,14 +47,14 @@
           ></app-exercise-card>
 
           <div class="action-buttons">
-            <button
-              type="button"
-              class="action-buttons__complete"
+            <app-button
+              variant="primary"
+              [fullWidth]="true"
               [disabled]="isSaving"
               (click)="finishSession()"
             >
               {{ isSaving ? "Saving…" : "Finish Workout" }}
-            </button>
+            </app-button>
           </div>
         </div>
       }

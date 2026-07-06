@@ -6,11 +6,12 @@ import { WorkoutService } from "../../services/workout.service";
 import { Routine, ExercisePrescription } from "../../models/workout.models";
 import { NavDotItem } from "../nav-dots/nav-dots.component";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
+import { ButtonComponent } from "../button/button.component";
 
 @Component({
   selector: "app-program-editor",
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ButtonComponent],
   templateUrl: "./program-editor.component.html",
   styleUrl: "./program-editor.component.scss",
 })

@@ -11,11 +11,18 @@ import { WorkoutService } from "../../services/workout.service";
 import { RestTimerService } from "../../services/rest-timer.service";
 import { ExerciseCardComponent } from "../exercise-card/exercise-card.component";
 import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
+import { ButtonComponent } from "../button/button.component";
 
 @Component({
   selector: "app-today-workout",
   standalone: true,
-  imports: [CommonModule, ExerciseCardComponent, NavDotsComponent, DatePipe],
+  imports: [
+    CommonModule,
+    ExerciseCardComponent,
+    NavDotsComponent,
+    DatePipe,
+    ButtonComponent,
+  ],
   templateUrl: "./today-workout.component.html",
   styleUrl: "./today-workout.component.scss",
 })
@@ -150,6 +157,7 @@ export class TodayWorkoutComponent implements OnInit, OnDestroy {
         return {
           exerciseId: ex.id,
           exerciseName: ex.name,
+          targetReps: ex.targetReps,
           completedSets: loggedSets,
         };
       },

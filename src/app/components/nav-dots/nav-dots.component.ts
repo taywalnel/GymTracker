@@ -5,6 +5,8 @@ export interface NavDotItem {
   id: string | number;
   isActive: boolean;
   isComplete: boolean;
+  /** True when the set was completed but reps fell short of the target. */
+  isShort?: boolean;
   /** Text shown inside the dot (e.g. rep count for completed sets). */
   label?: string | number;
   ariaLabel: string;
@@ -24,6 +26,8 @@ export class NavDotsComponent {
    * `spread`  — space-between full width (used for exercise-nav).
    */
   @Input() layout: "packed" | "spread" = "packed";
+  /** When true, renders all dots with muted/historical styling. */
+  @Input() muted = false;
 
   @Output() dotClick = new EventEmitter<NavDotItem>();
 }

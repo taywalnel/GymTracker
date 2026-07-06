@@ -30,23 +30,16 @@
   @if (!isLoading) {
     <div class="calendar">
       <div class="calendar__nav">
-        <button
-          type="button"
-          class="calendar__nav-btn"
+        <app-button
+          variant="icon"
           (click)="prevMonth()"
           aria-label="Previous month"
+          >‹</app-button
         >
-          ‹
-        </button>
         <span class="calendar__month-label">{{ calendarMonthLabel }}</span>
-        <button
-          type="button"
-          class="calendar__nav-btn"
-          (click)="nextMonth()"
-          aria-label="Next month"
+        <app-button variant="icon" (click)="nextMonth()" aria-label="Next month"
+          >›</app-button
         >
-          ›
-        </button>
       </div>
 
       <div class="calendar__grid">

@@ -34,6 +34,7 @@ export class SessionDetailComponent implements OnInit {
     const sessionId = this.route.snapshot.paramMap.get("sessionId") ?? "";
     this.workoutService.getSessionById(sessionId).subscribe((session) => {
       this.session = session;
+
       if (session) {
         this.exercises = session.exerciseLogs
           .filter((log) => log.completedSets.length > 0)
@@ -43,6 +44,8 @@ export class SessionDetailComponent implements OnInit {
               id: set.setNumber,
               isActive: false,
               isComplete: true,
+              isShort:
+                log.targetReps !== undefined && set.reps < log.targetReps,
               label: set.reps,
               ariaLabel: `Set ${set.setNumber}: ${set.reps} reps`,
             })),

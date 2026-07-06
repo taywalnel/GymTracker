@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from "@angular/router";
 import { WorkoutSession, ExerciseLog } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
+import { ButtonComponent } from "../button/button.component";
 
 interface ExerciseHistoryEntry {
   date: string;
@@ -21,7 +22,7 @@ interface CalendarDay {
 @Component({
   selector: "app-history",
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ButtonComponent],
   templateUrl: "./history.component.html",
   styleUrl: "./history.component.scss",
 })
@@ -97,7 +98,7 @@ export class HistoryComponent implements OnInit {
     const days: CalendarDay[] = [];
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = this.toLocalDateStr(new Date());
 
     // Pad start: Monday = 0, so convert JS Sunday=0 to Monday=0
     const startDow = (firstDay.getDay() + 6) % 7;
@@ -125,7 +126,7 @@ export class HistoryComponent implements OnInit {
   }
 
   private makeDay(date: Date, todayStr: string, inMonth: boolean): CalendarDay {
-    const dateStr = date.toISOString().slice(0, 10);
+    const dateStr = this.toLocalDateStr(date);
     return {
       date,
       dateStr,
@@ -133,6 +134,13 @@ export class HistoryComponent implements OnInit {
       hasWorkout: this.workoutDateSet.has(dateStr),
       isToday: dateStr === todayStr,
     };
+  }
+
+  private toLocalDateStr(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
   }
 
   prevMonth(): void {

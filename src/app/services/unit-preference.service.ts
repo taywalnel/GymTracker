@@ -1,5 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
-import { UnitSystem } from '../models/workout.models';
+import { Injectable, signal, computed } from "@angular/core";
+import { UnitSystem } from "../models/workout.models";
 
 const KG_TO_LB = 2.20462;
 
@@ -13,30 +13,36 @@ const KG_TO_LB = 2.20462;
  * Default is metric, since the source data (the person's own notes) was
  * recorded in kg.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable({ providedIn: "root" })
 export class UnitPreferenceService {
-  private readonly unitSystemSignal = signal<UnitSystem>('metric');
+  private readonly unitSystemSignal = signal<UnitSystem>("metric");
 
   readonly unitSystem = this.unitSystemSignal.asReadonly();
-  readonly unitLabel = computed(() => (this.unitSystemSignal() === 'metric' ? 'kg' : 'lb'));
-  readonly isMetric = computed(() => this.unitSystemSignal() === 'metric');
+  readonly unitLabel = computed(() =>
+    this.unitSystemSignal() === "metric" ? "kg" : "lb",
+  );
+  readonly isMetric = computed(() => this.unitSystemSignal() === "metric");
 
   setUnitSystem(system: UnitSystem): void {
     this.unitSystemSignal.set(system);
   }
 
   toggle(): void {
-    this.unitSystemSignal.set(this.unitSystemSignal() === 'metric' ? 'imperial' : 'metric');
+    this.unitSystemSignal.set(
+      this.unitSystemSignal() === "metric" ? "imperial" : "metric",
+    );
   }
 
   /** Converts a stored kg value to the currently displayed unit. */
   fromKg(kg: number): number {
-    return this.unitSystemSignal() === 'metric' ? kg : kg * KG_TO_LB;
+    return this.unitSystemSignal() === "metric" ? kg : kg * KG_TO_LB;
   }
 
   /** Converts a value entered in the currently displayed unit back to kg for storage. */
   toKg(displayValue: number): number {
-    return this.unitSystemSignal() === 'metric' ? displayValue : displayValue / KG_TO_LB;
+    return this.unitSystemSignal() === "metric"
+      ? displayValue
+      : displayValue / KG_TO_LB;
   }
 
   /**
@@ -46,7 +52,7 @@ export class UnitPreferenceService {
    * since imperial gyms are plated in 5 lb steps, not 5.5).
    */
   get weightStep(): number {
-    return this.unitSystemSignal() === 'metric' ? 2.5 : 5;
+    return this.unitSystemSignal() === "metric" ? 2.5 : 5;
   }
 
   /** Formats a kg value for display, converting and rounding sensibly for the current unit. */

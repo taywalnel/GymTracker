@@ -1,6 +1,7 @@
 <div
   class="nav-dots"
   [class.nav-dots--spread]="layout === 'spread'"
+  [class.nav-dots--muted]="muted"
   role="list"
 >
   @for (item of items; track item.id) {
@@ -9,6 +10,7 @@
       class="nav-dot"
       [class.is-active]="item.isActive"
       [class.is-complete]="item.isComplete"
+      [class.is-short]="item.isComplete && item.isShort"
       [attr.aria-label]="item.ariaLabel"
       (click)="dotClick.emit(item)"
     >

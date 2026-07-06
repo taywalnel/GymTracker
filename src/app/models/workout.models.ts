@@ -50,6 +50,8 @@ export interface Routine {
 export interface ExerciseLog {
   exerciseId: string;
   exerciseName: string;
+  /** The planned rep target at the time of the session, used to colour-code dots in history. */
+  targetReps?: number;
   completedSets: CompletedSet[];
 }
 
