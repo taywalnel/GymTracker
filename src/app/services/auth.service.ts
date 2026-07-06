@@ -38,6 +38,8 @@ export class AuthService {
     } catch (error: any) {
       console.error("Redirect result error:", error);
       this.authError.set(error?.message ?? "Sign-in failed. Please try again.");
+    } finally {
+      this.isLoading.set(false);
     }
   }
 
