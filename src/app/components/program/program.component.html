@@ -4,47 +4,57 @@
     <a routerLink="/program/edit" class="program-add-btn">+ New Routine</a>
   </div>
 
-  <div *ngIf="loading" class="loading">Loading routines...</div>
+  @if (loading) {
+    <div class="loading">Loading routines...</div>
+  }
 
-  <div *ngIf="!loading && routines.length === 0" class="empty-state">
-    <p>No routines yet. Create your first routine to get started.</p>
-  </div>
-
-  <div *ngIf="!loading && routines.length > 0" class="routine-list">
-    <div *ngFor="let routine of routines" class="routine-card">
-      <div class="routine-card__header">
-        <h3 class="routine-card__title">{{ routine.name }}</h3>
-        <div class="routine-card__badge">
-          {{ routine.exercises.length }} exercises
-        </div>
-      </div>
-
-      <div class="routine-card__exercises">
-        <div *ngFor="let exercise of routine.exercises" class="exercise-item">
-          <span class="exercise-item__name">{{ exercise.name }}</span>
-          <span class="exercise-item__meta">
-            {{ exercise.targetSets }}×{{ exercise.targetReps }}
-            <span *ngIf="exercise.targetWeightKg > 0"
-              >&#64; {{ exercise.targetWeightKg }}kg</span
-            >
-          </span>
-        </div>
-      </div>
-
-      <div class="routine-card__actions">
-        <a
-          [routerLink]="['/program/edit', routine.id]"
-          class="routine-action routine-action--edit"
-        >
-          <span>✏️</span> Edit
-        </a>
-        <button
-          (click)="deleteRoutine(routine.id)"
-          class="routine-action routine-action--delete"
-        >
-          <span>🗑️</span> Delete
-        </button>
-      </div>
+  @if (!loading && routines.length === 0) {
+    <div class="empty-state">
+      <p>No routines yet. Create your first routine to get started.</p>
     </div>
+  }
+
+  @if (!loading && routines.length > 0) {
+    <div class="routine-list">
+      @for (routine of routines; track routine) {
+        <div class="routine-card">
+          <div class="routine-card__header">
+            <h3 class="routine-card__title">{{ routine.name }}</h3>
+            <div class="routine-card__badge">
+              {{ routine.exercises.length }} exercises
+            </div>
+          </div>
+          <div class="routine-card__exercises">
+            @for (exercise of routine.exercises; track exercise) {
+              <div class="exercise-item">
+                <span class="exercise-item__name">{{ exercise.name }}</span>
+                <span class="exercise-item__meta">
+                  {{ exercise.targetSets }}×{{ exercise.targetReps }}
+                  @if (exercise.targetWeightKg > 0) {
+                    <span
+                      >&#64; {{ exercise.targetWeightKg }}kg</span
+                      >
+                    }
+                  </span>
+                </div>
+              }
+            </div>
+            <div class="routine-card__actions">
+              <a
+                [routerLink]="['/program/edit', routine.id]"
+                class="routine-action routine-action--edit"
+                >
+                <span>✏️</span> Edit
+              </a>
+              <button
+                (click)="deleteRoutine(routine.id)"
+                class="routine-action routine-action--delete"
+                >
+                <span>🗑️</span> Delete
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
   </div>
-</div>

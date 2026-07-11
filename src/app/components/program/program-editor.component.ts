@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { FormsModule } from "@angular/forms";
 import { Router, ActivatedRoute, RouterLink } from "@angular/router";
 import { WorkoutService } from "../../services/workout.service";
@@ -9,11 +9,10 @@ import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { ButtonComponent } from "../button/button.component";
 
 @Component({
-  selector: "app-program-editor",
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ButtonComponent],
-  templateUrl: "./program-editor.component.html",
-  styleUrl: "./program-editor.component.scss",
+    selector: "app-program-editor",
+    imports: [FormsModule, RouterLink, ButtonComponent],
+    templateUrl: "./program-editor.component.html",
+    styleUrl: "./program-editor.component.scss"
 })
 export class ProgramEditorComponent implements OnInit {
   routineId: string | null = null;

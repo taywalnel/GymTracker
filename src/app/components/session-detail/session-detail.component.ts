@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { WorkoutSession, ExerciseLog } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
@@ -13,11 +13,10 @@ interface ExerciseDisplay {
 }
 
 @Component({
-  selector: "app-session-detail",
-  standalone: true,
-  imports: [CommonModule, RouterLink, ExerciseListItemComponent],
-  templateUrl: "./session-detail.component.html",
-  styleUrl: "./session-detail.component.scss",
+    selector: "app-session-detail",
+    imports: [RouterLink, ExerciseListItemComponent],
+    templateUrl: "./session-detail.component.html",
+    styleUrl: "./session-detail.component.scss"
 })
 export class SessionDetailComponent implements OnInit {
   session: WorkoutSession | null = null;

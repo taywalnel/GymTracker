@@ -1,15 +1,14 @@
 import { Component, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { RouterLink } from "@angular/router";
 import { WorkoutService } from "../../services/workout.service";
 import { Routine } from "../../models/workout.models";
 
 @Component({
-  selector: "app-program",
-  standalone: true,
-  imports: [CommonModule, RouterLink],
-  templateUrl: "./program.component.html",
-  styleUrl: "./program.component.scss",
+    selector: "app-program",
+    imports: [RouterLink],
+    templateUrl: "./program.component.html",
+    styleUrl: "./program.component.scss"
 })
 export class ProgramComponent implements OnInit {
   routines: Routine[] = [];

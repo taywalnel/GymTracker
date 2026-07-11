@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 
 export interface NavDotItem {
   id: string | number;
@@ -13,11 +13,10 @@ export interface NavDotItem {
 }
 
 @Component({
-  selector: "app-nav-dots",
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: "./nav-dots.component.html",
-  styleUrl: "./nav-dots.component.scss",
+    selector: "app-nav-dots",
+    imports: [],
+    templateUrl: "./nav-dots.component.html",
+    styleUrl: "./nav-dots.component.scss"
 })
 export class NavDotsComponent {
   @Input({ required: true }) items: NavDotItem[] = [];

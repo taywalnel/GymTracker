@@ -4,11 +4,10 @@ import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
 import { ButtonComponent } from "../button/button.component";
 
 @Component({
-  selector: "app-exercise-list-item",
-  standalone: true,
-  imports: [RouterLink, NavDotsComponent, ButtonComponent],
-  templateUrl: "./exercise-list-item.component.html",
-  styleUrl: "./exercise-list-item.component.scss",
+    selector: "app-exercise-list-item",
+    imports: [RouterLink, NavDotsComponent, ButtonComponent],
+    templateUrl: "./exercise-list-item.component.html",
+    styleUrl: "./exercise-list-item.component.scss"
 })
 export class ExerciseListItemComponent {
   @Input() name = "";

@@ -7,8 +7,7 @@ import {
   OnChanges,
   SimpleChanges,
 } from "@angular/core";
-import { CommonModule } from "@angular/common";
-import { RouterLink } from "@angular/router";
+
 import {
   ExercisePrescription,
   ExerciseLog,
@@ -21,8 +20,7 @@ import { ButtonComponent } from "../button/button.component";
 
 @Component({
   selector: "app-exercise-card",
-  standalone: true,
-  imports: [CommonModule, RouterLink, NavDotsComponent, ButtonComponent],
+  imports: [NavDotsComponent, ButtonComponent],
   templateUrl: "./exercise-card.component.html",
   styleUrl: "./exercise-card.component.scss",
 })

@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { CommonModule } from "@angular/common";
+
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { WorkoutSession, ExerciseLog } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
@@ -20,11 +20,10 @@ interface CalendarDay {
 }
 
 @Component({
-  selector: "app-history",
-  standalone: true,
-  imports: [CommonModule, RouterLink, ButtonComponent],
-  templateUrl: "./history.component.html",
-  styleUrl: "./history.component.scss",
+    selector: "app-history",
+    imports: [RouterLink, ButtonComponent],
+    templateUrl: "./history.component.html",
+    styleUrl: "./history.component.scss"
 })
 export class HistoryComponent implements OnInit {
   // Session-list mode

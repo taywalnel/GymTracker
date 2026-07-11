@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { CommonModule, DatePipe } from "@angular/common";
+import { DatePipe } from "@angular/common";
 import { Router } from "@angular/router";
 import {
   TodayWorkout,
@@ -16,16 +16,14 @@ import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
 import { ButtonComponent } from "../button/button.component";
 
 @Component({
-  selector: "app-today-workout",
-  standalone: true,
-  imports: [
-    CommonModule,
+    selector: "app-today-workout",
+    imports: [
     ExerciseCardComponent,
     NavDotsComponent,
-    ButtonComponent,
-  ],
-  templateUrl: "./today-workout.component.html",
-  styleUrl: "./today-workout.component.scss",
+    ButtonComponent
+],
+    templateUrl: "./today-workout.component.html",
+    styleUrl: "./today-workout.component.scss"
 })
 export class TodayWorkoutComponent implements OnInit, OnDestroy {
   today: TodayWorkout | null = null;
