@@ -18,6 +18,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: "workout/:routineId",
+    component: TodayWorkoutComponent,
+    title: "Workout — Gym Tracker",
+    canActivate: [authGuard],
+  },
+  {
     path: "history",
     component: HistoryComponent,
     title: "History — Gym Tracker",

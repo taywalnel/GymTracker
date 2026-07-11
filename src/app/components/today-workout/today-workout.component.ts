@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { DatePipe } from "@angular/common";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import {
   TodayWorkout,
   WorkoutSession,
@@ -14,16 +14,18 @@ import { TabService } from "../../services/tab.service";
 import { ExerciseCardComponent } from "../exercise-card/exercise-card.component";
 import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
 import { ButtonComponent } from "../button/button.component";
+import { RoutineCardComponent } from "../routine-card/routine-card.component";
 
 @Component({
-    selector: "app-today-workout",
-    imports: [
+  selector: "app-today-workout",
+  imports: [
     ExerciseCardComponent,
     NavDotsComponent,
-    ButtonComponent
-],
-    templateUrl: "./today-workout.component.html",
-    styleUrl: "./today-workout.component.scss"
+    ButtonComponent,
+    RoutineCardComponent,
+  ],
+  templateUrl: "./today-workout.component.html",
+  styleUrl: "./today-workout.component.scss",
 })
 export class TodayWorkoutComponent implements OnInit, OnDestroy {
   today: TodayWorkout | null = null;
@@ -71,6 +73,7 @@ export class TodayWorkoutComponent implements OnInit, OnDestroy {
   constructor(
     private workoutService: WorkoutService,
     private router: Router,
+    private route: ActivatedRoute,
     private restTimer: RestTimerService,
     private tabService: TabService,
   ) {}
@@ -83,13 +86,15 @@ export class TodayWorkoutComponent implements OnInit, OnDestroy {
     });
     this.updateTime();
     this.clockInterval = setInterval(() => this.updateTime(), 1000);
-    // If there is an in-progress session, restore it instead of showing the picker.
+    const routineId = this.route.snapshot.paramMap.get("routineId");
     const saved = this.workoutService.getInProgressState?.();
     this.savedState = saved ?? null;
-    if (saved && saved.today) {
+
+    if (routineId && saved?.today?.routine?.id === routineId) {
       this.restoreFromSavedState(saved);
-      // still refresh routines in background for the picker
       this.loadToday();
+    } else if (routineId) {
+      this.loadWorkout(routineId);
     } else {
       this.loadToday();
     }
@@ -150,6 +155,7 @@ export class TodayWorkoutComponent implements OnInit, OnDestroy {
         this.workingSetsByExerciseId = new Map();
         this.persistState();
         this.savedState = this.workoutService.getInProgressState?.() ?? null;
+        this.router.navigate(["/workout", routine.id]);
       },
       error: () => {
         this.isLoading = false;
@@ -158,12 +164,27 @@ export class TodayWorkoutComponent implements OnInit, OnDestroy {
   }
 
   backToPicker(): void {
-    this.today = null;
-    this.isPickerMode = true;
-    this.completedExerciseIds = new Set();
-    this.activeExerciseId = null;
-    this.workingSetsByExerciseId = new Map();
-    this.savedState = this.workoutService.getInProgressState?.() ?? null;
+    this.router.navigate(["/"]);
+  }
+
+  private loadWorkout(routineId: string): void {
+    this.isLoading = true;
+    this.noRoutines = false;
+    this.workoutService.getWorkoutForRoutine(routineId).subscribe({
+      next: (today) => {
+        this.today = today;
+        this.isPickerMode = false;
+        this.completedExerciseIds = new Set();
+        this.activeExerciseId = null;
+        this.workingSetsByExerciseId = new Map();
+        this.persistState();
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+        this.router.navigate(["/"]);
+      },
+    });
   }
 
   get currentExerciseId(): string | null {
@@ -287,7 +308,7 @@ export class TodayWorkoutComponent implements OnInit, OnDestroy {
   resumeSaved(): void {
     const saved = this.workoutService.getInProgressState?.();
     if (!saved) return;
-    this.restoreFromSavedState(saved);
+    this.router.navigate(["/workout", saved.today.routine.id]);
   }
 
   get isFeaturedResumable(): boolean {

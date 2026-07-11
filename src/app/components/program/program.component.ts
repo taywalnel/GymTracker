@@ -1,20 +1,24 @@
 import { Component, OnInit } from "@angular/core";
 
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { WorkoutService } from "../../services/workout.service";
 import { Routine } from "../../models/workout.models";
+import { RoutineCardComponent } from "../routine-card/routine-card.component";
 
 @Component({
-    selector: "app-program",
-    imports: [RouterLink],
-    templateUrl: "./program.component.html",
-    styleUrl: "./program.component.scss"
+  selector: "app-program",
+  imports: [RouterLink, RoutineCardComponent],
+  templateUrl: "./program.component.html",
+  styleUrl: "./program.component.scss",
 })
 export class ProgramComponent implements OnInit {
   routines: Routine[] = [];
   loading = false;
 
-  constructor(private workoutService: WorkoutService) {}
+  constructor(
+    private workoutService: WorkoutService,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
     this.loadRoutines();
@@ -38,5 +42,9 @@ export class ProgramComponent implements OnInit {
         },
       });
     }
+  }
+
+  editRoutine(routine: Routine): void {
+    this.router.navigate(["/program/edit", routine.id]);
   }
 }

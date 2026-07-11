@@ -16,42 +16,14 @@
 
   @if (!loading && routines.length > 0) {
     <div class="routine-list">
-      @for (routine of routines; track routine) {
-        <div class="routine-card">
-          <div class="routine-card__header">
-            <h3 class="routine-card__title">{{ routine.name }}</h3>
-            <div class="routine-card__badge">
-              {{ routine.exercises.length }} exercises
-            </div>
-          </div>
-          <div class="routine-card__exercises">
-            @for (exercise of routine.exercises; track exercise) {
-              <div class="exercise-item">
-                <span class="exercise-item__name">{{ exercise.name }}</span>
-                <span class="exercise-item__meta">
-                  {{ exercise.targetSets }}×{{ exercise.targetReps }}
-                  @if (exercise.targetWeightKg > 0) {
-                    <span>&#64; {{ exercise.targetWeightKg }}kg</span>
-                  }
-                </span>
-              </div>
-            }
-          </div>
-          <div class="routine-card__actions">
-            <a
-              [routerLink]="['/program/edit', routine.id]"
-              class="routine-action routine-action--edit"
-            >
-              <span>✏️</span> Edit
-            </a>
-            <button
-              (click)="deleteRoutine(routine.id)"
-              class="routine-action routine-action--delete"
-            >
-              <span>🗑️</span> Delete
-            </button>
-          </div>
-        </div>
+      @for (routine of routines; track routine.id) {
+        <app-routine-card
+          [routine]="routine"
+          [showEditButton]="true"
+          [showDeleteButton]="true"
+          (editRequested)="editRoutine($event)"
+          (deleteRequested)="deleteRoutine($event.id)"
+        ></app-routine-card>
       }
     </div>
   }
