@@ -1,4 +1,10 @@
-import { Component, OnInit } from "@angular/core";
+import {
+  Component,
+  ElementRef,
+  OnInit,
+  QueryList,
+  ViewChildren,
+} from "@angular/core";
 
 import { FormsModule } from "@angular/forms";
 import { Router, ActivatedRoute, RouterLink } from "@angular/router";
@@ -9,12 +15,16 @@ import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { ButtonComponent } from "../button/button.component";
 
 @Component({
-    selector: "app-program-editor",
-    imports: [FormsModule, RouterLink, ButtonComponent],
-    templateUrl: "./program-editor.component.html",
-    styleUrl: "./program-editor.component.scss"
+  selector: "app-program-editor",
+  imports: [FormsModule, RouterLink, ButtonComponent],
+  templateUrl: "./program-editor.component.html",
+  styleUrl: "./program-editor.component.scss",
 })
 export class ProgramEditorComponent implements OnInit {
+  @ViewChildren("exerciseCard") private exerciseCards!: QueryList<
+    ElementRef<HTMLElement>
+  >;
+
   routineId: string | null = null;
   routine: Routine = {
     id: "",
@@ -65,6 +75,13 @@ export class ProgramEditorComponent implements OnInit {
       order: this.routine.exercises.length,
     };
     this.routine.exercises.push(newExercise);
+
+    setTimeout(() => {
+      this.exerciseCards.last?.nativeElement.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    });
   }
 
   removeExercise(index: number): void {

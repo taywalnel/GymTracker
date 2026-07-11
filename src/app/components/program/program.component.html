@@ -1,6 +1,6 @@
 <div class="program-container">
   <div class="program-header">
-    <h2 class="program-title">Workout Program</h2>
+    <h2 class="program-title">Workouts</h2>
     <a routerLink="/program/edit" class="program-add-btn">+ New Routine</a>
   </div>
 
@@ -31,30 +31,28 @@
                 <span class="exercise-item__meta">
                   {{ exercise.targetSets }}×{{ exercise.targetReps }}
                   @if (exercise.targetWeightKg > 0) {
-                    <span
-                      >&#64; {{ exercise.targetWeightKg }}kg</span
-                      >
-                    }
-                  </span>
-                </div>
-              }
-            </div>
-            <div class="routine-card__actions">
-              <a
-                [routerLink]="['/program/edit', routine.id]"
-                class="routine-action routine-action--edit"
-                >
-                <span>✏️</span> Edit
-              </a>
-              <button
-                (click)="deleteRoutine(routine.id)"
-                class="routine-action routine-action--delete"
-                >
-                <span>🗑️</span> Delete
-              </button>
-            </div>
+                    <span>&#64; {{ exercise.targetWeightKg }}kg</span>
+                  }
+                </span>
+              </div>
+            }
           </div>
-        }
-      </div>
-    }
-  </div>
+          <div class="routine-card__actions">
+            <a
+              [routerLink]="['/program/edit', routine.id]"
+              class="routine-action routine-action--edit"
+            >
+              <span>✏️</span> Edit
+            </a>
+            <button
+              (click)="deleteRoutine(routine.id)"
+              class="routine-action routine-action--delete"
+            >
+              <span>🗑️</span> Delete
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
