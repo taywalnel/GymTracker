@@ -1,5 +1,4 @@
 <div class="detail-fixed">
-  <a routerLink="/program" class="back-link">← Workouts</a>
   <div class="page-header">
     <h2 class="page-header__title">
       {{ routineId ? "Edit Routine" : "New Routine" }}
@@ -123,7 +122,7 @@
           [disabled]="saving"
           (click)="cancel()"
         >
-          Cancel
+          Back
         </app-button>
         <app-button
           variant="primary"

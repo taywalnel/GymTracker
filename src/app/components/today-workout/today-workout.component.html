@@ -60,21 +60,12 @@
   </div>
 } @else if (today) {
   <div class="today-wrapper">
-    <div class="today-header">
-      <button
-        class="today-header__back"
-        (click)="backToPicker()"
-        aria-label="Back to workout picker"
-      >
-        ‹ Back
-      </button>
-      <h2 class="today-header__title">{{ today.routine.name }}</h2>
+    <h2 class="today-header__title">{{ today.routine.name }}</h2>
 
-      <app-nav-dots
-        [items]="exerciseNavItems"
-        (dotClick)="navigateTo($any($event.id))"
-      ></app-nav-dots>
-    </div>
+    <app-nav-dots
+      [items]="exerciseNavItems"
+      (dotClick)="navigateTo($any($event.id))"
+    ></app-nav-dots>
 
     @if (allExercisesComplete) {
       <div class="all-done">
@@ -105,15 +96,28 @@
           ></app-exercise-card>
 
           <div class="action-buttons">
-            <app-button
-              variant="primary"
-              [fullWidth]="true"
-              [height]="'50px'"
-              [disabled]="isSaving"
-              (click)="finishSession()"
-            >
-              {{ isSaving ? "Saving…" : "Finish Workout" }}
-            </app-button>
+            <div class="button-wrapper">
+              <app-button
+                variant="secondary"
+                [height]="'50px'"
+                [fullWidth]="true"
+                [disabled]="isSaving"
+                (click)="backToPicker()"
+              >
+                Back
+              </app-button>
+            </div>
+            <div class="button-wrapper">
+              <app-button
+                variant="primary"
+                [fullWidth]="true"
+                [height]="'50px'"
+                [disabled]="isSaving"
+                (click)="finishSession()"
+              >
+                {{ isSaving ? "Saving…" : "Finish Workout" }}
+              </app-button>
+            </div>
           </div>
         </div>
       }

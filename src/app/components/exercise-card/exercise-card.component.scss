@@ -9,15 +9,6 @@
   border: 1px solid var(--color-accent-dim);
   border-radius: var(--radius-lg);
   cursor: default;
-  transition:
-    transform 0.08s ease,
-    border-color 0.12s,
-    background 0.12s,
-    opacity 0.2s ease;
-
-  &:active {
-    transform: translateY(1px);
-  }
 }
 
 .exercise-card.is-current {
@@ -101,6 +92,23 @@
   margin-top: 0;
 }
 
+.exercise-card__session-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+
+.exercise-card__session-controls app-nav-dots {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.exercise-card__session-controls app-button {
+  flex: 0 0 auto;
+}
+
 .exercise-card__section--last-session {
   ::ng-deep .nav-dot {
     width: 30px;
@@ -169,6 +177,10 @@
   flex: 1;
 }
 
+.set-row__steppers > div {
+  flex: 1;
+}
+
 /* The stepper: large flanking +/- buttons with the value in the middle.
    Minimum 48px tap targets per accessibility guidance for touch interfaces. */
 .stepper {
@@ -232,8 +244,4 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
-}
-
-.flex-basis-50 {
-  flex-basis: 50%;
 }

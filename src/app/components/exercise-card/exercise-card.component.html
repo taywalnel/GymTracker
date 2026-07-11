@@ -26,17 +26,26 @@
   <!-- Current session -->
   <div class="exercise-card__section">
     <p class="exercise-card__session-label">Current session:</p>
-    <app-nav-dots
-      [items]="setNavItems"
-      (dotClick)="navigateToSet($any($event.id))"
-    ></app-nav-dots>
+    <div class="exercise-card__session-controls">
+      <app-nav-dots
+        [items]="setNavItems"
+        (dotClick)="navigateToSet($any($event.id))"
+      ></app-nav-dots>
+      <app-button
+        variant="complete"
+        ariaLabel="Complete current set"
+        (click)="completeCurrentSet()"
+      >
+        ✓
+      </app-button>
+    </div>
   </div>
 
   <!-- Active set stepper -->
   <div class="exercise-card__sets">
     <div class="set-row">
       <div class="set-row__steppers">
-        <div class="flex-basis-50">
+        <div>
           <div class="stepper">
             <button
               type="button"
@@ -67,17 +76,6 @@
               +
             </button>
           </div>
-        </div>
-        <div class="flex-basis-50">
-          <app-button
-            variant="primary"
-            [fullWidth]="true"
-            [height]="'100%'"
-            style="margin-top: 10px"
-            (click)="completeCurrentSet()"
-          >
-            Complete Set
-          </app-button>
         </div>
       </div>
     </div>

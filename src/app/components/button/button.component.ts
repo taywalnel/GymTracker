@@ -1,13 +1,18 @@
 import { Component, Input } from "@angular/core";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "icon";
+export type ButtonVariant =
+  | "primary"
+  | "secondary"
+  | "ghost"
+  | "icon"
+  | "complete";
 export type ButtonSize = "default" | "sm";
 
 @Component({
-    selector: "app-button",
-    imports: [],
-    templateUrl: "./button.component.html",
-    styleUrl: "./button.component.scss"
+  selector: "app-button",
+  imports: [],
+  templateUrl: "./button.component.html",
+  styleUrl: "./button.component.scss",
 })
 export class ButtonComponent {
   @Input() variant: ButtonVariant = "primary";
@@ -15,6 +20,7 @@ export class ButtonComponent {
   @Input() fullWidth = false;
   @Input() disabled = false;
   @Input() danger = false;
+  @Input() ariaLabel: string | null = null;
   @Input() type: "button" | "submit" | "reset" = "button";
   @Input() height: string | null = null;
 }
