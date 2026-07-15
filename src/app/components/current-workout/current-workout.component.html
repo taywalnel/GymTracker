@@ -1,0 +1,53 @@
+@if (isLoading) {
+  <div class="state-message">Loading workout…</div>
+} @else if (state) {
+  <div class="workout-header">
+    <h2 class="workout-header__title">{{ state.today.routine.name }}</h2>
+    <app-workout-progress
+      [completed]="completedExerciseCount"
+      [total]="totalExerciseCount"
+    />
+    <div class="workout-header__elapsed-time" aria-live="off">
+      Elapsed time: {{ elapsedTime }}
+    </div>
+  </div>
+
+  <ul class="exercise-list">
+    @for (exercise of exercises; track exercise.id) {
+      <li>
+        <button
+          type="button"
+          class="exercise-card"
+          (click)="navigateToExercise(exercise.id)"
+        >
+          <span class="exercise-card__name">{{ exercise.name }}</span>
+          <app-workout-progress
+            [completed]="exercise.completedSets"
+            [total]="exercise.totalSets"
+            itemLabel="set"
+          />
+        </button>
+      </li>
+    }
+  </ul>
+
+  <div class="action-buttons">
+    <app-button
+      variant="secondary"
+      [fullWidth]="true"
+      [height]="'40px'"
+      routerLink="/"
+    >
+      Back
+    </app-button>
+    <app-button
+      variant="primary"
+      [fullWidth]="true"
+      [height]="'40px'"
+      [disabled]="isSaving"
+      (click)="finishWorkout()"
+    >
+      {{ isSaving ? "Saving…" : "Complete" }}
+    </app-button>
+  </div>
+}

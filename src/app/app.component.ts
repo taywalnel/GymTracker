@@ -34,6 +34,6 @@ export class AppComponent {
 
   isTodayRoute(): boolean {
     const path = this.router.url.split(/[?#]/, 1)[0];
-    return path === "/" || path.startsWith("/workout/");
+    return path === "/" || path.startsWith("/current-workout/");
   }
 }

@@ -6,6 +6,8 @@
 :host {
   display: block;
   min-width: 0;
+  box-sizing: border-box;
+  padding: 5px;
   overflow-x: auto;
   scrollbar-width: thin;
 }
@@ -49,11 +51,12 @@
 
   &.is-active {
     background: var(--color-panel);
-    border: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
   }
 
   &.is-complete {
-    background: var(--color-accent-dim);
+    background: var(--color-accent);
     opacity: 0.8;
     color: var(--color-bg);
   }

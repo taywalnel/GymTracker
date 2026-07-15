@@ -1,29 +1,4 @@
 <div class="app-shell">
-  <header
-    class="app-header"
-    [class.has-rest]="restTimer.secondsLeft !== null"
-    [style.--rest-progress]="
-      restTimer.secondsLeft !== null
-        ? (1 - restTimer.secondsLeft / restTimer.duration) * 100 + '%'
-        : '0%'
-    "
-  >
-    <div class="app-header__brand">
-      <span class="app-header__mark">⚡</span>
-      <h1 class="app-header__title">Gym Tracker</h1>
-    </div>
-
-    @if (restTimer.secondsLeft !== null) {
-      <div class="rest-timer">
-        <span class="rest-timer__label">Rest</span>
-        <span class="rest-timer__countdown">{{ restTimer.secondsLeft }}s</span>
-        <app-button variant="secondary" size="sm" (click)="restTimer.clear()">
-          Skip
-        </app-button>
-      </div>
-    }
-  </header>
-
   <main class="app-main">
     <router-outlet></router-outlet>
   </main>

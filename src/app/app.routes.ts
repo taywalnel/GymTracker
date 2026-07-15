@@ -7,6 +7,8 @@ import { ProgramEditorComponent } from "./components/program/program-editor.comp
 import { SettingsComponent } from "./components/settings/settings.component";
 import { AccountComponent } from "./components/account/account.component";
 import { LoginComponent } from "./components/login/login.component";
+import { CurrentExercisePageComponent } from "./components/current-exercise-page/current-exercise-page.component";
+import { CurrentWorkoutComponent } from "./components/current-workout/current-workout.component";
 import { authGuard } from "./guards/auth.guard";
 
 export const routes: Routes = [
@@ -18,9 +20,15 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: "workout/:routineId",
-    component: TodayWorkoutComponent,
+    path: "current-workout/:workoutId",
+    component: CurrentWorkoutComponent,
     title: "Workout — Gym Tracker",
+    canActivate: [authGuard],
+  },
+  {
+    path: "current-workout/:workoutId/:exerciseId",
+    component: CurrentExercisePageComponent,
+    title: "Exercise — Gym Tracker",
     canActivate: [authGuard],
   },
   {

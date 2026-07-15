@@ -46,98 +46,10 @@
 }
 
 .picker-subhead {
-  list-style: none;
   color: var(--color-text-muted);
   font-family: var(--font-display);
   font-size: 0.85rem;
   padding: 8px 2px;
-}
-
-// ---- Workout screen -------------------------------------------------------
-
-.today-wrapper {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  gap: 15px;
-}
-
-.exercise-section {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  justify-content: space-between;
-}
-
-.today-header {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 18px;
-}
-
-.today-header__back {
-  align-self: flex-start;
-  background: none;
-  border: none;
-  padding: 0;
-  font-size: 0.875rem;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  font-family: var(--font-body);
-
-  &:hover,
-  &:focus-visible {
-    color: var(--color-text);
-  }
-}
-
-.today-header__title {
-  font-size: 1.5rem;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 12px;
-
-  .app-btn {
-    flex: 1;
-  }
-}
-
-.button-wrapper {
-  flex: 1;
-}
-
-.all-done {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  padding: 32px 0;
-  text-align: center;
-}
-
-.all-done__message {
-  font-size: 1.05rem;
-  color: var(--color-text);
-}
-
-.banner {
-  border-radius: var(--radius-md);
-  padding: 18px;
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-.banner--success {
-  background: rgba(198, 241, 53, 0.1);
-  border: 1px solid var(--color-accent-dim);
-  color: var(--color-text);
-}
-
-.banner--success strong {
-  color: var(--color-accent);
 }
 
 .resume-card {

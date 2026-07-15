@@ -1,0 +1,10 @@
+<div
+  class="workout-progress"
+  role="progressbar"
+  [attr.aria-label]="label"
+  [attr.aria-valuemax]="total"
+  [attr.aria-valuenow]="completed"
+>
+  <div class="workout-progress__fill" [style.width.%]="percentage"></div>
+  <span class="workout-progress__label">{{ label }}</span>
+</div>

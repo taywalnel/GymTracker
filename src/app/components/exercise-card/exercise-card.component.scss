@@ -1,36 +1,29 @@
+:host {
+  height: 100%;
+}
+
 .exercise-card {
   position: relative;
-  padding: 22px;
-  margin-bottom: 14px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
   background: linear-gradient(180deg, rgba(198, 241, 53, 0.03), transparent);
   border: 1px solid var(--color-accent-dim);
   border-radius: var(--radius-lg);
   cursor: default;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.top-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
 .exercise-card.is-current {
   border-color: var(--color-accent-dim);
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
-}
-
-.exercise-card.is-complete {
-  opacity: 0.55;
-}
-
-.exercise-card__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.exercise-card__title-block {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
 }
 
 .exercise-card__name {
@@ -41,124 +34,33 @@
   color: var(--color-text);
 }
 
-.exercise-card__target {
-  font-size: 0.95rem;
-  color: var(--color-text-muted);
-}
-
-.exercise-card__note {
-  font-size: 0.78rem;
-  color: var(--color-warn);
-}
-
-.exercise-card__header-actions {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.exercise-card__edit-link {
-  flex-shrink: 0;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-muted);
-  text-decoration: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  min-height: 36px;
-  display: flex;
-  align-items: center;
-}
-
-.exercise-card__edit-link:active {
-  color: var(--color-accent);
-  border-color: var(--color-accent-dim);
-}
-
-.exercise-card__section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.exercise-card__session-label {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
-  margin-bottom: 4px;
-  margin-top: 0;
-}
-
-.exercise-card__session-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-width: 0;
-}
-
-.exercise-card__session-controls app-nav-dots {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.exercise-card__session-controls app-button {
-  flex: 0 0 auto;
-}
-
-.exercise-card__section--last-session {
-  ::ng-deep .nav-dot {
-    width: 30px;
-    height: 30px;
-  }
-}
-
-.exercise-card__history-link {
-  flex-shrink: 0;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-muted);
-  text-decoration: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 8px 12px;
-  min-height: 36px;
-  display: flex;
-  align-items: center;
-}
-
-.exercise-card__history-link:active {
-  color: var(--color-accent);
-  border-color: var(--color-accent-dim);
-}
-
-.exercise-card__last {
-  margin: 10px 0 16px;
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-}
-
-.exercise-card__last--new {
-  color: var(--color-warn);
-}
-
-.exercise-card__sets {
-  display: flex;
-  flex-direction: column;
+.exercise-card__target-summary {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 15px;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Each set is its own row: label up top, two steppers side by side below.
-   Stacked vertically (not in a horizontal scroller) so nothing requires
-   precise small-target tapping or horizontal swiping mid-workout. */
+.exercise-card__target-summary .stepper__label {
+  margin-bottom: 2px;
+}
+
+.exercise-card__target-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-text);
+}
+
 .set-row {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 15px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--color-border);
 }
@@ -168,21 +70,51 @@
   padding-bottom: 0;
 }
 
-.set-row__steppers {
+.rest-timer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
   display: flex;
-  gap: 15px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(12, 16, 12, 0.84);
+  border-radius: inherit;
+  color: var(--color-text);
 }
 
-.set-row__steppers .stepper {
-  flex: 1;
+.rest-timer__label,
+.rest-timer__unit {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
 }
 
-.set-row__steppers > div {
-  flex: 1;
+.rest-timer__time {
+  font-family: var(--font-display);
+  font-size: 5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-accent);
 }
 
-/* The stepper: large flanking +/- buttons with the value in the middle.
-   Minimum 48px tap targets per accessibility guidance for touch interfaces. */
+.stepper-container {
+  text-align: center;
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  background: var(--color-panel-raised);
+}
+
+.stepper__label {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
 .stepper {
   display: grid;
   grid-template-columns: 48px 1fr 48px;

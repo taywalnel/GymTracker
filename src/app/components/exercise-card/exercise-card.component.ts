@@ -10,26 +10,23 @@ import {
 
 import {
   ExercisePrescription,
-  ExerciseLog,
   CompletedSet,
 } from "../../models/workout.models";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { RestTimerService } from "../../services/rest-timer.service";
-import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
 import { ButtonComponent } from "../button/button.component";
+import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
+import { WorkoutProgressComponent } from "../workout-progress/workout-progress.component";
 
 @Component({
   selector: "app-exercise-card",
-  imports: [NavDotsComponent, ButtonComponent],
+  imports: [ButtonComponent, NavDotsComponent, WorkoutProgressComponent],
   templateUrl: "./exercise-card.component.html",
   styleUrl: "./exercise-card.component.scss",
 })
 export class ExerciseCardComponent implements OnInit, OnChanges {
   @Input({ required: true }) exercise!: ExercisePrescription;
-  @Input() lastLog: ExerciseLog | null = null;
   @Input() isCurrent = false;
-  @Input() isComplete = false;
-  @Input() routineId: string | null = null;
   /** Previously saved sets to restore when navigating back to this exercise */
   @Input() savedSets: CompletedSet[] | null = null;
 
@@ -124,6 +121,10 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
     });
   }
 
+  get completedSetCount(): number {
+    return this.completedSetIndices.size;
+  }
+
   navigateToSet(index: number): void {
     this.activeSetIndex = index;
   }
@@ -186,49 +187,8 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
     this.setsChanged.emit(this.workingSets);
   }
 
-  /**
-   * Steps weight in whatever unit is currently displayed (2.5 kg or 5 lb per
-   * tap), then converts back to kg for storage so the underlying data never
-   * depends on which unit was active when it was entered.
-   */
-  stepWeight(setIndex: number, direction: 1 | -1): void {
-    const current = this.workingSets[setIndex];
-    const displayValue = this.units.fromKg(current.weightKg);
-    const nextDisplayValue = Math.max(
-      0,
-      displayValue + direction * this.units.weightStep,
-    );
-    const nextWeightKg = this.units.toKg(nextDisplayValue);
-    this.workingSets[setIndex] = { ...current, weightKg: nextWeightKg };
-    this.setsChanged.emit(this.workingSets);
-  }
-
-  get hasAnyLoggedReps(): boolean {
-    return this.workingSets.some((s) => s.reps > 0);
-  }
-
   /** Formats a stored kg weight for display in whatever unit is currently active. */
   formatWeight(weightKg: number): string {
     return this.units.formatWeight(weightKg);
-  }
-
-  /** Renders the last session's sets as a compact string, e.g. "10 / 8 / 6" */
-  formatLastSets(log: ExerciseLog): string {
-    return log.completedSets.map((s) => s.reps).join(" / ");
-  }
-
-  get lastSessionNavItems(): NavDotItem[] {
-    if (!this.lastLog) return [];
-    return this.lastLog.completedSets.map((set, i) => ({
-      id: `last-${i}`,
-      isActive: false,
-      isComplete: true,
-      isShort:
-        this.lastLog!.targetReps != null
-          ? set.reps < this.lastLog!.targetReps
-          : false,
-      label: set.reps,
-      ariaLabel: `Last session set ${set.setNumber}: ${set.reps} reps`,
-    }));
   }
 }

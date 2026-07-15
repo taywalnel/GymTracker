@@ -7,7 +7,7 @@
       first routine.
     </p>
   </div>
-} @else if (isPickerMode) {
+} @else {
   <div class="picker-wrapper">
     <div class="picker-header">
       <h2 class="picker-header__title">Choose a Workout</h2>
@@ -39,10 +39,8 @@
           app-routine-card
           [routine]="featuredRoutine"
           [featured]="true"
-          [badge]="isFeaturedResumable ? 'Resume' : 'Up next'"
-          (selected)="
-            isFeaturedResumable ? resumeSaved() : selectRoutine($event)
-          "
+          badge="Up next"
+          (selected)="selectRoutine($event)"
         ></li>
       }
 
@@ -57,70 +55,5 @@
         }
       }
     </ul>
-  </div>
-} @else if (today) {
-  <div class="today-wrapper">
-    <h2 class="today-header__title">{{ today.routine.name }}</h2>
-
-    <app-nav-dots
-      [items]="exerciseNavItems"
-      (dotClick)="navigateTo($any($event.id))"
-    ></app-nav-dots>
-
-    @if (allExercisesComplete) {
-      <div class="all-done">
-        <p class="all-done__message">All exercises done — great work!</p>
-        <app-button
-          variant="primary"
-          [fullWidth]="true"
-          [disabled]="!hasAnyProgress || isSaving"
-          (click)="finishSession()"
-        >
-          {{ isSaving ? "Saving…" : "Finish & save session" }}
-        </app-button>
-      </div>
-    } @else {
-      @if (currentExercise) {
-        <div class="exercise-section">
-          <app-exercise-card
-            [exercise]="currentExercise"
-            [lastLog]="today.lastPerformance.get(currentExercise.id) ?? null"
-            [routineId]="today.routine.id"
-            [isCurrent]="true"
-            [isComplete]="false"
-            [savedSets]="
-              workingSetsByExerciseId.get(currentExercise.id) ?? null
-            "
-            (setsChanged)="onSetsChanged(currentExercise.id, $event)"
-            (markComplete)="onMarkComplete(currentExercise.id)"
-          ></app-exercise-card>
-
-          <div class="action-buttons">
-            <div class="button-wrapper">
-              <app-button
-                variant="secondary"
-                [height]="'50px'"
-                [fullWidth]="true"
-                [disabled]="isSaving"
-                (click)="backToPicker()"
-              >
-                Back
-              </app-button>
-            </div>
-            <div class="button-wrapper">
-              <app-button
-                variant="primary"
-                [fullWidth]="true"
-                [height]="'50px'"
-                [disabled]="isSaving"
-                (click)="finishSession()"
-              >
-                {{ isSaving ? "Saving…" : "Finish Workout" }}
-              </app-button>
-            </div>
-          </div>
-        </div>
-      }
-    }
   </div>
 }

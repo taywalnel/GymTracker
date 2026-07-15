@@ -24,6 +24,7 @@ import {
 /** Serializable snapshot of an in-progress Today session for restore after navigation. */
 export interface InProgressState {
   today: TodayWorkout;
+  startedAt: number;
   completedExerciseIds: string[];
   activeExerciseId: string | null;
   workingSets: { exerciseId: string; sets: CompletedSet[] }[];

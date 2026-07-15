@@ -1,0 +1,93 @@
+:host {
+  display: flex;
+  flex: 1;
+  gap: 15px;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.state-message {
+  padding: 40px 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  text-align: center;
+}
+
+.back-link {
+  display: inline-flex;
+  padding: 0 6px;
+  margin-left: -6px;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+
+.workout-header {
+  flex-shrink: 0;
+  gap: 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.workout-header__title {
+  font-size: 1.4rem;
+}
+
+.workout-header__elapsed-time {
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.exercise-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  gap: 12px;
+  margin: 0;
+  padding: 0 0 16px;
+  overflow-y: auto;
+  list-style: none;
+  padding-right: 10px;
+}
+
+.exercise-card {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  color: var(--color-text);
+  text-align: left;
+  cursor: pointer;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+.exercise-card:hover {
+  border-color: var(--color-text-muted);
+}
+
+.exercise-card:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.exercise-card__name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.action-buttons {
+  display: flex;
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.action-buttons app-button {
+  flex: 1;
+}

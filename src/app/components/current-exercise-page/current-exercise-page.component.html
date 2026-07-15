@@ -1,0 +1,30 @@
+@if (isLoading) {
+  <div class="state-message">Loading exercise…</div>
+} @else if (state && exercise) {
+  <app-exercise-card
+    [exercise]="exercise"
+    [isCurrent]="true"
+    [savedSets]="savedSets"
+    (setsChanged)="onSetsChanged($event)"
+    (markComplete)="onMarkComplete()"
+  />
+
+  <div class="action-buttons">
+    <app-button
+      variant="secondary"
+      [fullWidth]="true"
+      [height]="'40px'"
+      [routerLink]="['/current-workout', state.today.routine.id]"
+    >
+      Back
+    </app-button>
+    <app-button
+      variant="primary"
+      [fullWidth]="true"
+      [height]="'40px'"
+      (click)="goToNextExercise()"
+    >
+      Next exercise
+    </app-button>
+  </div>
+}

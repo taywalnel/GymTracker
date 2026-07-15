@@ -1,83 +1,84 @@
-<article
-  class="exercise-card"
-  [class.is-current]="isCurrent"
-  [class.is-complete]="isComplete"
->
-  <header class="exercise-card__header">
-    <div class="exercise-card__title-block">
-      <h3 class="exercise-card__name">{{ exercise.name }}</h3>
-      <span class="exercise-card__target">
-        {{
-          exercise.targetWeightKg > 0
-            ? formatWeight(exercise.targetWeightKg) + " " + units.unitLabel()
-            : ""
-        }}
-      </span>
-    </div>
-  </header>
-
-  @if (lastLog && lastLog.completedSets.length > 0) {
-    <div class="exercise-card__section exercise-card__section--last-session">
-      <p class="exercise-card__session-label">Last session:</p>
-      <app-nav-dots [items]="lastSessionNavItems" [muted]="true"></app-nav-dots>
-    </div>
-  }
-
-  <!-- Current session -->
-  <div class="exercise-card__section">
-    <p class="exercise-card__session-label">Current session:</p>
-    <div class="exercise-card__session-controls">
-      <app-nav-dots
-        [items]="setNavItems"
-        (dotClick)="navigateToSet($any($event.id))"
-      ></app-nav-dots>
-      <app-button
-        variant="complete"
-        ariaLabel="Complete current set"
-        (click)="completeCurrentSet()"
-      >
-        ✓
-      </app-button>
-    </div>
+<article class="exercise-card" [class.is-current]="isCurrent">
+  <div class="top-section">
+    <h3 class="exercise-card__name">{{ exercise.name }}</h3>
+    <app-workout-progress
+      [completed]="completedSetCount"
+      [total]="exercise.targetSets"
+      itemLabel="set"
+    />
+    <app-nav-dots
+      [items]="setNavItems"
+      (dotClick)="navigateToSet($any($event.id))"
+    ></app-nav-dots>
   </div>
 
-  <!-- Active set stepper -->
-  <div class="exercise-card__sets">
-    <div class="set-row">
-      <div class="set-row__steppers">
-        <div>
-          <div class="stepper">
-            <button
-              type="button"
-              class="stepper__btn stepper__btn--minus"
-              (click)="stepReps(activeSetIndex, -1)"
-              [attr.aria-label]="
-                'Decrease reps for set ' + workingSets[activeSetIndex].setNumber
-              "
-            >
-              −
-            </button>
-            <div class="stepper__value">
-              <span class="stepper__number">{{
-                setTouched[activeSetIndex]
-                  ? workingSets[activeSetIndex].reps
-                  : exercise.targetReps
-              }}</span>
-              <span class="stepper__unit">reps</span>
-            </div>
-            <button
-              type="button"
-              class="stepper__btn stepper__btn--plus"
-              (click)="stepReps(activeSetIndex, 1)"
-              [attr.aria-label]="
-                'Increase reps for set ' + workingSets[activeSetIndex].setNumber
-              "
-            >
-              +
-            </button>
-          </div>
-        </div>
+  <div>
+    <p class="stepper__label">Target</p>
+    <div class="exercise-card__target-summary">
+      <div class="stepper-container">
+        <p class="stepper__label">Reps</p>
+        <span class="exercise-card__target-value">{{
+          exercise.targetReps
+        }}</span>
+      </div>
+      <div class="stepper-container">
+        <p class="stepper__label">Weight ({{ units.unitLabel() }})</p>
+        <span class="exercise-card__target-value"
+          >{{ formatWeight(exercise.targetWeightKg) }}
+        </span>
       </div>
     </div>
   </div>
+
+  <div class="set-row">
+    <div>
+      <p class="stepper__label">Completed</p>
+      <div class="stepper">
+        <button
+          type="button"
+          class="stepper__btn stepper__btn--minus"
+          (click)="stepReps(activeSetIndex, -1)"
+          [attr.aria-label]="
+            'Decrease reps for set ' + workingSets[activeSetIndex].setNumber
+          "
+        >
+          −
+        </button>
+        <div class="stepper__value">
+          <span class="stepper__number">{{
+            setTouched[activeSetIndex]
+              ? workingSets[activeSetIndex].reps
+              : exercise.targetReps
+          }}</span>
+          <span class="stepper__unit">reps</span>
+        </div>
+        <button
+          type="button"
+          class="stepper__btn stepper__btn--plus"
+          (click)="stepReps(activeSetIndex, 1)"
+          [attr.aria-label]="
+            'Increase reps for set ' + workingSets[activeSetIndex].setNumber
+          "
+        >
+          +
+        </button>
+      </div>
+    </div>
+    <app-button
+      variant="primary"
+      [fullWidth]="true"
+      (click)="completeCurrentSet()"
+      [height]="'40px'"
+    >
+      Complete set
+    </app-button>
+  </div>
+
+  @if (restTimer.secondsLeft !== null) {
+    <div class="rest-timer" role="status" aria-live="polite">
+      <p class="rest-timer__label">Rest</p>
+      <span class="rest-timer__time">{{ restTimer.secondsLeft }}</span>
+      <span class="rest-timer__unit">seconds</span>
+    </div>
+  }
 </article>
