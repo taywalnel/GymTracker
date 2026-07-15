@@ -103,37 +103,38 @@
   color: var(--color-border);
 }
 
-.rest-timer {
+.app-rest-timer {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 10px;
-  position: absolute;
+  gap: 6px;
+  background: var(--color-panel-raised);
+  border: 1px solid var(--color-accent-dim);
+  border-radius: var(--radius-md);
+  position: fixed;
   right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  min-height: 32px;
+  top: calc(12px + env(safe-area-inset-top));
+  min-height: 42px;
+  padding: 8px 10px;
   box-sizing: border-box;
+  z-index: 30;
 }
 
-.rest-timer__label {
+.app-rest-timer__label {
   font-family: var(--font-display);
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
 }
 
-.rest-timer__countdown {
+.app-rest-timer__countdown {
   font-family: var(--font-display);
-  font-size: 1.05rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--color-accent);
   line-height: 1;
-  min-width: 3ch;
+  min-width: 2ch;
   text-align: right;
 }
 
@@ -146,7 +147,7 @@
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  padding: 15px;
+  padding: 30px 15px 15px 15px;
 }
 
 .tab-bar {

@@ -3,6 +3,13 @@
     <router-outlet></router-outlet>
   </main>
 
+  @if (restTimer.secondsLeft !== null && !isCurrentExerciseRoute()) {
+    <div class="app-rest-timer" role="status" aria-live="polite">
+      <span class="app-rest-timer__label">Rest</span>
+      <span class="app-rest-timer__countdown">{{ restTimer.secondsLeft }}</span>
+    </div>
+  }
+
   <nav class="tab-bar">
     <a
       class="tab-bar__item"
@@ -10,15 +17,12 @@
       [class.is-active]="isTodayRoute()"
       (click)="onTodayTabClick($event)"
     >
-      <span class="tab-bar__icon">🏋️</span>
       <span class="tab-bar__label">Today</span>
     </a>
     <a class="tab-bar__item" routerLink="/program" routerLinkActive="is-active">
-      <span class="tab-bar__icon">📋</span>
       <span class="tab-bar__label">Workouts</span>
     </a>
     <a class="tab-bar__item" routerLink="/history" routerLinkActive="is-active">
-      <span class="tab-bar__icon">📜</span>
       <span class="tab-bar__label">History</span>
     </a>
     <a
@@ -26,11 +30,9 @@
       routerLink="/settings"
       routerLinkActive="is-active"
     >
-      <span class="tab-bar__icon">⚙️</span>
       <span class="tab-bar__label">Settings</span>
     </a>
     <a class="tab-bar__item" routerLink="/account" routerLinkActive="is-active">
-      <span class="tab-bar__icon">👤</span>
       <span class="tab-bar__label">Account</span>
     </a>
   </nav>

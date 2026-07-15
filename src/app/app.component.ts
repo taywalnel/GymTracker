@@ -36,4 +36,9 @@ export class AppComponent {
     const path = this.router.url.split(/[?#]/, 1)[0];
     return path === "/" || path.startsWith("/current-workout/");
   }
+
+  isCurrentExerciseRoute(): boolean {
+    const path = this.router.url.split(/[?#]/, 1)[0];
+    return /^\/current-workout\/[^/]+\/[^/]+$/.test(path);
+  }
 }

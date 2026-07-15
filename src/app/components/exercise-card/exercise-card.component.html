@@ -75,10 +75,17 @@
   </div>
 
   @if (restTimer.secondsLeft !== null) {
-    <div class="rest-timer" role="status" aria-live="polite">
+    <button
+      type="button"
+      class="rest-timer"
+      [class.rest-timer--collapsed]="restTimerCollapsed"
+      (click)="toggleRestTimer()"
+      aria-label="Toggle rest timer"
+      aria-live="polite"
+    >
       <p class="rest-timer__label">Rest</p>
       <span class="rest-timer__time">{{ restTimer.secondsLeft }}</span>
       <span class="rest-timer__unit">seconds</span>
-    </div>
+    </button>
   }
 </article>

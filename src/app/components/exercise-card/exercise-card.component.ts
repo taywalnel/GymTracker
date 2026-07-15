@@ -44,6 +44,9 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
   /** Set indices that have been marked complete. */
   completedSetIndices = new Set<number>();
 
+  /** Whether the active rest timer is shown as a compact indicator. */
+  restTimerCollapsed = false;
+
   /** Whether each set's reps stepper has been "started" — controls 0-state vs target-prefill behavior */
   private setStarted: boolean[] = [];
   /** Whether each set's reps stepper has ever been touched — never resets to false */
@@ -160,7 +163,12 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
       return;
     }
 
+    this.restTimerCollapsed = false;
     this.restTimer.start();
+  }
+
+  toggleRestTimer(): void {
+    this.restTimerCollapsed = !this.restTimerCollapsed;
   }
 
   /**
