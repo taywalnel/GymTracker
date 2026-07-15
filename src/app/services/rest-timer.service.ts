@@ -4,18 +4,21 @@ import { Injectable, OnDestroy } from "@angular/core";
 export class RestTimerService implements OnDestroy {
   readonly duration = 60;
 
-  secondsLeft: number | null = null;
+  private endsAt: number | null = null;
+  private remainingSeconds: number | null = null;
   private interval: ReturnType<typeof setInterval> | null = null;
+
+  get secondsLeft(): number | null {
+    this.updateRemainingSeconds();
+    return this.remainingSeconds;
+  }
 
   start(): void {
     this.clear();
-    this.secondsLeft = this.duration;
+    this.endsAt = Date.now() + this.duration * 1000;
+    this.remainingSeconds = this.duration;
     this.interval = setInterval(() => {
-      if (this.secondsLeft === null) return;
-      this.secondsLeft--;
-      if (this.secondsLeft <= 0) {
-        this.clear();
-      }
+      this.updateRemainingSeconds();
     }, 1000);
   }
 
@@ -24,10 +27,23 @@ export class RestTimerService implements OnDestroy {
       clearInterval(this.interval);
       this.interval = null;
     }
-    this.secondsLeft = null;
+    this.endsAt = null;
+    this.remainingSeconds = null;
   }
 
   ngOnDestroy(): void {
     this.clear();
+  }
+
+  private updateRemainingSeconds(): void {
+    if (this.endsAt === null) return;
+
+    const secondsLeft = Math.ceil((this.endsAt - Date.now()) / 1000);
+    if (secondsLeft <= 0) {
+      this.clear();
+      return;
+    }
+
+    this.remainingSeconds = secondsLeft;
   }
 }
