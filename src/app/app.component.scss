@@ -117,6 +117,8 @@
   padding: 8px 10px;
   box-sizing: border-box;
   z-index: 30;
+  font: inherit;
+  cursor: pointer;
 }
 
 .app-rest-timer__label {

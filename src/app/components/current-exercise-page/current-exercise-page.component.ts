@@ -45,7 +45,8 @@ export class CurrentExercisePageComponent implements OnInit {
       return;
     }
 
-    this.state = state;
+    this.state = { ...state, activeExerciseId: exercise.id };
+    this.workoutService.saveInProgressState(this.state);
     this.exercise = exercise;
     this.isLoading = false;
   }

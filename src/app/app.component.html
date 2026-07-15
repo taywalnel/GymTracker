@@ -4,10 +4,15 @@
   </main>
 
   @if (restTimer.secondsLeft !== null && !isCurrentExerciseRoute()) {
-    <div class="app-rest-timer" role="status" aria-live="polite">
+    <button
+      type="button"
+      class="app-rest-timer"
+      aria-label="Return to current exercise"
+      (click)="returnToCurrentExercise()"
+    >
       <span class="app-rest-timer__label">Rest</span>
       <span class="app-rest-timer__countdown">{{ restTimer.secondsLeft }}</span>
-    </div>
+    </button>
   }
 
   <nav class="tab-bar">
