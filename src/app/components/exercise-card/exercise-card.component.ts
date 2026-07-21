@@ -16,11 +16,10 @@ import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { RestTimerService } from "../../services/rest-timer.service";
 import { ButtonComponent } from "../button/button.component";
 import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
-import { WorkoutProgressComponent } from "../workout-progress/workout-progress.component";
 
 @Component({
   selector: "app-exercise-card",
-  imports: [ButtonComponent, NavDotsComponent, WorkoutProgressComponent],
+  imports: [ButtonComponent, NavDotsComponent],
   templateUrl: "./exercise-card.component.html",
   styleUrl: "./exercise-card.component.scss",
 })
@@ -34,6 +33,8 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
   @Output() setsChanged = new EventEmitter<CompletedSet[]>();
   /** Emits when the person marks this exercise as done for the session */
   @Output() markComplete = new EventEmitter<void>();
+  /** Emits when the person returns to the workout overview. */
+  @Output() back = new EventEmitter<void>();
 
   /** Working sets, always stored internally in kg regardless of display unit. */
   workingSets: CompletedSet[] = [];

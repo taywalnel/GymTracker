@@ -1,15 +1,7 @@
 <article class="exercise-card" [class.is-current]="isCurrent">
   <div class="top-section">
     <h3 class="exercise-card__name">{{ exercise.name }}</h3>
-    <app-workout-progress
-      [completed]="completedSetCount"
-      [total]="exercise.targetSets"
-      itemLabel="set"
-    />
-    <app-nav-dots
-      [items]="setNavItems"
-      (dotClick)="navigateToSet($any($event.id))"
-    ></app-nav-dots>
+    <app-nav-dots [items]="setNavItems"></app-nav-dots>
   </div>
 
   <div>
@@ -64,14 +56,24 @@
         </button>
       </div>
     </div>
-    <app-button
-      variant="primary"
-      [fullWidth]="true"
-      (click)="completeCurrentSet()"
-      [height]="'40px'"
-    >
-      Complete set
-    </app-button>
+    <div class="buttons-row">
+      <app-button
+        variant="secondary"
+        [fullWidth]="true"
+        [height]="'40px'"
+        (click)="back.emit()"
+      >
+        Back
+      </app-button>
+      <app-button
+        variant="primary"
+        [fullWidth]="true"
+        (click)="completeCurrentSet()"
+        [height]="'40px'"
+      >
+        Complete set
+      </app-button>
+    </div>
   </div>
 
   @if (restTimer.secondsLeft !== null) {

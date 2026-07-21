@@ -7,24 +7,6 @@
     [savedSets]="savedSets"
     (setsChanged)="onSetsChanged($event)"
     (markComplete)="onMarkComplete()"
+    (back)="goToWorkout()"
   />
-
-  <div class="action-buttons">
-    <app-button
-      variant="secondary"
-      [fullWidth]="true"
-      [height]="'40px'"
-      [routerLink]="['/current-workout', state.today.routine.id]"
-    >
-      Back
-    </app-button>
-    <app-button
-      variant="primary"
-      [fullWidth]="true"
-      [height]="'40px'"
-      (click)="goToNextExercise()"
-    >
-      Next exercise
-    </app-button>
-  </div>
 }

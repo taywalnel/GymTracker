@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import {
   CompletedSet,
   ExercisePrescription,
@@ -8,12 +8,11 @@ import {
   InProgressState,
   WorkoutService,
 } from "../../services/workout.service";
-import { ButtonComponent } from "../button/button.component";
 import { ExerciseCardComponent } from "../exercise-card/exercise-card.component";
 
 @Component({
   selector: "app-current-exercise-page",
-  imports: [RouterLink, ButtonComponent, ExerciseCardComponent],
+  imports: [ExerciseCardComponent],
   templateUrl: "./current-exercise-page.component.html",
   styleUrl: "./current-exercise-page.component.scss",
 })
@@ -70,6 +69,11 @@ export class CurrentExercisePageComponent implements OnInit {
       completedExerciseIds,
       activeExerciseId: null,
     });
+    this.router.navigate(["/current-workout", this.state.today.routine.id]);
+  }
+
+  goToWorkout(): void {
+    if (!this.state) return;
     this.router.navigate(["/current-workout", this.state.today.routine.id]);
   }
 

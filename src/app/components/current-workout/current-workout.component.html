@@ -21,11 +21,7 @@
           (click)="navigateToExercise(exercise.id)"
         >
           <span class="exercise-card__name">{{ exercise.name }}</span>
-          <app-workout-progress
-            [completed]="exercise.completedSets"
-            [total]="exercise.totalSets"
-            itemLabel="set"
-          />
+          <app-nav-dots [items]="exercise.setNavItems" />
         </button>
       </li>
     }

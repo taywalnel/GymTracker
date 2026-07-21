@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, Output } from "@angular/core";
 
-
 export interface NavDotItem {
   id: string | number;
   isActive: boolean;
@@ -13,10 +12,10 @@ export interface NavDotItem {
 }
 
 @Component({
-    selector: "app-nav-dots",
-    imports: [],
-    templateUrl: "./nav-dots.component.html",
-    styleUrl: "./nav-dots.component.scss"
+  selector: "app-nav-dots",
+  imports: [],
+  templateUrl: "./nav-dots.component.html",
+  styleUrl: "./nav-dots.component.scss",
 })
 export class NavDotsComponent {
   @Input({ required: true }) items: NavDotItem[] = [];
@@ -27,6 +26,4 @@ export class NavDotsComponent {
   @Input() layout: "packed" | "spread" = "packed";
   /** When true, renders all dots with muted/historical styling. */
   @Input() muted = false;
-
-  @Output() dotClick = new EventEmitter<NavDotItem>();
 }

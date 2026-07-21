@@ -7,7 +7,7 @@ import {
 } from "@angular/core";
 
 import { FormsModule } from "@angular/forms";
-import { Router, ActivatedRoute, RouterLink } from "@angular/router";
+import { Router, ActivatedRoute } from "@angular/router";
 import { WorkoutService } from "../../services/workout.service";
 import { Routine, ExercisePrescription } from "../../models/workout.models";
 import { NavDotItem } from "../nav-dots/nav-dots.component";
@@ -16,7 +16,7 @@ import { ButtonComponent } from "../button/button.component";
 
 @Component({
   selector: "app-program-editor",
-  imports: [FormsModule, RouterLink, ButtonComponent],
+  imports: [FormsModule, ButtonComponent],
   templateUrl: "./program-editor.component.html",
   styleUrl: "./program-editor.component.scss",
 })

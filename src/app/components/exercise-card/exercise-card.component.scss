@@ -63,6 +63,11 @@
   gap: 15px;
 }
 
+.buttons-row {
+  display: flex;
+  gap: 15px;
+}
+
 .set-row:last-child {
   border-bottom: none;
   padding-bottom: 0;

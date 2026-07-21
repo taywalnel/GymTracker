@@ -12,7 +12,6 @@
       [class.is-complete]="item.isComplete"
       [class.is-short]="item.isComplete && item.isShort"
       [attr.aria-label]="item.ariaLabel"
-      (click)="dotClick.emit(item)"
     >
       @if (item.label !== undefined && item.label !== null) {
         {{ item.label }}

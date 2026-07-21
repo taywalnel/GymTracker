@@ -12,18 +12,23 @@ import {
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { RestTimerService } from "../../services/rest-timer.service";
 import { ButtonComponent } from "../button/button.component";
+import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
 import { WorkoutProgressComponent } from "../workout-progress/workout-progress.component";
 
 interface CurrentExerciseDisplay {
   id: string;
   name: string;
-  completedSets: number;
-  totalSets: number;
+  setNavItems: NavDotItem[];
 }
 
 @Component({
   selector: "app-current-workout",
-  imports: [RouterLink, ButtonComponent, WorkoutProgressComponent],
+  imports: [
+    RouterLink,
+    ButtonComponent,
+    NavDotsComponent,
+    WorkoutProgressComponent,
+  ],
   templateUrl: "./current-workout.component.html",
   styleUrl: "./current-workout.component.scss",
 })
@@ -79,8 +84,24 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
         return {
           id: exercise.id,
           name: exercise.name,
-          completedSets: sets.filter((set) => set.reps > 0).length,
-          totalSets: exercise.targetSets,
+          setNavItems: Array.from(
+            { length: exercise.targetSets },
+            (_, index) => {
+              const set = sets[index];
+              const isComplete = (set?.reps ?? 0) > 0;
+              const setNumber = index + 1;
+              return {
+                id: setNumber,
+                isActive: false,
+                isComplete,
+                isShort: isComplete && set!.reps < exercise.targetReps,
+                label: isComplete ? set!.reps : exercise.targetReps,
+                ariaLabel: isComplete
+                  ? `Set ${setNumber}: ${set!.reps} reps`
+                  : `Set ${setNumber}: ${exercise.targetReps} reps planned`,
+              };
+            },
+          ),
         };
       });
     this.isLoading = false;
