@@ -13,6 +13,6 @@
 @if (showEditBtn && meta) {
   <span class="subtitle">{{ meta }}</span>
 }
-@if (navDots) {
-  <app-nav-dots [items]="navDots" [layout]="navDotsLayout" />
+@if (weight !== null && sets !== null) {
+  <app-weight-and-reps [weight]="weight" [sets]="sets" />
 }

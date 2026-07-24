@@ -1,8 +1,5 @@
 <div class="program-container">
-  <div class="program-header">
-    <h2 class="program-title">Workouts</h2>
-    <a routerLink="/program/edit" class="program-add-btn">+ New Routine</a>
-  </div>
+  <app-page-header title="Workouts" />
 
   @if (loading) {
     <div class="loading">Loading routines...</div>
@@ -29,4 +26,15 @@
       }
     </div>
   }
+
+  <div class="program-actions">
+    <app-button
+      variant="primary"
+      [fullWidth]="true"
+      [height]="'40px'"
+      (click)="createRoutine()"
+    >
+      New Routine
+    </app-button>
+  </div>
 </div>

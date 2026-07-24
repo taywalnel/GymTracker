@@ -9,10 +9,7 @@
   </div>
 } @else {
   <div class="picker-wrapper">
-    <div class="picker-header">
-      <h2 class="picker-header__title">Choose a Workout</h2>
-      <p class="picker-header__sub">{{ todayDateLabel }}</p>
-    </div>
+    <app-page-header title="Choose a Workout"></app-page-header>
 
     @if (savedState) {
       <div class="resume-card">

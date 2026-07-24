@@ -15,11 +15,15 @@ import {
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { RestTimerService } from "../../services/rest-timer.service";
 import { ButtonComponent } from "../button/button.component";
-import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
+import { PageHeaderComponent } from "../page-header/page-header.component";
+import {
+  WeightAndRepsComponent,
+  WeightAndRepsSet,
+} from "../weight-and-reps/weight-and-reps.component";
 
 @Component({
   selector: "app-exercise-card",
-  imports: [ButtonComponent, NavDotsComponent],
+  imports: [ButtonComponent, PageHeaderComponent, WeightAndRepsComponent],
   templateUrl: "./exercise-card.component.html",
   styleUrl: "./exercise-card.component.scss",
 })
@@ -110,23 +114,35 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
     }
   }
 
-  get setNavItems(): NavDotItem[] {
-    return this.workingSets.map((set, i) => {
-      const isComplete = this.completedSetIndices.has(i);
-      return {
-        id: i,
-        isActive: this.activeSetIndex === i,
-        isComplete,
-        isShort: isComplete && set.reps < this.exercise.targetReps,
-        label: isComplete ? set.reps : this.exercise.targetReps,
-        ariaLabel:
-          `Set ${set.setNumber}` + (isComplete ? `: ${set.reps} reps` : ""),
-      };
-    });
-  }
-
   get completedSetCount(): number {
     return this.completedSetIndices.size;
+  }
+
+  get targetSetReps(): WeightAndRepsSet[] {
+    return Array.from({ length: this.exercise.targetSets }, () => ({
+      value: this.exercise.targetReps,
+    }));
+  }
+
+  get currentWeightKg(): number {
+    return this.workingSets[0]?.weightKg ?? this.exercise.targetWeightKg;
+  }
+
+  get currentSetReps(): WeightAndRepsSet[] {
+    return Array.from({ length: this.exercise.targetSets }, (_, index) => {
+      const set = this.workingSets[index];
+      const isComplete = this.completedSetIndices.has(index);
+
+      return {
+        value: isComplete ? set!.reps : this.exercise.targetReps,
+        color: isComplete
+          ? set!.reps >= this.exercise.targetReps
+            ? "var(--color-accent)"
+            : "var(--color-warn)"
+          : undefined,
+        textColor: isComplete ? "black" : undefined,
+      };
+    });
   }
 
   navigateToSet(index: number): void {

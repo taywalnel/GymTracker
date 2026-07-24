@@ -1,13 +1,16 @@
 import { Component, Input } from "@angular/core";
 import { RouterLink } from "@angular/router";
-import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
 import { ButtonComponent } from "../button/button.component";
+import {
+  WeightAndRepsComponent,
+  WeightAndRepsSet,
+} from "../weight-and-reps/weight-and-reps.component";
 
 @Component({
-    selector: "app-exercise-list-item",
-    imports: [RouterLink, NavDotsComponent, ButtonComponent],
-    templateUrl: "./exercise-list-item.component.html",
-    styleUrl: "./exercise-list-item.component.scss"
+  selector: "app-exercise-list-item",
+  imports: [RouterLink, ButtonComponent, WeightAndRepsComponent],
+  templateUrl: "./exercise-list-item.component.html",
+  styleUrl: "./exercise-list-item.component.scss",
 })
 export class ExerciseListItemComponent {
   @Input() name = "";
@@ -15,6 +18,6 @@ export class ExerciseListItemComponent {
   /** Right-side meta text (e.g. weight). When showEditBtn is true, rendered as a subtitle instead. */
   @Input() meta: string | null = null;
   @Input() showEditBtn = false;
-  @Input() navDots: NavDotItem[] | null = null;
-  @Input() navDotsLayout: "packed" | "spread" = "packed";
+  @Input() weight: number | null = null;
+  @Input() sets: WeightAndRepsSet[] | null = null;
 }

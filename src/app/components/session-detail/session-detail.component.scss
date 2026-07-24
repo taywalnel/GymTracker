@@ -21,31 +21,11 @@
   padding: 12px 0;
 }
 
-.back-link {
-  display: inline-flex;
-  align-items: center;
-  color: var(--color-text-muted);
-  text-decoration: none;
-  font-size: 0.85rem;
-  margin-left: -6px;
-  padding: 0 6px;
-  -webkit-tap-highlight-color: transparent;
-
-  &:active {
-    color: var(--color-accent);
-  }
-}
-
-.session-header {
-  margin-bottom: 20px;
-}
-
-.session-header__routine {
-  font-size: 1.4rem;
-}
-
 .session-header__date {
+  text-align: center;
+  width: 100%;
   font-size: 0.85rem;
+  padding: 10px 0;
   color: var(--color-text-muted);
 }
 

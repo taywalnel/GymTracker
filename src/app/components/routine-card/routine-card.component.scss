@@ -5,7 +5,6 @@
   padding: 14px 16px;
   background: linear-gradient(180deg, rgba(198, 241, 53, 0.02), transparent);
   border: 1px solid rgba(143, 174, 38, 0.12);
-  border-radius: calc(var(--radius-md) - 2px);
   cursor: pointer;
   transition:
     transform 0.08s ease,
@@ -30,7 +29,6 @@
   padding: 22px;
   background: linear-gradient(180deg, rgba(198, 241, 53, 0.03), transparent);
   border-color: var(--color-accent-dim);
-  border-radius: var(--radius-lg);
 
   .routine-card__body {
     justify-content: space-between;

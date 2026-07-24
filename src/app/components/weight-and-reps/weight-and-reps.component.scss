@@ -1,0 +1,52 @@
+:host {
+  display: flex;
+  gap: 4px;
+}
+
+.sets-container {
+  display: flex;
+  gap: 4px;
+  position: relative;
+  padding-bottom: 9px;
+}
+
+.set-container,
+.weight-container {
+  height: 40px;
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+}
+
+.weight-container {
+  border: 2px solid #a3c92266;
+  min-width: 75px;
+  padding: 0 8px;
+  background-color: #2c3038;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.weight-unit {
+  font-size: 0.65em;
+  transform: translate(0px, 3px);
+}
+
+.set-container {
+  width: 40px;
+  background-color: var(--color-border);
+}
+
+.active-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 17.5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  transition: transform 220ms ease-out;
+}

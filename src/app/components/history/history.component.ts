@@ -5,6 +5,7 @@ import { WorkoutSession, ExerciseLog } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { ButtonComponent } from "../button/button.component";
+import { PageHeaderComponent } from "../page-header/page-header.component";
 
 interface ExerciseHistoryEntry {
   date: string;
@@ -20,10 +21,10 @@ interface CalendarDay {
 }
 
 @Component({
-    selector: "app-history",
-    imports: [RouterLink, ButtonComponent],
-    templateUrl: "./history.component.html",
-    styleUrl: "./history.component.scss"
+  selector: "app-history",
+  imports: [RouterLink, ButtonComponent, PageHeaderComponent],
+  templateUrl: "./history.component.html",
+  styleUrl: "./history.component.scss",
 })
 export class HistoryComponent implements OnInit {
   // Session-list mode

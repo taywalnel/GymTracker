@@ -1,13 +1,15 @@
 import { Component, OnInit } from "@angular/core";
 
-import { Router, RouterLink } from "@angular/router";
+import { Router } from "@angular/router";
 import { WorkoutService } from "../../services/workout.service";
 import { Routine } from "../../models/workout.models";
+import { ButtonComponent } from "../button/button.component";
+import { PageHeaderComponent } from "../page-header/page-header.component";
 import { RoutineCardComponent } from "../routine-card/routine-card.component";
 
 @Component({
   selector: "app-program",
-  imports: [RouterLink, RoutineCardComponent],
+  imports: [ButtonComponent, PageHeaderComponent, RoutineCardComponent],
   templateUrl: "./program.component.html",
   styleUrl: "./program.component.scss",
 })
@@ -36,5 +38,9 @@ export class ProgramComponent implements OnInit {
 
   editRoutine(routine: Routine): void {
     this.router.navigate(["/program/edit", routine.id]);
+  }
+
+  createRoutine(): void {
+    this.router.navigate(["/program/edit"]);
   }
 }

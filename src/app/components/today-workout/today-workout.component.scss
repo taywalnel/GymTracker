@@ -17,17 +17,6 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 20px;
-}
-
-.picker-header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.picker-header__title {
-  font-size: 1.5rem;
 }
 
 .picker-header__sub {
@@ -64,7 +53,6 @@
     transparent
   );
   border: 1px solid color-mix(in srgb, var(--color-accent) 12%, transparent);
-  border-radius: var(--radius-md);
 }
 
 .resume-card__meta {

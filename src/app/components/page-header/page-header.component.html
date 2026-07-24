@@ -1,0 +1,17 @@
+@if (backLink || showBack || title) {
+  <div class="page-header__heading">
+    @if (backLink) {
+      <button type="button" [routerLink]="backLink" class="back-link">
+        {{ backLabel }}
+      </button>
+    } @else if (showBack) {
+      <button type="button" class="back-link" (click)="back.emit()">
+        {{ backLabel }}
+      </button>
+    }
+
+    @if (title) {
+      <h2 class="page-header__title">{{ title }}</h2>
+    }
+  </div>
+}

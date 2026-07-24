@@ -12,23 +12,29 @@ import {
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { RestTimerService } from "../../services/rest-timer.service";
 import { ButtonComponent } from "../button/button.component";
-import { NavDotsComponent, NavDotItem } from "../nav-dots/nav-dots.component";
+import { NavDotItem } from "../nav-dots/nav-dots.component";
+import { PageHeaderComponent } from "../page-header/page-header.component";
 import { WorkoutProgressComponent } from "../workout-progress/workout-progress.component";
+import {
+  WeightAndRepsComponent,
+  WeightAndRepsSet,
+} from "../weight-and-reps/weight-and-reps.component";
 
 interface CurrentExerciseDisplay {
   id: string;
   name: string;
   targetWeightKg: number;
+  setReps: WeightAndRepsSet[];
   setNavItems: NavDotItem[];
 }
 
 @Component({
   selector: "app-current-workout",
   imports: [
-    RouterLink,
     ButtonComponent,
-    NavDotsComponent,
+    PageHeaderComponent,
     WorkoutProgressComponent,
+    WeightAndRepsComponent,
   ],
   templateUrl: "./current-workout.component.html",
   styleUrl: "./current-workout.component.scss",
@@ -86,6 +92,19 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
           id: exercise.id,
           name: exercise.name,
           targetWeightKg: exercise.targetWeightKg,
+          setReps: Array.from({ length: exercise.targetSets }, (_, index) => {
+            const set = sets[index];
+            const isComplete = (set?.reps ?? 0) > 0;
+            return {
+              value: isComplete ? set!.reps : exercise.targetReps,
+              color: isComplete
+                ? set!.reps >= exercise.targetReps
+                  ? "var(--color-accent)"
+                  : "var(--color-warn)"
+                : undefined,
+              textColor: isComplete ? "black" : undefined,
+            };
+          }),
           setNavItems: Array.from(
             { length: exercise.targetSets },
             (_, index) => {
