@@ -18,6 +18,7 @@ import { WorkoutProgressComponent } from "../workout-progress/workout-progress.c
 interface CurrentExerciseDisplay {
   id: string;
   name: string;
+  targetWeightKg: number;
   setNavItems: NavDotItem[];
 }
 
@@ -84,6 +85,7 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
         return {
           id: exercise.id,
           name: exercise.name,
+          targetWeightKg: exercise.targetWeightKg,
           setNavItems: Array.from(
             { length: exercise.targetSets },
             (_, index) => {

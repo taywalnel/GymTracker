@@ -5,36 +5,6 @@
 }
 
 <div class="routine-card__body">
-  <span class="routine-card__name">{{ routine.name }}</span>
-  <span class="routine-card__meta"
-    >{{ routine.exercises.length }} exercise{{
-      routine.exercises.length !== 1 ? "s" : ""
-    }}</span
-  >
+  <span class="routine-card__name">{{ title }}</span>
+  <span class="routine-card__meta">{{ description }}</span>
 </div>
-
-@if (showEditButton || showDeleteButton) {
-  <div class="routine-card__actions">
-    @if (showEditButton) {
-      <button
-        type="button"
-        class="routine-card__action routine-card__action--edit"
-        [attr.aria-label]="'Edit ' + routine.name"
-        (click)="requestEdit($event)"
-      >
-        <span aria-hidden="true">✏️</span> Edit
-      </button>
-    }
-
-    @if (showDeleteButton) {
-      <button
-        type="button"
-        class="routine-card__action routine-card__action--delete"
-        [attr.aria-label]="'Delete ' + routine.name"
-        (click)="requestDelete($event)"
-      >
-        <span aria-hidden="true">🗑️</span> Delete
-      </button>
-    }
-  </div>
-}

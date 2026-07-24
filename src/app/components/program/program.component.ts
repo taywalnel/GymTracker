@@ -34,16 +34,6 @@ export class ProgramComponent implements OnInit {
     });
   }
 
-  deleteRoutine(id: string): void {
-    if (confirm("Are you sure you want to delete this routine?")) {
-      this.workoutService.deleteRoutine(id).subscribe({
-        next: () => {
-          this.loadRoutines();
-        },
-      });
-    }
-  }
-
   editRoutine(routine: Routine): void {
     this.router.navigate(["/program/edit", routine.id]);
   }

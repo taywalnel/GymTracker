@@ -10,13 +10,13 @@ import { FormsModule } from "@angular/forms";
 import { Router, ActivatedRoute } from "@angular/router";
 import { WorkoutService } from "../../services/workout.service";
 import { Routine, ExercisePrescription } from "../../models/workout.models";
-import { NavDotItem } from "../nav-dots/nav-dots.component";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { ButtonComponent } from "../button/button.component";
+import { RoutineCardComponent } from "../routine-card/routine-card.component";
 
 @Component({
   selector: "app-program-editor",
-  imports: [FormsModule, ButtonComponent],
+  imports: [FormsModule, ButtonComponent, RoutineCardComponent],
   templateUrl: "./program-editor.component.html",
   styleUrl: "./program-editor.component.scss",
 })
@@ -84,38 +84,6 @@ export class ProgramEditorComponent implements OnInit {
     });
   }
 
-  removeExercise(index: number): void {
-    this.routine.exercises.splice(index, 1);
-    // Reorder
-    this.routine.exercises.forEach((ex, i) => {
-      ex.order = i;
-    });
-  }
-
-  moveExerciseUp(index: number): void {
-    if (index > 0) {
-      [this.routine.exercises[index - 1], this.routine.exercises[index]] = [
-        this.routine.exercises[index],
-        this.routine.exercises[index - 1],
-      ];
-      this.routine.exercises.forEach((ex, i) => {
-        ex.order = i;
-      });
-    }
-  }
-
-  moveExerciseDown(index: number): void {
-    if (index < this.routine.exercises.length - 1) {
-      [this.routine.exercises[index], this.routine.exercises[index + 1]] = [
-        this.routine.exercises[index + 1],
-        this.routine.exercises[index],
-      ];
-      this.routine.exercises.forEach((ex, i) => {
-        ex.order = i;
-      });
-    }
-  }
-
   save(): void {
     if (!this.routine.name.trim()) {
       alert("Please enter a routine name");
@@ -143,13 +111,7 @@ export class ProgramEditorComponent implements OnInit {
     this.router.navigate(["/program"]);
   }
 
-  exerciseDots(ex: ExercisePrescription): NavDotItem[] {
-    return Array.from({ length: ex.targetSets }, (_, i) => ({
-      id: i + 1,
-      isActive: false,
-      isComplete: true,
-      label: ex.targetReps,
-      ariaLabel: `Set ${i + 1}: ${ex.targetReps} reps`,
-    }));
+  exerciseDescription(exercise: ExercisePrescription): string {
+    return `${exercise.targetSets} x ${exercise.targetReps} reps - ${this.unitPref.formatWeight(exercise.targetWeightKg)}`;
   }
 }

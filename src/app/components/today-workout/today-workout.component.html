@@ -36,11 +36,16 @@
     <ul class="routine-list">
       @if (featuredRoutine && !savedState) {
         <li
-          app-routine-card
-          [routine]="featuredRoutine"
+          app-card
+          [title]="featuredRoutine.name"
+          [description]="
+            featuredRoutine.exercises.length +
+            ' exercise' +
+            (featuredRoutine.exercises.length !== 1 ? 's' : '')
+          "
           [featured]="true"
           badge="Up next"
-          (selected)="selectRoutine($event)"
+          (click)="selectRoutine(featuredRoutine)"
         ></li>
       }
 
@@ -48,9 +53,14 @@
         <li class="picker-subhead">Or select another workout</li>
         @for (routine of otherRoutines; track routine.id) {
           <li
-            app-routine-card
-            [routine]="routine"
-            (selected)="selectRoutine($event)"
+            app-card
+            [title]="routine.name"
+            [description]="
+              routine.exercises.length +
+              ' exercise' +
+              (routine.exercises.length !== 1 ? 's' : '')
+            "
+            (click)="selectRoutine(routine)"
           ></li>
         }
       }
