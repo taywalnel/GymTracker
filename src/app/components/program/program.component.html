@@ -14,15 +14,16 @@
   @if (!loading && routines.length > 0) {
     <div class="routine-list">
       @for (routine of routines; track routine.id) {
-        <app-card
+        <app-editable-card
           [title]="routine.name"
           [description]="
             routine.exercises.length +
             ' exercise' +
             (routine.exercises.length !== 1 ? 's' : '')
           "
-          (click)="editRoutine(routine)"
-        ></app-card>
+          (edit)="editRoutine(routine)"
+          (delete)="deleteRoutine(routine)"
+        ></app-editable-card>
       }
     </div>
   }
@@ -38,3 +39,13 @@
     </app-button>
   </div>
 </div>
+
+@if (routinePendingDeletion; as routine) {
+  <app-confirmation-modal
+    title="Delete workout?"
+    message="This cannot be undone."
+    confirmLabel="Delete"
+    (cancelled)="cancelDelete()"
+    (confirmed)="confirmDelete()"
+  />
+}

@@ -20,10 +20,16 @@ import {
   WeightAndRepsComponent,
   WeightAndRepsSet,
 } from "../weight-and-reps/weight-and-reps.component";
+import { StepperComponent } from "../stepper/stepper.component";
 
 @Component({
   selector: "app-exercise-card",
-  imports: [ButtonComponent, PageHeaderComponent, WeightAndRepsComponent],
+  imports: [
+    ButtonComponent,
+    PageHeaderComponent,
+    WeightAndRepsComponent,
+    StepperComponent,
+  ],
   templateUrl: "./exercise-card.component.html",
   styleUrl: "./exercise-card.component.scss",
 })
@@ -193,22 +199,11 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
    * single tap gets you to "I did what was planned"), then increments/decrements
    * by 1 from there. Stepping down from the target back to zero resets "started".
    */
-  stepReps(setIndex: number, direction: 1 | -1): void {
+  stepReps(setIndex: number, nextReps: number): void {
     const current = this.workingSets[setIndex];
-    let nextReps: number;
-
-    if (!this.setStarted[setIndex]) {
-      nextReps = Math.max(
-        0,
-        this.exercise.targetReps + direction * this.repStep,
-      );
-      this.setStarted[setIndex] = nextReps > 0;
-    } else {
-      nextReps = Math.max(0, current.reps + direction * this.repStep);
-    }
-
+    this.setStarted[setIndex] = nextReps > 0;
     this.setTouched[setIndex] = true;
-    this.workingSets[setIndex] = { ...current, reps: nextReps };
+    this.workingSets[setIndex] = { ...current, reps: Math.max(0, nextReps) };
     this.setsChanged.emit(this.workingSets);
   }
 

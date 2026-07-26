@@ -26,7 +26,7 @@
   margin: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 15px;
+  gap: 10px;
   flex: 1;
   align-items: center;
   justify-content: center;
@@ -135,65 +135,11 @@
   color: var(--color-text-muted);
 }
 
-.stepper {
-  display: grid;
-  grid-template-columns: 48px 1fr 48px;
-  align-items: stretch;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-
-  overflow: hidden;
-  height: 60px;
-}
-
-.stepper__btn {
-  background: var(--color-panel-raised);
-  border: none;
-  color: var(--color-text);
-  font-size: 1.5rem;
-  font-weight: 400;
-  line-height: 1;
+.row {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  user-select: none;
-  transition: background 0.1s ease;
-}
+  gap: 10px;
 
-.stepper__btn:active {
-  background: var(--color-accent);
-  color: var(--color-bg);
-}
-
-.stepper__btn--minus {
-  border-right: 1px solid var(--color-border);
-}
-
-.stepper__btn--plus {
-  border-left: 1px solid var(--color-border);
-}
-
-.stepper__value {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  min-width: 0;
-}
-
-.stepper__number {
-  font-family: var(--font-display);
-  font-size: 1.3rem;
-  font-weight: 600;
-  line-height: 1.1;
-}
-
-.stepper__unit {
-  font-size: 0.65rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-text-muted);
+  .row-item {
+    flex: 1;
+  }
 }

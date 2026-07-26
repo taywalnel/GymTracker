@@ -17,11 +17,10 @@
 
 .loading,
 .empty-state {
+  flex: 1;
   color: var(--color-text-muted);
   font-family: var(--font-display);
-  padding: 40px 0;
   text-align: center;
-  flex-shrink: 0;
 }
 
 .routine-list {

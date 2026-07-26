@@ -1,0 +1,26 @@
+<div class="modal-backdrop" (click)="cancel()">
+  <section
+    class="confirmation-modal"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="title"
+    (click)="$event.stopPropagation()"
+  >
+    <h2>{{ title }}</h2>
+    <p>{{ message }}</p>
+
+    <div class="modal-actions">
+      <app-button variant="secondary" [fullWidth]="true" (click)="cancel()">
+        {{ cancelLabel }}
+      </app-button>
+      <app-button
+        variant="primary"
+        [fullWidth]="true"
+        [danger]="true"
+        (click)="confirm()"
+      >
+        {{ confirmLabel }}
+      </app-button>
+    </div>
+  </section>
+</div>

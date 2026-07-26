@@ -4,6 +4,7 @@ import { HistoryComponent } from "./components/history/history.component";
 import { SessionDetailComponent } from "./components/session-detail/session-detail.component";
 import { ProgramComponent } from "./components/program/program.component";
 import { ProgramEditorComponent } from "./components/program/program-editor.component";
+import { AddExerciseComponent } from "./components/program/add-exercise.component";
 import { SettingsComponent } from "./components/settings/settings.component";
 import { AccountComponent } from "./components/account/account.component";
 import { LoginComponent } from "./components/login/login.component";
@@ -59,6 +60,12 @@ export const routes: Routes = [
     path: "program/edit",
     component: ProgramEditorComponent,
     title: "Create Routine — Gym Tracker",
+    canActivate: [authGuard],
+  },
+  {
+    path: "program/edit/add-exercise",
+    component: AddExerciseComponent,
+    title: "Add Exercise — Gym Tracker",
     canActivate: [authGuard],
   },
   {

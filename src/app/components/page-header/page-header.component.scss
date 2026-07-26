@@ -4,6 +4,7 @@
 }
 
 .page-header__heading {
+  min-height: 32px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
@@ -25,19 +26,6 @@
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    transform 150ms ease;
-  -webkit-tap-highlight-color: transparent;
-
-  &:hover {
-    background: #d7fa62;
-  }
-
-  &:active {
-    background: var(--color-accent-dim);
-    transform: translateX(-2px);
-  }
 }
 
 .page-header__title {

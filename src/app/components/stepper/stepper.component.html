@@ -1,0 +1,25 @@
+<div class="stepper">
+  <button
+    type="button"
+    class="stepper__btn stepper__btn--minus"
+    (click)="decrease()"
+    [disabled]="value <= minimum"
+    [attr.aria-label]="'Decrease ' + ariaLabel"
+  >
+    −
+  </button>
+  <div class="stepper__value" aria-live="polite">
+    <span class="stepper__number">{{ value }}</span>
+    @if (unit) {
+      <span class="stepper__unit">{{ unit }}</span>
+    }
+  </div>
+  <button
+    type="button"
+    class="stepper__btn stepper__btn--plus"
+    (click)="increase()"
+    [attr.aria-label]="'Increase ' + ariaLabel"
+  >
+    +
+  </button>
+</div>

@@ -1,0 +1,44 @@
+:host {
+  display: block;
+}
+
+.unit-toggle {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  height: 100%;
+}
+
+.unit-toggle__option {
+  min-width: 64px;
+  min-height: 48px;
+  height: 100%;
+  padding: 0 1.25rem;
+  border: none;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.unit-toggle__option + .unit-toggle__option {
+  border-left: 1px solid var(--color-border);
+}
+
+.unit-toggle__option:active:not(.is-active) {
+  background: var(--color-panel-raised);
+}
+
+.unit-toggle__option.is-active {
+  background: var(--color-accent);
+  color: #000;
+  font-weight: 700;
+}

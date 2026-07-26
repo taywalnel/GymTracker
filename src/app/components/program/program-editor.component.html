@@ -1,64 +1,60 @@
-<div class="detail-fixed">
-  <div class="page-header">
-    <h2 class="page-header__title">
-      {{ routineId ? "Edit Routine" : "New Routine" }}
-    </h2>
-  </div>
-</div>
+<app-page-header
+  [title]="routineId ? 'Edit Routine' : 'New Routine'"
+  backLink="/program"
+></app-page-header>
 
 @if (loading) {
   <div class="state-message">Loading…</div>
 }
 
 @if (!loading) {
-  <form class="routine-form">
+  <form class="routine-form" (ngSubmit)="save()" novalidate>
     <div class="form-group">
       <label for="routineName" class="form-label">Routine Name</label>
       <input
         id="routineName"
         type="text"
         class="form-input"
+        [class.form-input--invalid]="validationErrors.name"
         [(ngModel)]="routine.name"
+        (ngModelChange)="clearNameError()"
         name="routineName"
         placeholder="e.g., Chest / Triceps"
+        [attr.aria-invalid]="validationErrors.name"
+        aria-describedby="routineNameError"
       />
+      @if (validationErrors.name) {
+        <p id="routineNameError" class="form-error" role="alert">
+          Enter a routine name.
+        </p>
+      }
     </div>
     <label class="form-label">Exercises</label>
-    <ul class="exercise-list">
-      @if (routine.exercises.length === 0) {
-        <li class="empty-exercises">No exercises yet. Add your first below.</li>
-      }
+    <div class="exercise-list">
       @for (ex of routine.exercises; track ex.id) {
-        <li
-          #exerciseCard
-          app-card
+        <app-editable-card
           [title]="ex.name"
           [description]="exerciseDescription(ex)"
-        ></li>
+          (edit)="editExercise(ex)"
+          (delete)="deleteExercise(ex)"
+        ></app-editable-card>
       }
-    </ul>
+    </div>
+    @if (validationErrors.exercises) {
+      <p class="form-error" role="alert">Add at least one exercise.</p>
+    }
     <div class="form-footer">
-      <app-button variant="ghost" [fullWidth]="true" (click)="addExercise()">
-        <span>+</span> Add Exercise
+      <app-button variant="secondary" [fullWidth]="true" (click)="addExercise()"
+        >Add Exercise
       </app-button>
-      <div class="form-actions">
-        <app-button
-          variant="secondary"
-          [fullWidth]="true"
-          [disabled]="saving"
-          (click)="cancel()"
-        >
-          Back
-        </app-button>
-        <app-button
-          variant="primary"
-          [fullWidth]="true"
-          [disabled]="saving"
-          (click)="save()"
-        >
-          {{ saving ? "Saving..." : "Save Routine" }}
-        </app-button>
-      </div>
+      <app-button
+        variant="primary"
+        type="submit"
+        [fullWidth]="true"
+        [disabled]="saving"
+      >
+        {{ saving ? "Saving..." : "Save Routine" }}
+      </app-button>
     </div>
   </form>
 }

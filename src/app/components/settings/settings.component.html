@@ -5,26 +5,7 @@
     <h3 class="settings-section__heading">Units</h3>
     <div class="settings-row">
       <span class="settings-row__label">Weight unit</span>
-      <div class="unit-toggle" role="group" aria-label="Weight unit">
-        <button
-          type="button"
-          class="unit-toggle__option"
-          [class.is-active]="units.isMetric()"
-          (click)="units.isMetric() || units.toggle()"
-          aria-label="Kilograms"
-        >
-          kg
-        </button>
-        <button
-          type="button"
-          class="unit-toggle__option"
-          [class.is-active]="!units.isMetric()"
-          (click)="units.isMetric() && units.toggle()"
-          aria-label="Pounds"
-        >
-          lb
-        </button>
-      </div>
+      <app-unit-toggle />
     </div>
   </section>
 </div>

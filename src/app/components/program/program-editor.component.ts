@@ -1,10 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  OnInit,
-  QueryList,
-  ViewChildren,
-} from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 
 import { FormsModule } from "@angular/forms";
 import { Router, ActivatedRoute } from "@angular/router";
@@ -12,19 +6,21 @@ import { WorkoutService } from "../../services/workout.service";
 import { Routine, ExercisePrescription } from "../../models/workout.models";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { ButtonComponent } from "../button/button.component";
-import { RoutineCardComponent } from "../routine-card/routine-card.component";
+import { EditableCardComponent } from "../editable-card/editable-card.component";
+import { PageHeaderComponent } from "../page-header/page-header.component";
 
 @Component({
   selector: "app-program-editor",
-  imports: [FormsModule, ButtonComponent, RoutineCardComponent],
+  imports: [
+    FormsModule,
+    ButtonComponent,
+    EditableCardComponent,
+    PageHeaderComponent,
+  ],
   templateUrl: "./program-editor.component.html",
   styleUrl: "./program-editor.component.scss",
 })
 export class ProgramEditorComponent implements OnInit {
-  @ViewChildren("exerciseCard") private exerciseCards!: QueryList<
-    ElementRef<HTMLElement>
-  >;
-
   routineId: string | null = null;
   routine: Routine = {
     id: "",
@@ -34,6 +30,10 @@ export class ProgramEditorComponent implements OnInit {
   };
   loading = false;
   saving = false;
+  validationErrors = {
+    name: false,
+    exercises: false,
+  };
 
   constructor(
     private router: Router,
@@ -44,6 +44,26 @@ export class ProgramEditorComponent implements OnInit {
 
   ngOnInit(): void {
     this.routineId = this.route.snapshot.paramMap.get("id");
+    const state = history.state as {
+      routine?: Routine;
+      exercise?: ExercisePrescription;
+      replaceExerciseId?: string;
+    };
+
+    if (state.routine) {
+      this.routine = state.routine;
+      if (state.exercise) {
+        this.routine.exercises = state.replaceExerciseId
+          ? this.routine.exercises.map((exercise) =>
+              exercise.id === state.replaceExerciseId
+                ? state.exercise!
+                : exercise,
+            )
+          : [...this.routine.exercises, state.exercise];
+      }
+      return;
+    }
+
     if (this.routineId) {
       this.loadRoutine();
     } else {
@@ -66,31 +86,34 @@ export class ProgramEditorComponent implements OnInit {
   }
 
   addExercise(): void {
-    const newExercise: ExercisePrescription = {
-      id: this.workoutService.generateExerciseId(),
-      name: "",
-      targetWeightKg: 0,
-      targetReps: 10,
-      targetSets: 3,
-      order: this.routine.exercises.length,
-    };
-    this.routine.exercises.push(newExercise);
-
-    setTimeout(() => {
-      this.exerciseCards.last?.nativeElement.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
+    this.router.navigate(["/program/edit/add-exercise"], {
+      state: { routine: this.routine, returnUrl: this.router.url },
     });
   }
 
+  editExercise(exercise: ExercisePrescription): void {
+    this.router.navigate(["/program/edit/add-exercise"], {
+      state: {
+        routine: this.routine,
+        exercise,
+        returnUrl: this.router.url,
+      },
+    });
+  }
+
+  deleteExercise(exercise: ExercisePrescription): void {
+    this.routine.exercises = this.routine.exercises.filter(
+      (item) => item.id !== exercise.id,
+    );
+  }
+
   save(): void {
-    if (!this.routine.name.trim()) {
-      alert("Please enter a routine name");
-      return;
-    }
-    if (this.routine.exercises.length === 0) {
-      alert("Please add at least one exercise");
+    this.validationErrors = {
+      name: !this.routine.name.trim(),
+      exercises: this.routine.exercises.length === 0,
+    };
+
+    if (this.validationErrors.name || this.validationErrors.exercises) {
       return;
     }
 
@@ -105,6 +128,10 @@ export class ProgramEditorComponent implements OnInit {
         alert("Error saving routine");
       },
     });
+  }
+
+  clearNameError(): void {
+    this.validationErrors.name = false;
   }
 
   cancel(): void {
