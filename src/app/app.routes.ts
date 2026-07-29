@@ -10,6 +10,7 @@ import { AccountComponent } from "./components/account/account.component";
 import { LoginComponent } from "./components/login/login.component";
 import { CurrentExercisePageComponent } from "./components/current-exercise-page/current-exercise-page.component";
 import { CurrentWorkoutComponent } from "./components/current-workout/current-workout.component";
+import { ExerciseHistoryPageComponent } from "./components/exercise-history-page/exercise-history-page.component";
 import { authGuard } from "./guards/auth.guard";
 
 export const routes: Routes = [
@@ -42,6 +43,12 @@ export const routes: Routes = [
     path: "history/session/:sessionId",
     component: SessionDetailComponent,
     title: "Session — Gym Tracker",
+    canActivate: [authGuard],
+  },
+  {
+    path: "history/exercises/:exerciseId",
+    component: ExerciseHistoryPageComponent,
+    title: "Exercise History — Gym Tracker",
     canActivate: [authGuard],
   },
   {

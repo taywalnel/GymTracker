@@ -7,6 +7,7 @@ import {
   OnChanges,
   SimpleChanges,
 } from "@angular/core";
+import { Router } from "@angular/router";
 
 import {
   ExercisePrescription,
@@ -68,6 +69,7 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
   constructor(
     public units: UnitPreferenceService,
     public restTimer: RestTimerService,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -192,6 +194,10 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
 
   toggleRestTimer(): void {
     this.restTimerCollapsed = !this.restTimerCollapsed;
+  }
+
+  viewExerciseHistory(): void {
+    this.router.navigate(["/history/exercises", this.exercise.id]);
   }
 
   /**
