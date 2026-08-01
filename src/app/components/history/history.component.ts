@@ -63,9 +63,7 @@ export class HistoryComponent implements OnInit {
   private loadSessionHistory(): void {
     this.isLoading = true;
     this.workoutService.getSessionHistory().subscribe((sessions) => {
-      this.sessions = sessions;
-      this.workoutDateSet = new Set(sessions.map((s) => s.date));
-      this.buildCalendar();
+      this.setSessionHistory(sessions);
       this.isLoading = false;
     });
   }
@@ -73,11 +71,38 @@ export class HistoryComponent implements OnInit {
   private loadExerciseHistory(exerciseId: string): void {
     this.isLoading = true;
     this.workoutService.getExerciseHistory(exerciseId).subscribe((entries) => {
-      this.exerciseEntries = entries;
-      this.exerciseName =
-        entries[0]?.log.exerciseName ?? this.humanizeId(exerciseId);
+      this.setExerciseHistory(exerciseId, entries);
       this.isLoading = false;
     });
+  }
+
+  private setSessionHistory(sessions: WorkoutSession[]): void {
+    this.sessions = sessions;
+    this.workoutDateSet = new Set(sessions.map((session) => session.date));
+    this.buildCalendar();
+  }
+
+  private setExerciseHistory(
+    exerciseId: string,
+    entries: ExerciseHistoryEntry[],
+  ): void {
+    this.exerciseEntries = entries;
+    this.exerciseName =
+      entries[0]?.log.exerciseName ?? this.humanizeId(exerciseId);
+  }
+
+  private findExerciseEntries(
+    exerciseId: string,
+    sessions: WorkoutSession[],
+  ): ExerciseHistoryEntry[] {
+    return sessions
+      .filter((session) => !session.inProgress)
+      .flatMap((session) => {
+        const log = session.exerciseLogs.find(
+          (entry) => entry.exerciseId === exerciseId,
+        );
+        return log ? [{ date: session.date, log }] : [];
+      });
   }
 
   private humanizeId(id: string): string {

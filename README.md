@@ -5,9 +5,8 @@ a 3-day rotation: Chest/Triceps → Shoulders → Back/Biceps), lets you log set
 and reps with large tap-friendly stepper controls, and keeps history per
 exercise so you can see what you lifted last time.
 
-This build is **frontend-only with mock data** — nothing is persisted to a real
-database yet. It's structured so that swapping in a real backend later is a
-contained change (see "Moving to a real backend" below).
+The app uses Firebase Authentication and Cloud Firestore. Data is isolated per
+authenticated user under `users/{uid}`.
 
 ## Designed for mobile, exclusively
 
@@ -45,7 +44,7 @@ on an actual phone on your local network.
 ## How the rotation logic works
 
 `WorkoutService.getTodayWorkout()` looks at the most recently completed session
-(by date), finds that session's routine, and returns the *next* routine in
+(by date), finds that session's routine, and returns the _next_ routine in
 `rotationOrder` (wrapping back to 0 after the last one). If there's no history
 at all, it starts at rotation order 0 (Chest/Triceps).
 
@@ -69,44 +68,78 @@ src/app/
     history/                 — session list (collapsible) + per-exercise drill-down
 ```
 
-## Moving to a real backend
+## Firestore data model
 
-Every component talks only to `WorkoutService`, never directly to the mock
-arrays. The service currently looks like this:
-
-```ts
-getTodayWorkout(): Observable<TodayWorkout> {
-  // ...computed from in-memory arrays...
-  return of(result).pipe(delay(150));
-}
+```text
+users/{uid}/
+  { schemaVersion: 2 }
+  exercises/{exerciseId}  { id, name }
+  routines/{routineId}    { id, name, rotationOrder, exercises[] }
+  sessions/{sessionId}    { id, routineId, routineName, date, exerciseLogs[] }
 ```
 
-To go live, you'd:
+Routine `exercises[]` items store only the exercise ID and routine-specific
+targets: `targetWeightKg`, `targetReps`, `targetSets`, and `order`. The display
+name comes from the reusable exercise catalog. Renaming an exercise therefore
+updates its name across every active routine that references it.
 
-1. Add `HttpClientModule` / `provideHttpClient()` to `app.config.ts`.
-2. Replace each method body in `workout.service.ts` with an HTTP call, e.g.:
-   ```ts
-   getTodayWorkout(): Observable<TodayWorkout> {
-     return this.http.get<TodayWorkout>('/api/workouts/today');
-   }
-   ```
-3. Move the "next routine in rotation" logic (`determineNextRoutine`) to the
-   backend, since that's really server-side business logic once multiple
-   devices/sessions are involved.
-4. Add a real `saveSession` endpoint (`POST /api/sessions`) and have the
-   backend persist to your database of choice.
+Each historical `sessions[].exerciseLogs[]` item retains `exerciseName` as an
+immutable snapshot. A later catalog rename never changes workout history.
 
-No component code needs to change for this — they all depend on the
-`WorkoutService` method signatures and the model interfaces in
-`models/workout.models.ts`, not on how the data is fetched.
+## Exercise Catalog Migration
+
+Existing Firestore data may contain legacy routine exercises with an embedded
+`name`. The migration creates catalog documents and removes only those embedded
+routine names. It never writes to `sessions`. It also writes `schemaVersion: 2`
+to `users/{uid}`, so the user document is materialized and its `exercises`,
+`routines`, and `sessions` child collections are consistently browseable in the
+Firestore Console.
+
+1. Export Firestore before applying any writes:
+
+```bash
+gcloud firestore export gs://YOUR_BACKUP_BUCKET/gymtracker-before-exercise-catalog
+```
+
+2. Authenticate the local Admin SDK with an account that can read and write
+   project `gymtracker-8fc1b`:
+
+```bash
+gcloud auth application-default login
+gcloud config set project gymtracker-8fc1b
+```
+
+3. Run a dry run for one user, then inspect the reported catalog and routine
+   counts. Replace `USER_ID` with the Firebase Authentication UID:
+
+```bash
+npm run migrate:exercise-catalog -- --user=USER_ID
+```
+
+4. Apply the migration only after confirming the backup and dry-run output:
+
+```bash
+npm run migrate:exercise-catalog -- --user=USER_ID --apply
+npm run verify:exercise-catalog -- --user=USER_ID
+```
+
+5. To migrate and verify every user, omit `--user=USER_ID`:
+
+```bash
+npm run migrate:exercise-catalog -- --apply
+npm run verify:exercise-catalog
+```
+
+The migration stops on inconsistent data, including one exercise ID with
+different names. Resolve such conflicts manually before applying it. The
+scripts are idempotent: reruns preserve catalog documents, remove any remaining
+legacy routine names, materialize the user document, and verify catalog
+references plus immutable session names.
 
 ## Known simplifications in this pass
 
-- No auth yet (you said solo use — login can be added later without
-  restructuring, e.g. a simple guard + session cookie).
-- "Mark exercise done" / "Finish session" state lives only in the browser tab;
-  refreshing the page mid-session will lose in-progress (unsaved) sets. Once
-  there's a backend, autosaving per-set as you type is a natural addition.
+- In-progress workout state is stored in browser session storage; it is not
+  written to Firestore until the workout is completed.
 - Editing/deleting past history entries isn't built yet — only viewing.
 - Desktop/tablet layout isn't a design goal for this pass — the app is
   optimized exclusively for mobile viewport widths per your request, so wider

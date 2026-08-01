@@ -6,7 +6,9 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "migrate:exercise-catalog": "tsx scripts/migrate-exercise-catalog.ts",
+    "verify:exercise-catalog": "tsx scripts/verify-exercise-catalog.ts"
   },
   "private": true,
   "dependencies": {
@@ -28,6 +30,8 @@
     "@angular/build": "^20.3.32",
     "@angular/cli": "^20.3.32",
     "@angular/compiler-cli": "^20.3.26",
+    "firebase-admin": "^14.2.0",
+    "tsx": "^4.23.1",
     "typescript": "~5.9.3"
   }
 }

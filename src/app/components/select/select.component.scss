@@ -1,0 +1,65 @@
+:host {
+  display: block;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.select-wrap {
+  position: relative;
+
+  &::after {
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--color-text-muted);
+    border-bottom: 2px solid var(--color-text-muted);
+    transform: translateY(-65%) rotate(45deg);
+    pointer-events: none;
+    content: "";
+  }
+}
+
+.form-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 42px 12px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+  appearance: none;
+  background: var(--color-panel);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-accent-dim);
+    box-shadow: 0 0 0 2px
+      color-mix(in srgb, var(--color-accent) 15%, transparent);
+  }
+
+  &[aria-invalid="true"] {
+    border-color: var(--color-danger);
+  }
+}
+
+.form-error {
+  margin: 0;
+  color: var(--color-danger);
+  font-size: 0.9rem;
+}

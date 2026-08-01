@@ -1,0 +1,10 @@
+.program-home-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.program-home__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

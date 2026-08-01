@@ -1,0 +1,25 @@
+<div class="exercises-list-container">
+  <app-page-header title="Exercises" backLink="/program" />
+
+  @if (loading) {
+    <div class="loading">Loading exercises...</div>
+  }
+
+  @if (!loading && exercises.length === 0) {
+    <div class="empty-state">
+      <p>No exercises yet.</p>
+    </div>
+  }
+
+  @if (!loading && exercises.length > 0) {
+    <div class="exercise-list">
+      @for (exercise of exercises; track exercise.id) {
+        <app-card
+          [title]="exercise.name"
+          [description]="''"
+          [showChevron]="true"
+        ></app-card>
+      }
+    </div>
+  }
+</div>

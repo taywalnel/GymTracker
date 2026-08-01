@@ -2,7 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
   CompletedSet,
-  ExercisePrescription,
+  ResolvedExercisePrescription,
 } from "../../models/workout.models";
 import {
   InProgressState,
@@ -18,7 +18,7 @@ import { ExerciseCardComponent } from "../exercise-card/exercise-card.component"
 })
 export class CurrentExercisePageComponent implements OnInit {
   state: InProgressState | null = null;
-  exercise: ExercisePrescription | null = null;
+  exercise: ResolvedExercisePrescription | null = null;
   isLoading = true;
 
   constructor(

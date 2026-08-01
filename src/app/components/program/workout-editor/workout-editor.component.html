@@ -9,35 +9,26 @@
 
 @if (!loading) {
   <form class="routine-form" (ngSubmit)="save()" novalidate>
-    <div class="form-group">
-      <label for="routineName" class="form-label">Routine Name</label>
-      <input
-        id="routineName"
-        type="text"
-        class="form-input"
-        [class.form-input--invalid]="validationErrors.name"
-        [(ngModel)]="routine.name"
-        (ngModelChange)="clearNameError()"
-        name="routineName"
-        placeholder="e.g., Chest / Triceps"
-        [attr.aria-invalid]="validationErrors.name"
-        aria-describedby="routineNameError"
-      />
-      @if (validationErrors.name) {
-        <p id="routineNameError" class="form-error" role="alert">
-          Enter a routine name.
-        </p>
-      }
-    </div>
+    <app-input
+      id="routineName"
+      label="Routine Name"
+      type="text"
+      [(ngModel)]="routine.name"
+      (ngModelChange)="clearNameError()"
+      name="routineName"
+      placeholder="e.g., Chest / Triceps"
+      [invalid]="validationErrors.name"
+      [error]="validationErrors.name ? 'Enter a routine name.' : null"
+    ></app-input>
     <label class="form-label">Exercises</label>
     <div class="exercise-list">
       @for (ex of routine.exercises; track ex.id) {
-        <app-editable-card
+        <app-card
           [title]="ex.name"
           [description]="exerciseDescription(ex)"
-          (edit)="editExercise(ex)"
-          (delete)="deleteExercise(ex)"
-        ></app-editable-card>
+          [showChevron]="true"
+          (click)="editExercise(ex)"
+        ></app-card>
       }
     </div>
     @if (validationErrors.exercises) {

@@ -2,25 +2,30 @@ import { Component, OnInit } from "@angular/core";
 
 import { FormsModule } from "@angular/forms";
 import { Router, ActivatedRoute } from "@angular/router";
-import { WorkoutService } from "../../services/workout.service";
-import { Routine, ExercisePrescription } from "../../models/workout.models";
-import { UnitPreferenceService } from "../../services/unit-preference.service";
-import { ButtonComponent } from "../button/button.component";
-import { EditableCardComponent } from "../editable-card/editable-card.component";
-import { PageHeaderComponent } from "../page-header/page-header.component";
+import { WorkoutService } from "../../../services/workout.service";
+import {
+  Routine,
+  ResolvedExercisePrescription,
+} from "../../../models/workout.models";
+import { UnitPreferenceService } from "../../../services/unit-preference.service";
+import { ButtonComponent } from "../../button/button.component";
+import { InputComponent } from "../../input/input.component";
+import { PageHeaderComponent } from "../../page-header/page-header.component";
+import { RoutineCardComponent } from "../../routine-card/routine-card.component";
 
 @Component({
-  selector: "app-program-editor",
+  selector: "app-workout-editor",
   imports: [
     FormsModule,
     ButtonComponent,
-    EditableCardComponent,
+    InputComponent,
     PageHeaderComponent,
+    RoutineCardComponent,
   ],
-  templateUrl: "./program-editor.component.html",
-  styleUrl: "./program-editor.component.scss",
+  templateUrl: "./workout-editor.component.html",
+  styleUrl: "./workout-editor.component.scss",
 })
-export class ProgramEditorComponent implements OnInit {
+export class WorkoutEditorComponent implements OnInit {
   routineId: string | null = null;
   routine: Routine = {
     id: "",
@@ -46,7 +51,7 @@ export class ProgramEditorComponent implements OnInit {
     this.routineId = this.route.snapshot.paramMap.get("id");
     const state = history.state as {
       routine?: Routine;
-      exercise?: ExercisePrescription;
+      exercise?: ResolvedExercisePrescription;
       replaceExerciseId?: string;
     };
 
@@ -86,25 +91,19 @@ export class ProgramEditorComponent implements OnInit {
   }
 
   addExercise(): void {
-    this.router.navigate(["/program/edit/add-exercise"], {
+    this.router.navigate(["/program/workout/edit/add-exercise"], {
       state: { routine: this.routine, returnUrl: this.router.url },
     });
   }
 
-  editExercise(exercise: ExercisePrescription): void {
-    this.router.navigate(["/program/edit/add-exercise"], {
+  editExercise(exercise: ResolvedExercisePrescription): void {
+    this.router.navigate(["/program/workout/edit/edit-exercise"], {
       state: {
         routine: this.routine,
         exercise,
         returnUrl: this.router.url,
       },
     });
-  }
-
-  deleteExercise(exercise: ExercisePrescription): void {
-    this.routine.exercises = this.routine.exercises.filter(
-      (item) => item.id !== exercise.id,
-    );
   }
 
   save(): void {
@@ -138,7 +137,7 @@ export class ProgramEditorComponent implements OnInit {
     this.router.navigate(["/program"]);
   }
 
-  exerciseDescription(exercise: ExercisePrescription): string {
+  exerciseDescription(exercise: ResolvedExercisePrescription): string {
     return `${exercise.targetSets} x ${exercise.targetReps} reps - ${this.unitPref.formatWeight(exercise.targetWeightKg)}`;
   }
 }

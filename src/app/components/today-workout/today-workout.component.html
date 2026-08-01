@@ -32,8 +32,7 @@
 
     <ul class="routine-list">
       @if (featuredRoutine && !savedState) {
-        <li
-          app-card
+        <app-card
           [title]="featuredRoutine.name"
           [description]="
             featuredRoutine.exercises.length +
@@ -43,14 +42,13 @@
           [featured]="true"
           badge="Up next"
           (click)="selectRoutine(featuredRoutine)"
-        ></li>
+        ></app-card>
       }
 
       @if (otherRoutines.length > 0) {
         <li class="picker-subhead">Or select another workout</li>
         @for (routine of otherRoutines; track routine.id) {
-          <li
-            app-card
+          <app-card
             [title]="routine.name"
             [description]="
               routine.exercises.length +
@@ -58,7 +56,7 @@
               (routine.exercises.length !== 1 ? 's' : '')
             "
             (click)="selectRoutine(routine)"
-          ></li>
+          ></app-card>
         }
       }
     </ul>

@@ -17,19 +17,28 @@ export interface CompletedSet {
   weightKg: number;
 }
 
+/** A reusable exercise definition, stored in users/{uid}/exercises. */
+export interface Exercise {
+  id: string;
+  name: string;
+}
+
 /**
- * The "prescription" for an exercise within a routine: target sets/reps/weight.
- * This is the static plan, independent of any particular session.
- * targetWeightKg is always stored in kilograms.
+ * The routine-specific prescription for an exercise. This is stored inline in
+ * a routine and references an Exercise by id.
  */
 export interface ExercisePrescription {
   id: string;
-  name: string;
   targetWeightKg: number;
   targetReps: number;
   targetSets: number;
   /** Order within the routine, for display */
   order: number;
+}
+
+/** An exercise prescription with its catalog name resolved for the UI. */
+export interface ResolvedExercisePrescription extends ExercisePrescription {
+  name: string;
 }
 
 /**
@@ -40,6 +49,14 @@ export interface Routine {
   id: string;
   name: string;
   /** Position in the rotation loop, 0-indexed */
+  rotationOrder: number;
+  exercises: ResolvedExercisePrescription[];
+}
+
+/** The Firestore representation of a routine, without catalog exercise names. */
+export interface StoredRoutine {
+  id: string;
+  name: string;
   rotationOrder: number;
   exercises: ExercisePrescription[];
 }

@@ -10,7 +10,7 @@ import {
 import { Router } from "@angular/router";
 
 import {
-  ExercisePrescription,
+  ResolvedExercisePrescription,
   CompletedSet,
 } from "../../models/workout.models";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
@@ -35,7 +35,7 @@ import { StepperComponent } from "../stepper/stepper.component";
   styleUrl: "./exercise-card.component.scss",
 })
 export class ExerciseCardComponent implements OnInit, OnChanges {
-  @Input({ required: true }) exercise!: ExercisePrescription;
+  @Input({ required: true }) exercise!: ResolvedExercisePrescription;
   @Input() isCurrent = false;
   /** Previously saved sets to restore when navigating back to this exercise */
   @Input() savedSets: CompletedSet[] | null = null;

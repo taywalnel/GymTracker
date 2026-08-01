@@ -1,48 +1,45 @@
 <app-page-header
-  title="Add Exercise"
+  [title]="pageTitle"
   [showBack]="true"
   (back)="goBack()"
 ></app-page-header>
 
 <form class="exercise-form" (ngSubmit)="save()">
+  <app-select
+    id="exerciseTitle"
+    label="Title"
+    [(ngModel)]="exerciseId"
+    name="exerciseId"
+    [options]="exerciseOptions"
+    [placeholder]="
+      isLoadingExercises ? 'Loading exercises...' : 'Select an exercise'
+    "
+    [required]="true"
+    [disabled]="isLoadingExercises || exercises.length === 0"
+    [invalid]="validationAttempted && !exerciseId"
+    [error]="validationAttempted && !exerciseId ? 'Select an exercise.' : null"
+  ></app-select>
   <div class="form-group">
-    <label for="exerciseTitle" class="form-label">Title</label>
-    <input
-      id="exerciseTitle"
-      type="text"
-      class="form-input"
-      [(ngModel)]="title"
-      name="title"
-      required
-      placeholder="e.g., Bench Press"
-      [attr.aria-invalid]="validationAttempted && !title.trim()"
-      aria-describedby="titleError"
-    />
-    @if (validationAttempted && !title.trim()) {
-      <p class="form-error" id="titleError">Enter an exercise title.</p>
-    }
-  </div>
-  <div class="form-group">
-    <label for="exerciseWeight" class="form-label">Weight</label>
     <div class="weight-input-row">
-      <input
+      <app-input
         id="exerciseWeight"
+        label="Weight"
         type="number"
-        class="form-input"
         [(ngModel)]="weight"
         name="weight"
-        min="0"
-        step="0.1"
+        [min]="0"
+        [step]="0.1"
         inputmode="decimal"
-        required
-        [attr.aria-invalid]="validationAttempted && weightKg === null"
-        aria-describedby="weightError"
-      />
+        [required]="true"
+        [invalid]="validationAttempted && weightKg === null"
+        [error]="
+          validationAttempted && weightKg === null
+            ? 'Enter a weight amount.'
+            : null
+        "
+      ></app-input>
       <app-unit-toggle />
     </div>
-    @if (validationAttempted && weightKg === null) {
-      <p class="form-error" id="weightError">Enter a weight amount.</p>
-    }
   </div>
   <div class="row">
     <div class="form-group stepper-container">
@@ -71,11 +68,8 @@
   </div>
 
   <div class="form-actions">
-    <app-button variant="secondary" [fullWidth]="true" (click)="goBack()">
-      Cancel
-    </app-button>
     <app-button type="submit" variant="primary" [fullWidth]="true">
-      Add Exercise
+      Save
     </app-button>
   </div>
 </form>

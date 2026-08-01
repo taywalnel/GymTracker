@@ -1,0 +1,24 @@
+<div class="form-group">
+  @if (label) {
+    <label [for]="id" class="form-label">{{ label }}</label>
+  }
+  <input
+    [id]="id"
+    [type]="type"
+    [value]="value ?? ''"
+    [placeholder]="placeholder"
+    [min]="min"
+    [step]="step"
+    [attr.inputmode]="inputmode"
+    [required]="required"
+    [disabled]="disabled"
+    [attr.aria-invalid]="invalid ? 'true' : null"
+    [attr.aria-describedby]="error ? errorId : null"
+    class="form-input"
+    (input)="handleInput($event)"
+    (blur)="onTouched()"
+  />
+  @if (error) {
+    <p [id]="errorId" class="form-error" role="alert">{{ error }}</p>
+  }
+</div>

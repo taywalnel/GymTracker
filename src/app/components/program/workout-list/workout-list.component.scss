@@ -1,0 +1,33 @@
+:host {
+  height: 100%;
+}
+
+.workout-list-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.workout-list-actions {
+  display: flex;
+  flex-shrink: 0;
+  padding-top: 20px;
+}
+
+.loading,
+.empty-state {
+  flex: 1;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  text-align: center;
+}
+
+.routine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  flex: 1;
+  margin: 0;
+}

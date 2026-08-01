@@ -12,9 +12,12 @@ import {
   orderBy,
   writeBatch,
 } from "@angular/fire/firestore";
-import { Auth } from "@angular/fire/auth";
+import { Auth, user } from "@angular/fire/auth";
 import {
   Routine,
+  StoredRoutine,
+  Exercise,
+  ExercisePrescription,
   WorkoutSession,
   TodayWorkout,
   ExerciseLog,
@@ -28,6 +31,7 @@ export interface InProgressState {
   completedExerciseIds: string[];
   activeExerciseId: string | null;
   workingSets: { exerciseId: string; sets: CompletedSet[] }[];
+  ownerUid?: string;
 }
 
 @Injectable({ providedIn: "root" })
@@ -38,10 +42,36 @@ export class WorkoutService {
   /** Reactive cache of all routines — updated after every read/write. */
   readonly routinesSignal = signal<Routine[]>([]);
 
+  /** Reactive cache of the user's reusable exercise catalog. */
+  readonly exercisesSignal = signal<Exercise[]>([]);
+
+  private routinesLoaded = false;
+  private sessionsLoaded = false;
+  private exercisesLoaded = false;
+  private routinesLoad: Promise<Routine[]> | null = null;
+  private sessionsLoad: Promise<WorkoutSession[]> | null = null;
+  private exercisesLoad: Promise<Exercise[]> | null = null;
+  private activeUserId: string | null = null;
+  private authStateInitialized = false;
+
   constructor(
     private firestore: Firestore,
     private auth: Auth,
-  ) {}
+  ) {
+    user(this.auth).subscribe((currentUser) => {
+      const userId = currentUser?.uid ?? null;
+      if (!this.authStateInitialized) {
+        this.activeUserId = userId;
+        this.authStateInitialized = true;
+        return;
+      }
+      if (this.activeUserId !== userId) {
+        this.activeUserId = userId;
+        this._clearDataCache();
+        this.clearInProgressState();
+      }
+    });
+  }
 
   // transient in-memory store for an in-progress session; persisted to sessionStorage
   private inProgressState: InProgressState | null = null;
@@ -56,6 +86,7 @@ export class WorkoutService {
         // Use a shallow-clone to avoid relying on structuredClone availability.
         const serializable: any = {
           ...state,
+          ownerUid: this.auth.currentUser?.uid,
           today: state.today ? { ...state.today } : state.today,
         };
         try {
@@ -84,6 +115,10 @@ export class WorkoutService {
       const raw = sessionStorage.getItem("gym:inProgressState");
       if (!raw) return null;
       const parsed = JSON.parse(raw) as any;
+      if (parsed.ownerUid && parsed.ownerUid !== this.auth.currentUser?.uid) {
+        this.clearInProgressState();
+        return null;
+      }
       // Restore Map for today.lastPerformance if it was serialized as entries array or object
       try {
         if (parsed?.today?.lastPerformance) {
@@ -122,6 +157,10 @@ export class WorkoutService {
     return collection(this.firestore, `users/${this.uid}/sessions`);
   }
 
+  private exercisesCol() {
+    return collection(this.firestore, `users/${this.uid}/exercises`);
+  }
+
   // ---- reads ------------------------------------------------------------
 
   getTodayWorkout(): Observable<TodayWorkout> {
@@ -136,64 +175,58 @@ export class WorkoutService {
     routines: Routine[];
     nextRoutineId: string;
   }> {
-    return from(
-      Promise.all([this._fetchRoutines(), this._fetchSessions()]).then(
-        ([routines, sessions]) => {
-          this.routinesSignal.set(routines);
-          this.sessionsSignal.set(sessions);
-          const next = this._determineNextRoutine(routines, sessions);
-          return { routines, nextRoutineId: next.id };
-        },
-      ),
-    );
+    return from(this._getRoutinesWithNext());
   }
 
   /** Builds a TodayWorkout for a specific routine (used when user manually picks). */
   getWorkoutForRoutine(routineId: string): Observable<TodayWorkout> {
     return from(
-      Promise.all([this._fetchRoutines(), this._fetchSessions()]).then(
-        ([routines, sessions]) => {
-          this.routinesSignal.set(routines);
-          this.sessionsSignal.set(sessions);
-          const routine = routines.find((r) => r.id === routineId);
-          if (!routine) throw new Error("Routine not found");
-          const sessionsForRoutine = sessions.filter(
-            (s) => s.routineId === routine.id && !s.inProgress,
-          );
-          const lastPerformance =
-            this._buildLastPerformanceMap(sessionsForRoutine);
-          return {
-            routine,
-            previousSession: sessionsForRoutine[0] ?? null,
-            lastPerformance,
-          } as TodayWorkout;
-        },
-      ),
+      this._loadRoutinesAndSessions().then(([routines, sessions]) => {
+        const routine = routines.find((r) => r.id === routineId);
+        if (!routine) throw new Error("Routine not found");
+        const sessionsForRoutine = sessions.filter(
+          (s) => s.routineId === routine.id && !s.inProgress,
+        );
+        const lastPerformance =
+          this._buildLastPerformanceMap(sessionsForRoutine);
+        return {
+          routine,
+          previousSession: sessionsForRoutine[0] ?? null,
+          lastPerformance,
+        } as TodayWorkout;
+      }),
     );
   }
 
   getAllRoutines(): Observable<Routine[]> {
-    return from(this._fetchRoutines()).pipe(
-      map((routines) => {
-        this.routinesSignal.set(routines);
-        return routines;
-      }),
+    return from(this._loadRoutines());
+  }
+
+  getAllExercises(): Observable<Exercise[]> {
+    return from(this._loadExercises());
+  }
+
+  getExerciseCount(): Observable<number> {
+    return from(
+      this._loadRoutines().then(
+        (routines) =>
+          new Set(
+            routines.flatMap((routine) =>
+              routine.exercises.map((exercise) => exercise.id),
+            ),
+          ).size,
+      ),
     );
   }
 
   getSessionHistory(): Observable<WorkoutSession[]> {
-    return from(this._fetchSessions()).pipe(
-      map((sessions) => {
-        this.sessionsSignal.set(sessions);
-        return sessions;
-      }),
-    );
+    return from(this._loadSessions());
   }
 
   getExerciseHistory(
     exerciseId: string,
   ): Observable<{ date: string; log: ExerciseLog }[]> {
-    return from(this._fetchSessions()).pipe(
+    return from(this._loadSessions()).pipe(
       map((sessions) =>
         sessions
           .filter((s) => !s.inProgress)
@@ -206,7 +239,7 @@ export class WorkoutService {
   }
 
   getSessionDates(): Observable<string[]> {
-    return from(this._fetchSessions()).pipe(
+    return from(this._loadSessions()).pipe(
       map((sessions) =>
         sessions.filter((s) => !s.inProgress).map((s) => s.date),
       ),
@@ -214,18 +247,47 @@ export class WorkoutService {
   }
 
   getSessionById(sessionId: string): Observable<WorkoutSession | null> {
+    if (this.sessionsLoaded) {
+      return from(
+        Promise.resolve(
+          this.sessionsSignal().find((session) => session.id === sessionId) ??
+            null,
+        ),
+      );
+    }
+
     return from(
-      getDoc(doc(this.sessionsCol(), sessionId)).then((snap) =>
-        snap.exists() ? (snap.data() as WorkoutSession) : null,
-      ),
+      getDoc(doc(this.sessionsCol(), sessionId)).then((snap) => {
+        if (!snap.exists()) return null;
+        const session = snap.data() as WorkoutSession;
+        this._upsertSession(session);
+        return session;
+      }),
     );
   }
 
   getRoutineById(id: string): Observable<Routine | null> {
+    if (this.routinesLoaded) {
+      return from(
+        Promise.resolve(
+          this.routinesSignal().find((routine) => routine.id === id) ?? null,
+        ),
+      );
+    }
+
     return from(
-      getDoc(doc(this.routinesCol(), id)).then((snap) =>
-        snap.exists() ? (snap.data() as Routine) : null,
-      ),
+      Promise.all([
+        getDoc(doc(this.routinesCol(), id)),
+        this._loadExercises(),
+      ]).then(([snap, exercises]) => {
+        if (!snap.exists()) return null;
+        const routine = this._resolveRoutine(
+          snap.data() as StoredRoutine,
+          exercises,
+        );
+        this._upsertRoutine(routine);
+        return routine;
+      }),
     );
   }
 
@@ -234,15 +296,7 @@ export class WorkoutService {
   saveSession(session: WorkoutSession): Observable<WorkoutSession> {
     return from(
       setDoc(doc(this.sessionsCol(), session.id), session).then(() => {
-        const current = this.sessionsSignal();
-        const idx = current.findIndex((s) => s.id === session.id);
-        if (idx >= 0) {
-          const updated = [...current];
-          updated[idx] = session;
-          this.sessionsSignal.set(updated);
-        } else {
-          this.sessionsSignal.set([session, ...current]);
-        }
+        this._upsertSession(session);
         return session;
       }),
     );
@@ -273,27 +327,88 @@ export class WorkoutService {
 
   // ---- internal helpers -------------------------------------------------
 
-  private async _fetchRoutines(): Promise<Routine[]> {
-    const snap = await getDocs(
-      query(this.routinesCol(), orderBy("rotationOrder")),
+  private _loadRoutines(): Promise<Routine[]> {
+    if (this.routinesLoaded) {
+      return Promise.resolve(this.routinesSignal());
+    }
+    if (this.routinesLoad) return this.routinesLoad;
+
+    const load = Promise.all([
+      getDocs(query(this.routinesCol(), orderBy("rotationOrder"))),
+      this._loadExercises(),
+    ]).then(([snap, exercises]) => {
+      const routines = snap.docs.map((item) =>
+        this._resolveRoutine(item.data() as StoredRoutine, exercises),
+      );
+      this.routinesSignal.set(routines);
+      this.routinesLoaded = true;
+      return routines;
+    });
+    this.routinesLoad = load;
+    void load.then(
+      () => this._clearRoutineLoad(load),
+      () => this._clearRoutineLoad(load),
     );
-    return snap.docs.map((d) => d.data() as Routine);
+    return load;
   }
 
-  private async _fetchSessions(): Promise<WorkoutSession[]> {
-    const snap = await getDocs(
-      query(this.sessionsCol(), orderBy("date", "desc")),
+  private _loadExercises(): Promise<Exercise[]> {
+    if (this.exercisesLoaded) {
+      return Promise.resolve(this.exercisesSignal());
+    }
+    if (this.exercisesLoad) return this.exercisesLoad;
+
+    const load = getDocs(this.exercisesCol()).then((snap) => {
+      const exercises = snap.docs.map((item) => item.data() as Exercise);
+      this.exercisesSignal.set(exercises);
+      this.exercisesLoaded = true;
+      return exercises;
+    });
+    this.exercisesLoad = load;
+    void load.then(
+      () => this._clearExerciseLoad(load),
+      () => this._clearExerciseLoad(load),
     );
-    return snap.docs.map((d) => d.data() as WorkoutSession);
+    return load;
+  }
+
+  private _loadSessions(): Promise<WorkoutSession[]> {
+    if (this.sessionsLoaded) {
+      return Promise.resolve(this.sessionsSignal());
+    }
+    if (this.sessionsLoad) return this.sessionsLoad;
+
+    const load = getDocs(
+      query(this.sessionsCol(), orderBy("date", "desc")),
+    ).then((snap) => {
+      const sessions = snap.docs.map((item) => item.data() as WorkoutSession);
+      this.sessionsSignal.set(sessions);
+      this.sessionsLoaded = true;
+      return sessions;
+    });
+    this.sessionsLoad = load;
+    void load.then(
+      () => this._clearSessionLoad(load),
+      () => this._clearSessionLoad(load),
+    );
+    return load;
+  }
+
+  private _loadRoutinesAndSessions(): Promise<[Routine[], WorkoutSession[]]> {
+    return Promise.all([this._loadRoutines(), this._loadSessions()]);
+  }
+
+  private async _getRoutinesWithNext(): Promise<{
+    routines: Routine[];
+    nextRoutineId: string;
+  }> {
+    const [routines, sessions] = await this._loadRoutinesAndSessions();
+    const next = this._determineNextRoutine(routines, sessions);
+    return { routines, nextRoutineId: next.id };
   }
 
   private async _getTodayWorkout(): Promise<TodayWorkout> {
-    const [routines, sessions] = await Promise.all([
-      this._fetchRoutines(),
-      this._fetchSessions(),
-    ]);
-    this.routinesSignal.set(routines);
-    this.sessionsSignal.set(sessions);
+    const [routines, sessions] = await this._loadRoutinesAndSessions();
 
     const nextRoutine = this._determineNextRoutine(routines, sessions);
     const sessionsForRoutine = sessions.filter(
@@ -307,7 +422,7 @@ export class WorkoutService {
   }
 
   private async _saveRoutine(routine: Routine): Promise<Routine> {
-    const current = [...this.routinesSignal()];
+    const current = [...(await this._loadRoutines())];
     const idx = current.findIndex((r) => r.id === routine.id);
     if (idx >= 0) {
       current[idx] = routine;
@@ -320,15 +435,25 @@ export class WorkoutService {
 
     const batch = writeBatch(this.firestore);
     for (const r of current) {
-      batch.set(doc(this.routinesCol(), r.id), r);
+      for (const exercise of r.exercises) {
+        batch.set(doc(this.exercisesCol(), exercise.id), {
+          id: exercise.id,
+          name: exercise.name,
+        });
+      }
+      batch.set(doc(this.routinesCol(), r.id), this._storeRoutine(r));
     }
     await batch.commit();
     this.routinesSignal.set([...current]);
+    this.routinesLoaded = true;
+    this._setExercisesFromRoutines(current);
     return routine;
   }
 
   private async _deleteRoutine(id: string): Promise<boolean> {
-    const remaining = [...this.routinesSignal()].filter((r) => r.id !== id);
+    const remaining = [...(await this._loadRoutines())].filter(
+      (routine) => routine.id !== id,
+    );
     remaining.forEach((r, i) => {
       r.rotationOrder = i;
     });
@@ -336,11 +461,100 @@ export class WorkoutService {
     const batch = writeBatch(this.firestore);
     batch.delete(doc(this.routinesCol(), id));
     for (const r of remaining) {
-      batch.set(doc(this.routinesCol(), r.id), r);
+      batch.set(doc(this.routinesCol(), r.id), this._storeRoutine(r));
     }
     await batch.commit();
     this.routinesSignal.set([...remaining]);
+    this.routinesLoaded = true;
     return true;
+  }
+
+  private _upsertSession(session: WorkoutSession): void {
+    const sessions = this.sessionsSignal().filter(
+      (item) => item.id !== session.id,
+    );
+    sessions.push(session);
+    sessions.sort((left, right) => right.date.localeCompare(left.date));
+    this.sessionsSignal.set(sessions);
+  }
+
+  private _upsertRoutine(routine: Routine): void {
+    const routines = this.routinesSignal().filter(
+      (item) => item.id !== routine.id,
+    );
+    routines.push(routine);
+    routines.sort((left, right) => left.rotationOrder - right.rotationOrder);
+    this.routinesSignal.set(routines);
+  }
+
+  private _clearRoutineLoad(load: Promise<Routine[]>): void {
+    if (this.routinesLoad === load) this.routinesLoad = null;
+  }
+
+  private _clearSessionLoad(load: Promise<WorkoutSession[]>): void {
+    if (this.sessionsLoad === load) this.sessionsLoad = null;
+  }
+
+  private _clearExerciseLoad(load: Promise<Exercise[]>): void {
+    if (this.exercisesLoad === load) this.exercisesLoad = null;
+  }
+
+  private _clearDataCache(): void {
+    this.routinesSignal.set([]);
+    this.sessionsSignal.set([]);
+    this.exercisesSignal.set([]);
+    this.routinesLoaded = false;
+    this.sessionsLoaded = false;
+    this.exercisesLoaded = false;
+    this.routinesLoad = null;
+    this.sessionsLoad = null;
+    this.exercisesLoad = null;
+  }
+
+  private _resolveRoutine(
+    routine: StoredRoutine,
+    exercises: Exercise[],
+  ): Routine {
+    const namesById = new Map(
+      exercises.map((exercise) => [exercise.id, exercise.name]),
+    );
+    return {
+      ...routine,
+      exercises: routine.exercises.map((exercise) => {
+        const legacyName = (
+          exercise as ExercisePrescription & { name?: string }
+        ).name;
+        const name = namesById.get(exercise.id) ?? legacyName;
+        if (!name) {
+          throw new Error(
+            `Exercise ${exercise.id} is missing from the exercise catalog`,
+          );
+        }
+        return { ...exercise, name };
+      }),
+    };
+  }
+
+  private _storeRoutine(routine: Routine): StoredRoutine {
+    return {
+      ...routine,
+      exercises: routine.exercises.map(
+        ({ name: _name, ...exercise }) => exercise,
+      ),
+    };
+  }
+
+  private _setExercisesFromRoutines(routines: Routine[]): void {
+    const namesById = new Map(
+      this.exercisesSignal().map((exercise) => [exercise.id, exercise]),
+    );
+    for (const routine of routines) {
+      for (const exercise of routine.exercises) {
+        namesById.set(exercise.id, { id: exercise.id, name: exercise.name });
+      }
+    }
+    this.exercisesSignal.set([...namesById.values()]);
+    this.exercisesLoaded = true;
   }
 
   private _determineNextRoutine(

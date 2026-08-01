@@ -2,17 +2,11 @@
   height: 100%;
 }
 
-.program-container {
+.exercises-list-container {
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-}
-
-.program-actions {
-  display: flex;
-  flex-shrink: 0;
-  padding-top: 20px;
 }
 
 .loading,
@@ -23,11 +17,11 @@
   text-align: center;
 }
 
-.routine-list {
+.exercise-list {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 10px;
-  overflow-y: auto;
-  flex: 1;
   margin: 0;
+  overflow-y: auto;
 }

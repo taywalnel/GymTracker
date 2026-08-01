@@ -1,0 +1,21 @@
+<div class="program-home-container">
+  <app-page-header title="Program" />
+
+  <div class="program-home__cards">
+    <app-card
+      [featured]="true"
+      [showFeaturedBorder]="false"
+      title="Exercises"
+      [description]="pluralize(exerciseCount, 'exercise')"
+      routerLink="/program/exercises"
+    />
+
+    <app-card
+      [featured]="true"
+      [showFeaturedBorder]="false"
+      title="Workouts"
+      [description]="pluralize(workoutCount, 'workout')"
+      routerLink="/program/workouts"
+    />
+  </div>
+</div>
