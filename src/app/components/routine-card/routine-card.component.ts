@@ -10,7 +10,7 @@ import { Component, HostBinding, Input } from "@angular/core";
 })
 export class RoutineCardComponent {
   @Input({ required: true }) title!: string;
-  @Input({ required: true }) description!: string;
+  @Input({ required: false }) description: string | null = null;
   @Input() featured = false;
   @Input() showFeaturedBorder = true;
   @Input() badge: string | null = null;

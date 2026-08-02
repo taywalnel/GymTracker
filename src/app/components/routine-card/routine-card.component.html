@@ -7,7 +7,9 @@
 <div class="routine-card__body">
   <div class="routine-card__content">
     <span class="routine-card__name">{{ title }}</span>
-    <span class="routine-card__meta">{{ description }}</span>
+    @if (description) {
+      <span class="routine-card__meta">{{ description }}</span>
+    }
   </div>
   @if (showChevron) {
     <span class="routine-card__chevron">›</span>

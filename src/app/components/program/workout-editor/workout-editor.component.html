@@ -1,51 +1,49 @@
 <app-page-header
   [title]="routineId ? 'Edit Routine' : 'New Routine'"
-  backLink="/program"
+  [backLink]="routineId ? '/program/workout/view/' + routineId : '/program'"
 ></app-page-header>
 
-@if (loading) {
-  <div class="state-message">Loading…</div>
-}
-
-@if (!loading) {
-  <form class="routine-form" (ngSubmit)="save()" novalidate>
-    <app-input
-      id="routineName"
-      label="Routine Name"
-      type="text"
-      [(ngModel)]="routine.name"
-      (ngModelChange)="clearNameError()"
-      name="routineName"
-      placeholder="e.g., Chest / Triceps"
-      [invalid]="validationErrors.name"
-      [error]="validationErrors.name ? 'Enter a routine name.' : null"
-    ></app-input>
-    <label class="form-label">Exercises</label>
+<div class="page-content">
+  <div class="main-actions">
+    <app-button variant="danger" [fullWidth]="true">Delete</app-button>
+    <app-button
+      variant="primary"
+      type="submit"
+      [fullWidth]="true"
+      [disabled]="saving"
+    >
+      {{ saving ? "Saving..." : "Save" }}
+    </app-button>
+  </div>
+  <app-input
+    id="routineName"
+    label="Routine Name"
+    type="text"
+    [(ngModel)]="routine.name"
+    (ngModelChange)="clearNameError()"
+    [name]="'routineName'"
+    [placeholder]="'e.g., Chest / Triceps'"
+    [invalid]="validationErrors.name"
+    [error]="validationErrors.name ? 'Enter a routine name.' : null"
+  ></app-input>
+  <label class="form-label">Exercises</label>
+  <div class="exercise-list-container">
     <div class="exercise-list">
       @for (ex of routine.exercises; track ex.id) {
-        <app-card
+        <app-editable-card
           [title]="ex.name"
-          [description]="exerciseDescription(ex)"
-          [showChevron]="true"
-          (click)="editExercise(ex)"
-        ></app-card>
+          [description]="''"
+          (edit)="editExercise(ex)"
+          (delete)="deleteExercise(ex.id)"
+        ></app-editable-card>
       }
     </div>
-    @if (validationErrors.exercises) {
-      <p class="form-error" role="alert">Add at least one exercise.</p>
-    }
-    <div class="form-footer">
-      <app-button variant="secondary" [fullWidth]="true" (click)="addExercise()"
-        >Add Exercise
-      </app-button>
-      <app-button
-        variant="primary"
-        type="submit"
-        [fullWidth]="true"
-        [disabled]="saving"
-      >
-        {{ saving ? "Saving..." : "Save Routine" }}
-      </app-button>
-    </div>
-  </form>
-}
+  </div>
+
+  @if (validationErrors.exercises) {
+    <p class="form-error" role="alert">Add at least one exercise.</p>
+  }
+  <app-button variant="secondary" [fullWidth]="true" (click)="addExercise()"
+    >Add exercise
+  </app-button>
+</div>

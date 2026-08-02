@@ -1,0 +1,27 @@
+<app-page-header
+  [title]="workoutName"
+  backLink="/program/workouts"
+  [showRightAction]="true"
+  rightActionLabel="Edit"
+  (rightAction)="editWorkout()"
+/>
+
+@if (isLoading) {
+  <div class="state-message">Loading workout…</div>
+} @else if (exercises.length === 0) {
+  <div class="state-message">No exercises in this workout.</div>
+} @else {
+  <ul class="exercise-list">
+    @for (exercise of exercises; track exercise.id) {
+      <li>
+        <div class="exercise-card">
+          <span class="exercise-card__name">{{ exercise.name }}</span>
+          <app-weight-and-reps
+            [weight]="exercise.targetWeightKg"
+            [sets]="targetSets(exercise)"
+          />
+        </div>
+      </li>
+    }
+  </ul>
+}

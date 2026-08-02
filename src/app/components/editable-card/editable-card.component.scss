@@ -1,5 +1,9 @@
 :host {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 10px;
+}
+
+.buttons-wrapper {
+  width: 90px;
+  display: flex;
 }

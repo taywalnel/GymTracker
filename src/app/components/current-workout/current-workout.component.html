@@ -1,44 +1,41 @@
 @if (isLoading) {
   <div class="state-message">Loading workout…</div>
 } @else if (state) {
-  <div>
-    <app-page-header [title]="state.today.routine.name" backLink="/" />
-    <app-workout-progress
-      [completed]="completedExerciseCount"
-      [total]="totalExerciseCount"
-    />
-  </div>
+  <app-page-header [title]="state.today.routine.name" backLink="/" />
 
-  <ul class="exercise-list">
-    @for (exercise of exercises; track exercise.id) {
-      <li>
-        <button
-          type="button"
-          class="exercise-card"
-          [class.is-current]="state.activeExerciseId === exercise.id"
-          (click)="navigateToExercise(exercise.id)"
-        >
-          <span class="exercise-card__name">{{ exercise.name }}</span>
-          <app-weight-and-reps
-            [weight]="exercise.targetWeightKg"
-            [sets]="exercise.setReps"
-          />
-        </button>
-      </li>
-    }
-  </ul>
-  <div class="workout-header__elapsed-time" aria-live="off">
-    Elapsed time: {{ elapsedTime }}
-  </div>
-  <div class="action-buttons">
-    <app-button
-      variant="primary"
-      [fullWidth]="true"
-      [height]="'40px'"
-      [disabled]="isSaving"
-      (click)="finishWorkout()"
-    >
-      {{ isSaving ? "Saving…" : "Complete" }}
-    </app-button>
+  <div class="page-content">
+    <div class="exercise-list-container">
+      <div class="exercise-list">
+        @for (exercise of exercises; track exercise.id) {
+          <button
+            type="button"
+            class="exercise-card"
+            [class.is-current]="state.activeExerciseId === exercise.id"
+            (click)="navigateToExercise(exercise.id)"
+          >
+            <span class="exercise-card__name">{{ exercise.name }}</span>
+            <app-weight-and-reps
+              [weight]="exercise.targetWeightKg"
+              [sets]="exercise.setReps"
+            />
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="workout-header__elapsed-time" aria-live="off">
+      Elapsed time: {{ elapsedTime }}
+    </div>
+    <div class="action-buttons">
+      <app-button
+        variant="primary"
+        [fullWidth]="true"
+        [height]="'40px'"
+        [disabled]="isSaving"
+        (click)="finishWorkout()"
+      >
+        {{ isSaving ? "Saving…" : "Complete" }}
+      </app-button>
+    </div>
   </div>
 }

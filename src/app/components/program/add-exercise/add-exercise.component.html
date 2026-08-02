@@ -68,6 +68,17 @@
   </div>
 
   <div class="form-actions">
+    @if (existingExercise) {
+      <app-button
+        type="button"
+        variant="secondary"
+        [danger]="true"
+        [fullWidth]="true"
+        (click)="delete()"
+      >
+        Delete
+      </app-button>
+    }
     <app-button type="submit" variant="primary" [fullWidth]="true">
       Save
     </app-button>

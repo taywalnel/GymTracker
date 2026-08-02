@@ -7,10 +7,10 @@
   [class.app-btn--ghost]="variant === 'ghost'"
   [class.app-btn--icon]="variant === 'icon'"
   [class.app-btn--complete]="variant === 'complete'"
+  [class.app-btn--danger]="variant === 'danger' || danger"
   [attr.aria-label]="ariaLabel"
   [class.app-btn--sm]="size === 'sm'"
   [class.app-btn--full]="fullWidth"
-  [class.app-btn--danger]="danger"
   [style.height]="height"
 >
   <ng-content></ng-content>

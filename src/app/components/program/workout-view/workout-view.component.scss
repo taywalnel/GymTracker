@@ -1,0 +1,43 @@
+:host {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.state-message {
+  padding: 40px 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  text-align: center;
+}
+
+.exercise-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  overflow-y: overlay;
+  list-style: none;
+}
+
+.exercise-card {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  color: var(--color-text);
+  text-align: left;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+}
+
+.exercise-card__name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+}

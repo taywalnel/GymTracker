@@ -52,7 +52,7 @@ export class AddExerciseComponent implements OnInit {
   }
 
   private readonly routine: Routine | undefined;
-  private readonly existingExercise: ResolvedExercisePrescription | undefined;
+  readonly existingExercise: ResolvedExercisePrescription | undefined;
   private readonly returnUrl: string;
 
   constructor(
@@ -136,6 +136,19 @@ export class AddExerciseComponent implements OnInit {
         routine: this.routine,
         exercise,
         replaceExerciseId: this.existingExercise?.id,
+      },
+    });
+  }
+
+  delete(): void {
+    if (!this.existingExercise) {
+      return;
+    }
+
+    this.router.navigateByUrl(this.returnUrl, {
+      state: {
+        routine: this.routine,
+        removeExerciseId: this.existingExercise.id,
       },
     });
   }

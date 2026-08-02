@@ -12,5 +12,8 @@ export class PageHeaderComponent {
   @Input() backLink: string | null = null;
   @Input() backLabel = "Back";
   @Input() showBack = false;
+  @Input() rightActionLabel = "";
+  @Input() showRightAction = false;
   @Output() back = new EventEmitter<void>();
+  @Output() rightAction = new EventEmitter<void>();
 }

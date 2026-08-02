@@ -5,17 +5,16 @@
     <app-card
       [featured]="true"
       [showFeaturedBorder]="false"
-      title="Exercises"
-      [description]="pluralize(exerciseCount, 'exercise')"
-      routerLink="/program/exercises"
-    />
-
-    <app-card
-      [featured]="true"
-      [showFeaturedBorder]="false"
       title="Workouts"
       [description]="pluralize(workoutCount, 'workout')"
       routerLink="/program/workouts"
+    />
+    <app-card
+      [featured]="true"
+      [showFeaturedBorder]="false"
+      title="Exercises"
+      [description]="pluralize(exerciseCount, 'exercise')"
+      routerLink="/program/exercises"
     />
   </div>
 </div>

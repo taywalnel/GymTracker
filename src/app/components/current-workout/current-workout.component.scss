@@ -1,7 +1,6 @@
 :host {
   display: flex;
   flex: 1;
-  gap: 15px;
   flex-direction: column;
   min-height: 0;
 }
@@ -13,19 +12,6 @@
   text-align: center;
 }
 
-.workout-header {
-  flex-shrink: 0;
-  gap: 15px;
-  display: flex;
-  flex-direction: column;
-}
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .workout-header__elapsed-time {
   color: var(--color-text-muted);
   font-family: var(--font-display);
@@ -33,16 +19,26 @@
   text-align: center;
 }
 
-.exercise-list {
-  display: flex;
+.page-content {
   flex: 1;
+  display: flex;
   flex-direction: column;
-  min-height: 0;
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  overflow-y: overlay;
-  list-style: none;
+  gap: 10px;
+}
+
+.exercise-list-container {
+  flex: 1;
+  position: relative;
+}
+
+.exercise-list {
+  height: 100%;
+  overflow-y: scroll;
+  width: 100%;
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .exercise-card {
@@ -58,23 +54,13 @@
   border: 1px solid var(--color-border);
 }
 
-.exercise-card:hover {
-  border-color: var(--color-text-muted);
-}
-
 .exercise-card.is-current {
   border: 2px solid rgba(163, 201, 34, 0.4);
-}
-
-.exercise-card:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
 }
 
 .exercise-card__name {
   font-family: var(--font-display);
   font-size: 1rem;
-  font-weight: 600;
 }
 
 .action-buttons {

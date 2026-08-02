@@ -14,7 +14,6 @@ import { RestTimerService } from "../../services/rest-timer.service";
 import { ButtonComponent } from "../button/button.component";
 import { NavDotItem } from "../nav-dots/nav-dots.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
-import { WorkoutProgressComponent } from "../workout-progress/workout-progress.component";
 import {
   WeightAndRepsComponent,
   WeightAndRepsSet,
@@ -30,12 +29,7 @@ interface CurrentExerciseDisplay {
 
 @Component({
   selector: "app-current-workout",
-  imports: [
-    ButtonComponent,
-    PageHeaderComponent,
-    WorkoutProgressComponent,
-    WeightAndRepsComponent,
-  ],
+  imports: [ButtonComponent, PageHeaderComponent, WeightAndRepsComponent],
   templateUrl: "./current-workout.component.html",
   styleUrl: "./current-workout.component.scss",
 })

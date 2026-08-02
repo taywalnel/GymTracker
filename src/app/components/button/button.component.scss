@@ -71,6 +71,15 @@
     }
   }
 
+  &--danger {
+    background: #b94b50;
+    color: #000;
+
+    &:active:not(:disabled) {
+      background: #a33f45;
+    }
+  }
+
   &--ghost {
     background: transparent;
     color: var(--color-accent);

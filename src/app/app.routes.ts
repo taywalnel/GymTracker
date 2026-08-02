@@ -4,10 +4,10 @@ import { HistoryComponent } from "./components/history/history.component";
 import { SessionDetailComponent } from "./components/session-detail/session-detail.component";
 import { ProgramHomeComponent } from "./components/program/program-home/program-home.component";
 import { WorkoutListComponent } from "./components/program/workout-list/workout-list.component";
+import { WorkoutViewComponent } from "./components/program/workout-view/workout-view.component";
 import { ExercisesListComponent } from "./components/program/exercises-list/exercises-list.component";
 import { WorkoutEditorComponent } from "./components/program/workout-editor/workout-editor.component";
 import { AddExerciseComponent } from "./components/program/add-exercise/add-exercise.component";
-import { SettingsComponent } from "./components/settings/settings.component";
 import { AccountComponent } from "./components/account/account.component";
 import { LoginComponent } from "./components/login/login.component";
 import { CurrentExercisePageComponent } from "./components/current-exercise-page/current-exercise-page.component";
@@ -84,6 +84,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: "program/workout/view/:workoutId",
+    component: WorkoutViewComponent,
+    title: "Workout — Gym Tracker",
+    canActivate: [authGuard],
+  },
+  {
     path: "program/workout/edit/add-exercise",
     component: AddExerciseComponent,
     title: "Add Exercise — Gym Tracker",
@@ -99,12 +105,6 @@ export const routes: Routes = [
     path: "program/workout/edit/:id",
     component: WorkoutEditorComponent,
     title: "Edit Routine — Gym Tracker",
-    canActivate: [authGuard],
-  },
-  {
-    path: "settings",
-    component: SettingsComponent,
-    title: "Settings — Gym Tracker",
     canActivate: [authGuard],
   },
   {

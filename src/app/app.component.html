@@ -22,20 +22,13 @@
       [class.is-active]="isTodayRoute()"
       (click)="onTodayTabClick($event)"
     >
-      <span class="tab-bar__label">Today</span>
+      <span class="tab-bar__label">Workout</span>
     </a>
     <a class="tab-bar__item" routerLink="/program" routerLinkActive="is-active">
       <span class="tab-bar__label">Program</span>
     </a>
     <a class="tab-bar__item" routerLink="/history" routerLinkActive="is-active">
       <span class="tab-bar__label">History</span>
-    </a>
-    <a
-      class="tab-bar__item"
-      routerLink="/settings"
-      routerLinkActive="is-active"
-    >
-      <span class="tab-bar__label">Settings</span>
     </a>
     <a class="tab-bar__item" routerLink="/account" routerLinkActive="is-active">
       <span class="tab-bar__label">Account</span>

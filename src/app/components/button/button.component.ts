@@ -5,7 +5,8 @@ export type ButtonVariant =
   | "secondary"
   | "ghost"
   | "icon"
-  | "complete";
+  | "complete"
+  | "danger";
 export type ButtonSize = "default" | "sm";
 
 @Component({

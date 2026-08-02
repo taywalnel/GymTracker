@@ -1,4 +1,4 @@
-@if (backLink || showBack || title) {
+@if (backLink || showBack || title || showRightAction) {
   <div class="page-header__heading">
     @if (backLink) {
       <button type="button" [routerLink]="backLink" class="back-link">
@@ -12,6 +12,12 @@
 
     @if (title) {
       <h2 class="page-header__title">{{ title }}</h2>
+    }
+
+    @if (showRightAction) {
+      <button type="button" class="right-action" (click)="rightAction.emit()">
+        {{ rightActionLabel }}
+      </button>
     }
   </div>
 }

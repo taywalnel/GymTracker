@@ -19,7 +19,7 @@ export class EditableCardComponent {
   protected readonly editSvg = this.sanitizer.bypassSecurityTrustHtml(EDIT_SVG);
 
   @Input({ required: true }) title = "";
-  @Input({ required: true }) description = "";
+  @Input({ required: false }) description = "";
   @Output() edit = new EventEmitter<void>();
   @Output() delete = new EventEmitter<void>();
 }

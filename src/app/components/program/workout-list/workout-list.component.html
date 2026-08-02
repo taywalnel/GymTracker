@@ -2,7 +2,7 @@
   <app-page-header title="Workouts" backLink="/program" />
 
   @if (loading) {
-    <div class="loading">Loading routines...</div>
+    (click)="viewRoutine(routine)"
   }
 
   @if (!loading && routines.length === 0) {
@@ -22,7 +22,7 @@
             (routine.exercises.length !== 1 ? 's' : '')
           "
           [showChevron]="true"
-          (click)="editRoutine(routine)"
+          (click)="viewRoutine(routine)"
         ></app-card>
       }
     </div>

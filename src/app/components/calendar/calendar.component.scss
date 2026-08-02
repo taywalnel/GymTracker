@@ -1,0 +1,83 @@
+:host {
+  display: block;
+}
+
+.calendar {
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  padding: 10px;
+}
+
+.calendar__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.calendar__month-label {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+.calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.calendar__dow {
+  text-align: center;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  padding-bottom: 6px;
+}
+
+.calendar__cell {
+  aspect-ratio: 1.2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  gap: 2px;
+}
+
+.calendar__cell.out-of-month .calendar__day-num {
+  color: var(--color-border);
+}
+
+.calendar__cell.is-today {
+  background: var(--color-panel-raised);
+}
+
+.calendar__cell.is-today .calendar__day-num {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.calendar__cell.has-workout {
+  background: rgba(198, 241, 53, 0.12);
+}
+
+.calendar__cell.has-workout.is-today {
+  background: rgba(198, 241, 53, 0.22);
+}
+
+.calendar__day-num {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.calendar__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  flex-shrink: 0;
+}

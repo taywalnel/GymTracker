@@ -9,18 +9,18 @@ import {
 } from "../../../models/workout.models";
 import { UnitPreferenceService } from "../../../services/unit-preference.service";
 import { ButtonComponent } from "../../button/button.component";
+import { EditableCardComponent } from "../../editable-card/editable-card.component";
 import { InputComponent } from "../../input/input.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
-import { RoutineCardComponent } from "../../routine-card/routine-card.component";
 
 @Component({
   selector: "app-workout-editor",
   imports: [
     FormsModule,
     ButtonComponent,
+    EditableCardComponent,
     InputComponent,
     PageHeaderComponent,
-    RoutineCardComponent,
   ],
   templateUrl: "./workout-editor.component.html",
   styleUrl: "./workout-editor.component.scss",
@@ -53,11 +53,16 @@ export class WorkoutEditorComponent implements OnInit {
       routine?: Routine;
       exercise?: ResolvedExercisePrescription;
       replaceExerciseId?: string;
+      removeExerciseId?: string;
     };
 
     if (state.routine) {
       this.routine = state.routine;
-      if (state.exercise) {
+      if (state.removeExerciseId) {
+        this.routine.exercises = this.routine.exercises.filter(
+          (exercise) => exercise.id !== state.removeExerciseId,
+        );
+      } else if (state.exercise) {
         this.routine.exercises = state.replaceExerciseId
           ? this.routine.exercises.map((exercise) =>
               exercise.id === state.replaceExerciseId
@@ -104,6 +109,12 @@ export class WorkoutEditorComponent implements OnInit {
         returnUrl: this.router.url,
       },
     });
+  }
+
+  deleteExercise(exerciseId: string): void {
+    this.routine.exercises = this.routine.exercises.filter(
+      (exercise) => exercise.id !== exerciseId,
+    );
   }
 
   save(): void {
