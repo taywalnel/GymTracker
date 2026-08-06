@@ -5,8 +5,6 @@ import {
   RouterLinkActive,
   RouterOutlet,
 } from "@angular/router";
-import { RestTimerService } from "./services/rest-timer.service";
-import { ButtonComponent } from "./components/button/button.component";
 import { TabService } from "./services/tab.service";
 import { WorkoutService } from "./services/workout.service";
 
@@ -18,13 +16,21 @@ import { WorkoutService } from "./services/workout.service";
 })
 export class AppComponent {
   constructor(
-    public restTimer: RestTimerService,
     private router: Router,
     private tabService: TabService,
     private workoutService: WorkoutService,
   ) {}
 
   onTodayTabClick(event: MouseEvent): void {
+    const saved = this.workoutService.getInProgressState();
+    if (saved) {
+      event.preventDefault();
+      const route = ["/current-workout", saved.today.routine.id];
+      if (saved.activeExerciseId) route.push(saved.activeExerciseId);
+      this.router.navigate(route);
+      return;
+    }
+
     // If we're already on the Today route, prevent default navigation and broadcast the click
     const url = this.router.url || "/";
     if (url === "/" || url === "") {
@@ -37,28 +43,5 @@ export class AppComponent {
   isTodayRoute(): boolean {
     const path = this.router.url.split(/[?#]/, 1)[0];
     return path === "/" || path.startsWith("/current-workout/");
-  }
-
-  isCurrentExerciseRoute(): boolean {
-    const path = this.router.url.split(/[?#]/, 1)[0];
-    return /^\/current-workout\/[^/]+\/[^/]+$/.test(path);
-  }
-
-  returnToCurrentExercise(): void {
-    const state = this.workoutService.getInProgressState();
-    if (!state) return;
-
-    const exerciseId =
-      state.activeExerciseId ??
-      state.today.routine.exercises.find(
-        (exercise) => !state.completedExerciseIds.includes(exercise.id),
-      )?.id;
-    if (!exerciseId) return;
-
-    this.router.navigate([
-      "/current-workout",
-      state.today.routine.id,
-      exerciseId,
-    ]);
   }
 }

@@ -57,14 +57,8 @@ export class ExerciseHistoryPageComponent implements OnInit {
 
   toWeightAndRepsSets(log: ExerciseLog): WeightAndRepsSet[] {
     return log.completedSets.map((set) => ({
-      value: set.reps,
-      color:
-        log.targetReps === undefined
-          ? undefined
-          : set.reps >= log.targetReps
-            ? "var(--color-accent)"
-            : "var(--color-warn)",
-      textColor: log.targetReps === undefined ? undefined : "black",
+      targetAmount: log.targetReps ?? set.reps,
+      achievedAmount: log.targetReps === undefined ? undefined : set.reps,
     }));
   }
 

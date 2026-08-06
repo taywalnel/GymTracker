@@ -6,15 +6,20 @@ import {
   OnInit,
   OnChanges,
   SimpleChanges,
+  inject,
 } from "@angular/core";
+import { DomSanitizer } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 
+import { HISTORY_SVG } from "../../constants/svg.constants";
 import {
   ResolvedExercisePrescription,
   CompletedSet,
+  ExerciseLog,
 } from "../../models/workout.models";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { RestTimerService } from "../../services/rest-timer.service";
+import { WorkoutService } from "../../services/workout.service";
 import { ButtonComponent } from "../button/button.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
 import {
@@ -22,6 +27,12 @@ import {
   WeightAndRepsSet,
 } from "../weight-and-reps/weight-and-reps.component";
 import { StepperComponent } from "../stepper/stepper.component";
+import { ConfirmationModalComponent } from "../confirmation-modal/confirmation-modal.component";
+
+interface ExerciseHistoryEntry {
+  date: string;
+  log: ExerciseLog;
+}
 
 @Component({
   selector: "app-exercise-card",
@@ -30,13 +41,20 @@ import { StepperComponent } from "../stepper/stepper.component";
     PageHeaderComponent,
     WeightAndRepsComponent,
     StepperComponent,
+    ConfirmationModalComponent,
   ],
   templateUrl: "./exercise-card.component.html",
   styleUrl: "./exercise-card.component.scss",
 })
 export class ExerciseCardComponent implements OnInit, OnChanges {
+  private readonly sanitizer = inject(DomSanitizer);
+
+  protected readonly historySvg =
+    this.sanitizer.bypassSecurityTrustHtml(HISTORY_SVG);
+
   @Input({ required: true }) exercise!: ResolvedExercisePrescription;
   @Input() isCurrent = false;
+  @Input() progressionSuggestionAlreadyShown = false;
   /** Previously saved sets to restore when navigating back to this exercise */
   @Input() savedSets: CompletedSet[] | null = null;
 
@@ -46,6 +64,10 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
   @Output() markComplete = new EventEmitter<void>();
   /** Emits when the person returns to the workout overview. */
   @Output() back = new EventEmitter<void>();
+  /** Emits when the person wants to adjust a prescription after consistent success. */
+  @Output() adjustRoutineRequested = new EventEmitter<void>();
+  /** Emits when the progressive-overload suggestion first becomes visible. */
+  @Output() progressionSuggestionShown = new EventEmitter<void>();
 
   /** Working sets, always stored internally in kg regardless of display unit. */
   workingSets: CompletedSet[] = [];
@@ -53,11 +75,14 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
   /** Index of the set currently shown in the stepper. */
   activeSetIndex = 0;
 
+  /** The most recent completed history entry for this exercise, if any. */
+  lastHistoryEntry: ExerciseHistoryEntry | null = null;
+
+  /** Whether the progressive-overload suggestion is open. */
+  showProgressionSuggestion = false;
+
   /** Set indices that have been marked complete. */
   completedSetIndices = new Set<number>();
-
-  /** Whether the active rest timer is shown as a compact indicator. */
-  restTimerCollapsed = false;
 
   /** Whether each set's reps stepper has been "started" — controls 0-state vs target-prefill behavior */
   private setStarted: boolean[] = [];
@@ -70,15 +95,18 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
     public units: UnitPreferenceService,
     public restTimer: RestTimerService,
     private router: Router,
+    private workoutService: WorkoutService,
   ) {}
 
   ngOnInit(): void {
     this.initSets();
+    this.loadExerciseHistory();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes["exercise"]) {
       this.initSets();
+      this.loadExerciseHistory();
     } else if (this.workingSets.length === 0) {
       this.initSets();
     }
@@ -126,14 +154,34 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
     return this.completedSetIndices.size;
   }
 
+  get restTimerProgress(): number {
+    const secondsLeft = this.restTimer.secondsLeft;
+    return secondsLeft === null
+      ? 0
+      : (secondsLeft / this.restTimer.duration) * 100;
+  }
+
   get targetSetReps(): WeightAndRepsSet[] {
     return Array.from({ length: this.exercise.targetSets }, () => ({
-      value: this.exercise.targetReps,
+      targetAmount: this.exercise.targetReps,
     }));
   }
 
   get currentWeightKg(): number {
     return this.workingSets[0]?.weightKg ?? this.exercise.targetWeightKg;
+  }
+
+  get activeSetDefaultReps(): number {
+    if (this.setTouched[this.activeSetIndex]) {
+      return this.workingSets[this.activeSetIndex].reps;
+    }
+
+    const previousCompletedSet = [...this.completedSetIndices]
+      .sort((a, b) => b - a)
+      .map((index) => this.workingSets[index])
+      .find((set) => set !== undefined);
+
+    return previousCompletedSet?.reps ?? this.exercise.targetReps;
   }
 
   get currentSetReps(): WeightAndRepsSet[] {
@@ -142,23 +190,75 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
       const isComplete = this.completedSetIndices.has(index);
 
       return {
-        value: isComplete ? set!.reps : this.exercise.targetReps,
-        color: isComplete
-          ? set!.reps >= this.exercise.targetReps
-            ? "var(--color-accent)"
-            : "var(--color-warn)"
-          : undefined,
-        textColor: isComplete ? "black" : undefined,
+        targetAmount: this.exercise.targetReps,
+        achievedAmount: isComplete ? set!.reps : undefined,
       };
     });
   }
 
+  private loadExerciseHistory(): void {
+    this.lastHistoryEntry = null;
+    this.workoutService
+      .getExerciseHistory(this.exercise.id)
+      .subscribe((entries) => {
+        this.lastHistoryEntry =
+          entries.find((entry) => entry.log.completedSets.length > 0) ?? null;
+        const shouldShowSuggestion =
+          this.hasEarnedProgressionSuggestion(entries);
+        this.showProgressionSuggestion = shouldShowSuggestion;
+        if (shouldShowSuggestion) {
+          this.progressionSuggestionShown.emit();
+        }
+      });
+  }
+
+  private hasEarnedProgressionSuggestion(
+    entries: ExerciseHistoryEntry[],
+  ): boolean {
+    const completedEntries = entries.filter(
+      (entry) => entry.log.completedSets?.length > 0,
+    );
+
+    if (
+      !this.isCurrent ||
+      this.progressionSuggestionAlreadyShown ||
+      completedEntries.length < 3
+    ) {
+      return false;
+    }
+
+    return completedEntries.slice(0, 3).every(({ log }) => {
+      const completedSets = log.completedSets;
+      return (
+        completedSets.length >= this.exercise.targetSets &&
+        completedSets.every((set) => set.reps >= this.exercise.targetReps)
+      );
+    });
+  }
+
+  toWeightAndRepsSets(log: ExerciseLog): WeightAndRepsSet[] {
+    return log.completedSets.map((set) => ({
+      targetAmount: log.targetReps ?? set.reps,
+      achievedAmount: log.targetReps === undefined ? undefined : set.reps,
+    }));
+  }
+
   navigateToSet(index: number): void {
+    if (
+      index > this.activeSetIndex &&
+      !Array.from({ length: index }, (_, setIndex) => setIndex).every(
+        (setIndex) => this.completedSetIndices.has(setIndex),
+      )
+    ) {
+      return;
+    }
+
     this.activeSetIndex = index;
   }
 
   completeCurrentSet(): void {
     const idx = this.activeSetIndex;
+    const wasAlreadyComplete = this.completedSetIndices.has(idx);
     // If the stepper was never touched, the displayed value is targetReps — persist that.
     if (!this.setTouched[idx]) {
       this.workingSets[idx] = {
@@ -170,6 +270,11 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
 
     this.completedSetIndices = new Set([...this.completedSetIndices, idx]);
     this.setsChanged.emit(this.workingSets);
+
+    if (wasAlreadyComplete) {
+      this.activeSetIndex = (idx + 1) % this.workingSets.length;
+      return;
+    }
 
     const total = this.workingSets.length;
     let advanced = false;
@@ -188,16 +293,24 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
       return;
     }
 
-    this.restTimerCollapsed = false;
     this.restTimer.start();
   }
 
-  toggleRestTimer(): void {
-    this.restTimerCollapsed = !this.restTimerCollapsed;
+  skipRestTimer(): void {
+    this.restTimer.clear();
   }
 
   viewExerciseHistory(): void {
     this.router.navigate(["/history/exercises", this.exercise.id]);
+  }
+
+  dismissProgressionSuggestion(): void {
+    this.showProgressionSuggestion = false;
+  }
+
+  adjustRoutine(): void {
+    this.showProgressionSuggestion = false;
+    this.adjustRoutineRequested.emit();
   }
 
   /**

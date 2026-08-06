@@ -2,10 +2,15 @@
   display: block;
 }
 
+input {
+  height: 100%;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  height: 100%;
 }
 
 .form-label {
@@ -26,7 +31,7 @@
   color: var(--color-text);
   font-family: var(--font-display);
 
-  font-size: 1rem;
+  font-size: 1.3rem;
   line-height: 1.18;
 
   &:focus {

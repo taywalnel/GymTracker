@@ -37,7 +37,7 @@ export class WorkoutListComponent implements OnInit {
   }
 
   viewRoutine(routine: Routine): void {
-    this.router.navigate(["/program/workout/view", routine.id]);
+    this.router.navigate(["/program/workout/edit", routine.id]);
   }
 
   createRoutine(): void {

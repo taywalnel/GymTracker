@@ -28,8 +28,15 @@ export class CurrentExercisePageComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const workoutId = this.route.snapshot.paramMap.get("workoutId");
-    const exerciseId = this.route.snapshot.paramMap.get("exerciseId");
+    this.route.paramMap.subscribe((params) => {
+      this.loadExercise(params.get("workoutId"), params.get("exerciseId"));
+    });
+  }
+
+  private loadExercise(
+    workoutId: string | null,
+    exerciseId: string | null,
+  ): void {
     const state = this.workoutService.getInProgressState();
     if (!state || state.today.routine.id !== workoutId) {
       this.router.navigate(["/"]);
@@ -64,17 +71,51 @@ export class CurrentExercisePageComponent implements OnInit {
     const completedExerciseIds = Array.from(
       new Set([...this.state.completedExerciseIds, this.exercise.id]),
     );
+    const nextExercise = this.nextIncompleteExercise(completedExerciseIds);
     this.saveState({
       ...this.state,
       completedExerciseIds,
       activeExerciseId: null,
     });
+
+    if (nextExercise) {
+      this.router.navigate([
+        "/current-workout",
+        this.state.today.routine.id,
+        nextExercise.id,
+      ]);
+      return;
+    }
+
     this.router.navigate(["/current-workout", this.state.today.routine.id]);
   }
 
   goToWorkout(): void {
     if (!this.state) return;
     this.router.navigate(["/current-workout", this.state.today.routine.id]);
+  }
+
+  adjustRoutine(): void {
+    if (!this.state || !this.exercise) return;
+
+    this.router.navigate(["/program/workout/edit/edit-exercise"], {
+      state: {
+        routine: this.state.today.routine,
+        exercise: this.exercise,
+        returnUrl: this.router.url,
+      },
+    });
+  }
+
+  onProgressionSuggestionShown(): void {
+    if (!this.state || !this.exercise) return;
+    const progressionSuggestedExerciseIds = Array.from(
+      new Set([
+        ...(this.state.progressionSuggestedExerciseIds ?? []),
+        this.exercise.id,
+      ]),
+    );
+    this.saveState({ ...this.state, progressionSuggestedExerciseIds });
   }
 
   goToNextExercise(): void {
@@ -107,8 +148,36 @@ export class CurrentExercisePageComponent implements OnInit {
     );
   }
 
+  get progressionSuggestionAlreadyShown(): boolean {
+    return (
+      this.state?.progressionSuggestedExerciseIds?.includes(
+        this.exercise?.id ?? "",
+      ) ?? false
+    );
+  }
+
   private saveState(state: InProgressState): void {
     this.state = state;
     this.workoutService.saveInProgressState(state);
+  }
+
+  private nextIncompleteExercise(
+    completedExerciseIds: string[],
+  ): ResolvedExercisePrescription | undefined {
+    if (!this.state || !this.exercise) return undefined;
+
+    const exercises = this.state.today.routine.exercises
+      .slice()
+      .sort((left, right) => left.order - right.order);
+    const currentIndex = exercises.findIndex(
+      (item) => item.id === this.exercise!.id,
+    );
+    const isIncomplete = (item: ResolvedExercisePrescription) =>
+      !completedExerciseIds.includes(item.id);
+
+    return (
+      exercises.slice(currentIndex + 1).find(isIncomplete) ??
+      exercises.find(isIncomplete)
+    );
   }
 }

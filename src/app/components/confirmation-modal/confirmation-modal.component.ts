@@ -13,6 +13,7 @@ export class ConfirmationModalComponent {
   @Input({ required: true }) message = "Are you sure you want to continue?";
   @Input() confirmLabel = "Confirm";
   @Input() cancelLabel = "Cancel";
+  @Input() danger = false;
 
   @Output() confirmed = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();

@@ -90,13 +90,8 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
             const set = sets[index];
             const isComplete = (set?.reps ?? 0) > 0;
             return {
-              value: isComplete ? set!.reps : exercise.targetReps,
-              color: isComplete
-                ? set!.reps >= exercise.targetReps
-                  ? "var(--color-accent)"
-                  : "var(--color-warn)"
-                : undefined,
-              textColor: isComplete ? "black" : undefined,
+              targetAmount: exercise.targetReps,
+              achievedAmount: isComplete ? set!.reps : undefined,
             };
           }),
           setNavItems: Array.from(

@@ -4,9 +4,12 @@
   <app-exercise-card
     [exercise]="exercise"
     [isCurrent]="true"
+    [progressionSuggestionAlreadyShown]="progressionSuggestionAlreadyShown"
     [savedSets]="savedSets"
     (setsChanged)="onSetsChanged($event)"
     (markComplete)="onMarkComplete()"
     (back)="goToWorkout()"
+    (adjustRoutineRequested)="adjustRoutine()"
+    (progressionSuggestionShown)="onProgressionSuggestionShown()"
   />
 }

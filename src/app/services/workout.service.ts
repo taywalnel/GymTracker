@@ -31,6 +31,7 @@ export interface InProgressState {
   completedExerciseIds: string[];
   activeExerciseId: string | null;
   workingSets: { exerciseId: string; sets: CompletedSet[] }[];
+  progressionSuggestedExerciseIds?: string[];
   ownerUid?: string;
 }
 

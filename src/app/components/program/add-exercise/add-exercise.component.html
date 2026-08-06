@@ -7,7 +7,6 @@
 <form class="exercise-form" (ngSubmit)="save()">
   <app-select
     id="exerciseTitle"
-    label="Title"
     [(ngModel)]="exerciseId"
     name="exerciseId"
     [options]="exerciseOptions"
@@ -19,11 +18,12 @@
     [invalid]="validationAttempted && !exerciseId"
     [error]="validationAttempted && !exerciseId ? 'Select an exercise.' : null"
   ></app-select>
+
   <div class="form-group">
+    <p class="label">Weight</p>
     <div class="weight-input-row">
       <app-input
-        id="exerciseWeight"
-        label="Weight"
+        class="weight-input"
         type="number"
         [(ngModel)]="weight"
         name="weight"
@@ -68,17 +68,6 @@
   </div>
 
   <div class="form-actions">
-    @if (existingExercise) {
-      <app-button
-        type="button"
-        variant="secondary"
-        [danger]="true"
-        [fullWidth]="true"
-        (click)="delete()"
-      >
-        Delete
-      </app-button>
-    }
     <app-button type="submit" variant="primary" [fullWidth]="true">
       Save
     </app-button>

@@ -3,6 +3,11 @@
   gap: 4px;
 }
 
+.weight-and-reps {
+  display: flex;
+  gap: 4px;
+}
+
 .sets-container {
   display: flex;
   gap: 4px;
@@ -11,10 +16,18 @@
 
 .set-container,
 .weight-container {
-  height: 40px;
   display: grid;
   place-items: center;
   font-size: 1.2rem;
+  height: 40px;
+}
+
+.weight-and-reps--small {
+  .set-container,
+  .weight-container {
+    height: 30px;
+    font-size: 1rem;
+  }
 }
 
 .weight-container {
@@ -37,6 +50,34 @@
 .set-container {
   width: 40px;
   background-color: var(--color-border);
+  color: var(--color-text);
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.set-container--selectable {
+  cursor: pointer;
+}
+
+.set-container--selectable:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.set-container.success {
+  background-color: var(--color-accent);
+  color: black;
+}
+
+.set-container.warn {
+  background-color: var(--color-warn);
+  color: black;
+}
+
+.set-container.danger {
+  background-color: var(--color-danger);
+  color: black;
 }
 
 .active-indicator {
@@ -46,6 +87,6 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: var(--color-accent);
+  background-color: white;
   transition: transform 220ms ease-out;
 }

@@ -9,6 +9,7 @@ import {
 } from "../../../models/workout.models";
 import { UnitPreferenceService } from "../../../services/unit-preference.service";
 import { ButtonComponent } from "../../button/button.component";
+import { ConfirmationModalComponent } from "../../confirmation-modal/confirmation-modal.component";
 import { EditableCardComponent } from "../../editable-card/editable-card.component";
 import { InputComponent } from "../../input/input.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
@@ -18,6 +19,7 @@ import { PageHeaderComponent } from "../../page-header/page-header.component";
   imports: [
     FormsModule,
     ButtonComponent,
+    ConfirmationModalComponent,
     EditableCardComponent,
     InputComponent,
     PageHeaderComponent,
@@ -33,8 +35,10 @@ export class WorkoutEditorComponent implements OnInit {
     rotationOrder: 0,
     exercises: [],
   };
+  private originalRoutine: Routine = this.cloneRoutine(this.routine);
   loading = false;
   saving = false;
+  showDiscardConfirmation = false;
   validationErrors = {
     name: false,
     exercises: false,
@@ -51,13 +55,17 @@ export class WorkoutEditorComponent implements OnInit {
     this.routineId = this.route.snapshot.paramMap.get("id");
     const state = history.state as {
       routine?: Routine;
+      originalRoutine?: Routine;
       exercise?: ResolvedExercisePrescription;
       replaceExerciseId?: string;
       removeExerciseId?: string;
     };
 
     if (state.routine) {
-      this.routine = state.routine;
+      this.routine = this.cloneRoutine(state.routine);
+      this.originalRoutine = this.cloneRoutine(
+        state.originalRoutine ?? state.routine,
+      );
       if (state.removeExerciseId) {
         this.routine.exercises = this.routine.exercises.filter(
           (exercise) => exercise.id !== state.removeExerciseId,
@@ -79,7 +87,14 @@ export class WorkoutEditorComponent implements OnInit {
     } else {
       // New routine - initialize with empty state
       this.routine.id = this.workoutService.generateRoutineId();
+      this.originalRoutine = this.cloneRoutine(this.routine);
     }
+  }
+
+  get hasUnsavedChanges(): boolean {
+    return (
+      JSON.stringify(this.routine) !== JSON.stringify(this.originalRoutine)
+    );
   }
 
   loadRoutine(): void {
@@ -88,7 +103,8 @@ export class WorkoutEditorComponent implements OnInit {
     this.workoutService.getRoutineById(this.routineId).subscribe({
       next: (routine) => {
         if (routine) {
-          this.routine = JSON.parse(JSON.stringify(routine)); // Deep copy
+          this.routine = this.cloneRoutine(routine);
+          this.originalRoutine = this.cloneRoutine(this.routine);
         }
         this.loading = false;
       },
@@ -97,7 +113,11 @@ export class WorkoutEditorComponent implements OnInit {
 
   addExercise(): void {
     this.router.navigate(["/program/workout/edit/add-exercise"], {
-      state: { routine: this.routine, returnUrl: this.router.url },
+      state: {
+        routine: this.routine,
+        originalRoutine: this.originalRoutine,
+        returnUrl: this.router.url,
+      },
     });
   }
 
@@ -105,6 +125,7 @@ export class WorkoutEditorComponent implements OnInit {
     this.router.navigate(["/program/workout/edit/edit-exercise"], {
       state: {
         routine: this.routine,
+        originalRoutine: this.originalRoutine,
         exercise,
         returnUrl: this.router.url,
       },
@@ -115,6 +136,28 @@ export class WorkoutEditorComponent implements OnInit {
     this.routine.exercises = this.routine.exercises.filter(
       (exercise) => exercise.id !== exerciseId,
     );
+  }
+
+  requestBack(): void {
+    if (this.hasUnsavedChanges) {
+      this.showDiscardConfirmation = true;
+      return;
+    }
+
+    this.navigateBack();
+  }
+
+  cancelDiscard(): void {
+    this.showDiscardConfirmation = false;
+  }
+
+  discardChanges(): void {
+    this.routine = this.cloneRoutine(this.originalRoutine);
+    this.showDiscardConfirmation = false;
+    this.validationErrors = {
+      name: false,
+      exercises: false,
+    };
   }
 
   save(): void {
@@ -148,7 +191,16 @@ export class WorkoutEditorComponent implements OnInit {
     this.router.navigate(["/program"]);
   }
 
+  private navigateBack(): void {
+    this.showDiscardConfirmation = false;
+    this.router.navigate(["/program/workouts"]);
+  }
+
+  private cloneRoutine(routine: Routine): Routine {
+    return JSON.parse(JSON.stringify(routine)) as Routine;
+  }
+
   exerciseDescription(exercise: ResolvedExercisePrescription): string {
-    return `${exercise.targetSets} x ${exercise.targetReps} reps - ${this.unitPref.formatWeight(exercise.targetWeightKg)}`;
+    return `${exercise.targetSets} sets of ${exercise.targetReps} reps - ${this.unitPref.formatWeight(exercise.targetWeightKg)}${this.unitPref.unitLabel()}`;
   }
 }

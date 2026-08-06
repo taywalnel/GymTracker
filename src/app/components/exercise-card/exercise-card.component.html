@@ -4,40 +4,45 @@
     [showBack]="true"
     (back)="back.emit()"
   />
-  <div class="exercise-card__progress-row">
-    <app-weight-and-reps
-      [weight]="currentWeightKg"
-      [sets]="currentSetReps"
-      [activeIndex]="activeSetIndex"
-    ></app-weight-and-reps>
-    <app-button
-      variant="icon"
-      height="40px"
-      ariaLabel="View exercise history"
-      (click)="viewExerciseHistory()"
-    >
-      <svg
-        clip-rule="evenodd"
-        fill="currentColor"
-        fill-rule="evenodd"
-        height="1em"
-        stroke-linejoin="round"
-        stroke-miterlimit="2"
-        viewBox="0 0 24 24"
-        width="1em"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="m3.503 6.726c1.765-2.836 4.911-4.726 8.495-4.726 5.518 0 9.997 4.48 9.997 9.997 0 5.519-4.479 9.999-9.997 9.999-5.245 0-9.553-4.048-9.966-9.188-.024-.302.189-.811.749-.811.391 0 .715.3.747.69.351 4.369 4.012 7.809 8.47 7.809 4.69 0 8.497-3.808 8.497-8.499 0-4.689-3.807-8.497-8.497-8.497-3.037 0-5.704 1.597-7.206 3.995l1.991.005c.414 0 .75.336.75.75s-.336.75-.75.75h-4.033c-.414 0-.75-.336-.75-.75v-4.049c0-.414.336-.75.75-.75s.75.335.75.75zm7.487.021.007 5.563c0 .288.165.55.424.675l3.978 1.928c.373.18.821.024 1.001-.349s.024-.821-.349-1.001l-3.555-1.725s-.006-5.093-.006-5.093c0-.414-.337-.749-.75-.749-.414 0-.75.337-.75.751z"
-          fill-rule="nonzero"
-        />
-      </svg>
-    </app-button>
+  <div class="section-content">
+    @if (lastHistoryEntry) {
+      <div class="section">
+        <p class="stepper__label">History</p>
+        <div class="exercise-card__history-row">
+          <app-weight-and-reps
+            [weight]="lastHistoryEntry.log.completedSets[0].weightKg"
+            [sets]="toWeightAndRepsSets(lastHistoryEntry.log)"
+            [size]="'small'"
+          ></app-weight-and-reps>
+          <app-button
+            variant="icon"
+            height="30px"
+            ariaLabel="View exercise history"
+            (click)="viewExerciseHistory()"
+          >
+            <span [innerHTML]="historySvg"></span>
+          </app-button>
+        </div>
+      </div>
+    }
   </div>
 </div>
 
-<div>
-  <p class="stepper__label">Target</p>
+<div class="section-content">
+  <div class="section">
+    <p class="stepper__label">Target</p>
+    <div class="section">
+      <div class="exercise-card__progress-row">
+        <app-weight-and-reps
+          [weight]="currentWeightKg"
+          [sets]="currentSetReps"
+          [activeIndex]="activeSetIndex"
+          (setSelected)="navigateToSet($event)"
+        ></app-weight-and-reps>
+      </div>
+    </div>
+  </div>
+
   <div class="exercise-card__target-summary">
     <div class="stepper-container">
       <p class="stepper__label">Reps</p>
@@ -53,46 +58,67 @@
 </div>
 
 <div class="set-row">
-  <div>
-    <p class="stepper__label">Completed</p>
-    <div class="row">
-      <div class="row-item">
-        <app-stepper
-          [value]="
-            setTouched[activeSetIndex]
-              ? workingSets[activeSetIndex].reps
-              : exercise.targetReps
-          "
-          unit="reps"
-          [ariaLabel]="'reps for set ' + workingSets[activeSetIndex].setNumber"
-          (valueChange)="stepReps(activeSetIndex, $event)"
-        ></app-stepper>
-      </div>
-      <div class="row-item">
-        <app-button
-          variant="primary"
-          [fullWidth]="true"
-          (click)="completeCurrentSet()"
-          [height]="'100%'"
-        >
-          Complete set
-        </app-button>
+  @if (restTimer.secondsLeft !== null) {
+    <div>
+      <p class="stepper__label">Rest</p>
+      <div class="rest-timer" role="status" aria-live="polite">
+        <div class="rest-timer__header">
+          <div class="rest-timer__countdown">
+            <span class="rest-timer__time">{{ restTimer.secondsLeft }}s</span>
+          </div>
+          <app-button
+            variant="secondary"
+            size="sm"
+            ariaLabel="Skip rest timer"
+            (click)="skipRestTimer()"
+          >
+            Skip
+          </app-button>
+        </div>
+        <div class="rest-timer__track" aria-hidden="true">
+          <span
+            class="rest-timer__progress"
+            [style.width.%]="restTimerProgress"
+          ></span>
+        </div>
       </div>
     </div>
-  </div>
+  } @else {
+    <div>
+      <p class="stepper__label">Completed</p>
+      <div class="row">
+        <div class="row-item">
+          <app-stepper
+            [value]="activeSetDefaultReps"
+            unit="reps"
+            [ariaLabel]="
+              'reps for set ' + workingSets[activeSetIndex].setNumber
+            "
+            (valueChange)="stepReps(activeSetIndex, $event)"
+          ></app-stepper>
+        </div>
+        <div class="row-item">
+          <app-button
+            variant="primary"
+            [fullWidth]="true"
+            (click)="completeCurrentSet()"
+            [height]="'100%'"
+          >
+            Complete set
+          </app-button>
+        </div>
+      </div>
+    </div>
+  }
 </div>
 
-@if (restTimer.secondsLeft !== null) {
-  <button
-    type="button"
-    class="rest-timer"
-    [class.rest-timer--collapsed]="restTimerCollapsed"
-    (click)="toggleRestTimer()"
-    aria-label="Toggle rest timer"
-    aria-live="polite"
-  >
-    <p class="rest-timer__label">Rest</p>
-    <span class="rest-timer__time">{{ restTimer.secondsLeft }}</span>
-    <span class="rest-timer__unit">seconds</span>
-  </button>
+@if (showProgressionSuggestion) {
+  <app-confirmation-modal
+    title="Ready to progress?"
+    message="You have completed every set at or above the rep target in your last three sessions. Consider increasing the weight, reps, or sets for this exercise."
+    confirmLabel="Adjust"
+    cancelLabel="Keep"
+    (confirmed)="adjustRoutine()"
+    (cancelled)="dismissProgressionSuggestion()"
+  />
 }

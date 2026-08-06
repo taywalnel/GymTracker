@@ -1,20 +1,10 @@
 <app-page-header
   [title]="routineId ? 'Edit Routine' : 'New Routine'"
-  [backLink]="routineId ? '/program/workout/view/' + routineId : '/program'"
+  [showBack]="true"
+  (back)="requestBack()"
 ></app-page-header>
 
 <div class="page-content">
-  <div class="main-actions">
-    <app-button variant="danger" [fullWidth]="true">Delete</app-button>
-    <app-button
-      variant="primary"
-      type="submit"
-      [fullWidth]="true"
-      [disabled]="saving"
-    >
-      {{ saving ? "Saving..." : "Save" }}
-    </app-button>
-  </div>
   <app-input
     id="routineName"
     label="Routine Name"
@@ -32,7 +22,7 @@
       @for (ex of routine.exercises; track ex.id) {
         <app-editable-card
           [title]="ex.name"
-          [description]="''"
+          [description]="exerciseDescription(ex)"
           (edit)="editExercise(ex)"
           (delete)="deleteExercise(ex.id)"
         ></app-editable-card>
@@ -46,4 +36,34 @@
   <app-button variant="secondary" [fullWidth]="true" (click)="addExercise()"
     >Add exercise
   </app-button>
+  <div class="main-actions">
+    <app-button
+      variant="secondary"
+      [fullWidth]="true"
+      [disabled]="saving || !hasUnsavedChanges"
+      (click)="requestBack()"
+    >
+      Discard
+    </app-button>
+    <app-button
+      variant="primary"
+      type="submit"
+      [fullWidth]="true"
+      [disabled]="saving || !hasUnsavedChanges"
+      (click)="save()"
+    >
+      {{ saving ? "Saving..." : "Save" }}
+    </app-button>
+  </div>
 </div>
+
+@if (showDiscardConfirmation) {
+  <app-confirmation-modal
+    title="Discard changes?"
+    message="Your changes will be discarded."
+    confirmLabel="Discard"
+    [danger]="true"
+    (confirmed)="discardChanges()"
+    (cancelled)="cancelDiscard()"
+  />
+}

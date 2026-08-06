@@ -1,23 +1,28 @@
-<div class="weight-container">
-  <span class="weight-value">{{ units.formatWeight(weight) }}</span>
-  <span class="weight-unit">{{ units.unitLabel() }}</span>
-</div>
+<div class="weight-and-reps" [class.weight-and-reps--small]="size === 'small'">
+  <div class="weight-container">
+    <span class="weight-value">{{ units.formatWeight(weight) }}</span>
+    <span class="weight-unit">{{ units.unitLabel() }}</span>
+  </div>
 
-<div class="sets-container">
-  @for (set of sets; track $index) {
-    <div
-      class="set-container"
-      [style.background-color]="set.color"
-      [style.color]="set.textColor"
-    >
-      <span>{{ set.value }}</span>
-    </div>
-  }
+  <div class="sets-container">
+    @for (set of sets; track $index) {
+      <button
+        type="button"
+        [class]="getSetClass(set)"
+        [class.set-container--selectable]="activeIndex !== null"
+        [disabled]="activeIndex === null"
+        [attr.aria-label]="'Select set ' + ($index + 1)"
+        (click)="setSelected.emit($index)"
+      >
+        <span>{{ set.achievedAmount || set.targetAmount }}</span>
+      </button>
+    }
 
-  @if (activeIndex !== null) {
-    <div
-      class="active-indicator"
-      [style.transform]="'translateX(' + activeIndex * 44 + 'px)'"
-    ></div>
-  }
+    @if (activeIndex !== null) {
+      <div
+        class="active-indicator"
+        [style.transform]="'translate(' + activeIndex * 44 + 'px, 8px)'"
+      ></div>
+    }
+  </div>
 </div>

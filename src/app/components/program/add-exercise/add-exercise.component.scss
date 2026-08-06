@@ -18,14 +18,27 @@
   gap: 10px;
 }
 
+.label {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
 .stepper-container {
   flex: 1;
 }
 
 .weight-input-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  height: 80px;
+  display: flex;
   gap: 10px;
+
+  .weight-input,
+  app-unit-toggle {
+    flex: 1;
+  }
 }
 
 .weight-input-row .form-input {

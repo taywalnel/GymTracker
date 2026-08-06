@@ -35,6 +35,8 @@
 }
 
 .form-input {
+  height: 100%;
+  font-size: 1.3rem;
   width: 100%;
   box-sizing: border-box;
   padding: 12px 42px 12px 12px;
@@ -45,7 +47,6 @@
   color: var(--color-text);
   font-family: var(--font-display);
 
-  font-size: 1rem;
   line-height: 1.18;
 
   &:focus {

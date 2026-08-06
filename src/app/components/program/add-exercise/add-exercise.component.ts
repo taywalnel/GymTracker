@@ -52,6 +52,7 @@ export class AddExerciseComponent implements OnInit {
   }
 
   private readonly routine: Routine | undefined;
+  private readonly originalRoutine: Routine | undefined;
   readonly existingExercise: ResolvedExercisePrescription | undefined;
   private readonly returnUrl: string;
 
@@ -63,6 +64,7 @@ export class AddExerciseComponent implements OnInit {
     const state =
       this.router.getCurrentNavigation()?.extras.state ?? history.state;
     this.routine = state["routine"] as Routine | undefined;
+    this.originalRoutine = state["originalRoutine"] as Routine | undefined;
     this.existingExercise = state["exercise"] as
       | ResolvedExercisePrescription
       | undefined;
@@ -134,6 +136,7 @@ export class AddExerciseComponent implements OnInit {
     this.router.navigateByUrl(this.returnUrl, {
       state: {
         routine: this.routine,
+        originalRoutine: this.originalRoutine,
         exercise,
         replaceExerciseId: this.existingExercise?.id,
       },
@@ -148,6 +151,7 @@ export class AddExerciseComponent implements OnInit {
     this.router.navigateByUrl(this.returnUrl, {
       state: {
         routine: this.routine,
+        originalRoutine: this.originalRoutine,
         removeExerciseId: this.existingExercise.id,
       },
     });
@@ -155,7 +159,7 @@ export class AddExerciseComponent implements OnInit {
 
   goBack(): void {
     this.router.navigateByUrl(this.returnUrl, {
-      state: { routine: this.routine },
+      state: { routine: this.routine, originalRoutine: this.originalRoutine },
     });
   }
 }
