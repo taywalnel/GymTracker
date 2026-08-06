@@ -44,6 +44,10 @@ export class AddExerciseComponent implements OnInit {
       : "Add Exercise";
   }
 
+  private get isActiveWorkoutAdjustment(): boolean {
+    return this.returnUrl.startsWith("/current-workout/");
+  }
+
   get exerciseOptions(): SelectOption[] {
     return this.exercises.map((exercise) => ({
       value: exercise.id,
@@ -132,6 +136,61 @@ export class AddExerciseComponent implements OnInit {
       order:
         this.existingExercise?.order ?? this.routine?.exercises.length ?? 0,
     };
+
+    if (this.isActiveWorkoutAdjustment && this.routine) {
+      const updatedRoutine: Routine = {
+        ...this.routine,
+        exercises: this.routine.exercises.map((routineExercise) =>
+          routineExercise.id === this.existingExercise?.id
+            ? exercise
+            : routineExercise,
+        ),
+      };
+      const inProgressState = this.workoutService.getInProgressState();
+
+      this.workoutService.saveRoutine(updatedRoutine).subscribe({
+        next: () => {
+          if (inProgressState) {
+            const previousExerciseId = this.existingExercise?.id;
+            const workingSets = inProgressState.workingSets.map((entry) =>
+              entry.exerciseId === previousExerciseId
+                ? { ...entry, exerciseId: exercise.id }
+                : entry,
+            );
+            const completedExerciseIds =
+              inProgressState.completedExerciseIds.map((id) =>
+                id === previousExerciseId ? exercise.id : id,
+              );
+            const progressionSuggestedExerciseIds =
+              inProgressState.progressionSuggestedExerciseIds?.map((id) =>
+                id === previousExerciseId ? exercise.id : id,
+              );
+
+            this.workoutService.saveInProgressState({
+              ...inProgressState,
+              today: { ...inProgressState.today, routine: updatedRoutine },
+              activeExerciseId:
+                inProgressState.activeExerciseId === previousExerciseId
+                  ? exercise.id
+                  : inProgressState.activeExerciseId,
+              workingSets,
+              completedExerciseIds,
+              progressionSuggestedExerciseIds,
+            });
+          }
+
+          const adjustedReturnUrl = this.existingExercise?.id
+            ? this.returnUrl.replace(
+                `/${this.existingExercise.id}`,
+                `/${exercise.id}`,
+              )
+            : this.returnUrl;
+          this.router.navigateByUrl(adjustedReturnUrl);
+        },
+        error: () => alert("Error saving routine"),
+      });
+      return;
+    }
 
     this.router.navigateByUrl(this.returnUrl, {
       state: {

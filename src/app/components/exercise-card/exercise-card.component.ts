@@ -227,11 +227,29 @@ export class ExerciseCardComponent implements OnInit, OnChanges {
       return false;
     }
 
-    return completedEntries.slice(0, 3).every(({ log }) => {
-      const completedSets = log.completedSets;
+    const recentLogs = completedEntries.slice(0, 3).map(({ log }) => log);
+    const firstSets = recentLogs[0].completedSets;
+
+    if (
+      firstSets.length !== this.exercise.targetSets ||
+      firstSets.some(
+        (set) =>
+          set.weightKg !== this.exercise.targetWeightKg ||
+          set.reps < this.exercise.targetReps,
+      )
+    ) {
+      return false;
+    }
+
+    return recentLogs.slice(1).every((log) => {
+      const sets = log.completedSets;
       return (
-        completedSets.length >= this.exercise.targetSets &&
-        completedSets.every((set) => set.reps >= this.exercise.targetReps)
+        sets.length === firstSets.length &&
+        sets.every(
+          (set, index) =>
+            set.reps === firstSets[index].reps &&
+            set.weightKg === firstSets[index].weightKg,
+        )
       );
     });
   }
