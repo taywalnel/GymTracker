@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
 
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { WorkoutSession, ExerciseLog } from "../../models/workout.models";
@@ -7,6 +7,7 @@ import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { CalendarComponent } from "../calendar/calendar.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
+import { ButtonComponent } from "../button/button.component";
 
 interface ExerciseHistoryEntry {
   date: string;
@@ -17,6 +18,7 @@ interface ExerciseHistoryEntry {
   selector: "app-history",
   imports: [
     RouterLink,
+    ButtonComponent,
     CalendarComponent,
     LoadingSpinnerComponent,
     PageHeaderComponent,
@@ -25,9 +27,16 @@ interface ExerciseHistoryEntry {
   styleUrl: "./history.component.scss",
 })
 export class HistoryComponent implements OnInit {
+  @ViewChild(CalendarComponent) private calendar?: CalendarComponent;
+  activeTab = "Overview";
+
   // Session-list mode
   sessions: WorkoutSession[] = [];
   workoutDates: string[] = [];
+  overviewMonthLabel = "";
+  completedWorkouts = 0;
+  averageWorkoutsPerWeek = "0.0";
+  longestStreak = 0;
 
   // Single-exercise mode
   exerciseId: string | null = null;
@@ -71,7 +80,90 @@ export class HistoryComponent implements OnInit {
 
   private setSessionHistory(sessions: WorkoutSession[]): void {
     this.sessions = sessions;
-    this.workoutDates = sessions.map((session) => session.date);
+    this.workoutDates = sessions
+      .filter((session) => !session.inProgress)
+      .map((session) => session.date);
+  }
+
+  onCalendarMonthChange(month: Date): void {
+    queueMicrotask(() => this.updateMonthOverview(month));
+  }
+
+  private updateMonthOverview(month: Date): void {
+    this.overviewMonthLabel = month.toLocaleDateString(undefined, {
+      month: "long",
+      year: "numeric",
+    });
+
+    const monthSessions = this.sessions.filter(
+      (session) =>
+        !session.inProgress && this.isDateInMonth(session.date, month),
+    );
+    const daysInMonth = new Date(
+      month.getFullYear(),
+      month.getMonth() + 1,
+      0,
+    ).getDate();
+    const today = new Date();
+    const monthStart = new Date(month.getFullYear(), month.getMonth(), 1);
+    const currentMonthStart = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1,
+    );
+    const elapsedDays =
+      monthStart > currentMonthStart
+        ? 0
+        : monthStart.getTime() === currentMonthStart.getTime()
+          ? today.getDate()
+          : daysInMonth;
+
+    this.completedWorkouts = monthSessions.length;
+    this.averageWorkoutsPerWeek = (
+      elapsedDays === 0 ? 0 : monthSessions.length / (elapsedDays / 7)
+    ).toFixed(1);
+    this.longestStreak = this.getLongestStreak(monthSessions);
+  }
+
+  previousMonth(): void {
+    this.calendar?.prevMonth();
+  }
+
+  nextMonth(): void {
+    this.calendar?.nextMonth();
+  }
+
+  private isDateInMonth(dateStr: string, month: Date): boolean {
+    const [year, monthNumber] = dateStr.slice(0, 10).split("-").map(Number);
+    return year === month.getFullYear() && monthNumber === month.getMonth() + 1;
+  }
+
+  private getLongestStreak(sessions: WorkoutSession[]): number {
+    const workoutDays = new Set(
+      sessions.map((session) => session.date.slice(0, 10)),
+    );
+    const sortedDays = [...workoutDays].sort();
+    let longest = 0;
+    let current = 0;
+    let previousDay: Date | null = null;
+
+    for (const dateStr of sortedDays) {
+      const date = this.parseLocalDate(dateStr);
+      if (previousDay && date.getTime() - previousDay.getTime() === 86400000) {
+        current += 1;
+      } else {
+        current = 1;
+      }
+      longest = Math.max(longest, current);
+      previousDay = date;
+    }
+
+    return longest;
+  }
+
+  private parseLocalDate(dateStr: string): Date {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    return new Date(year, month - 1, day);
   }
 
   private setExerciseHistory(

@@ -5,6 +5,8 @@ import {
   InProgressState,
   WorkoutService,
 } from "../../services/workout.service";
+import { RestTimerService } from "../../services/rest-timer.service";
+import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { CurrentExercisePageComponent } from "./current-exercise-page.component";
 
 describe("CurrentExercisePageComponent", () => {
@@ -46,6 +48,8 @@ describe("CurrentExercisePageComponent", () => {
       {} as ActivatedRoute,
       { navigate } as unknown as Router,
       { saveInProgressState } as unknown as WorkoutService,
+      {} as UnitPreferenceService,
+      {} as RestTimerService,
     );
   });
 

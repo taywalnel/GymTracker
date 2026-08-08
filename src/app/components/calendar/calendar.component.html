@@ -1,21 +1,23 @@
 <div class="calendar">
-  <div class="calendar__nav">
-    <app-button
-      variant="icon"
-      iconName="chevron-left"
-      (click)="prevMonth()"
-      aria-label="Previous month"
-    >
-      ‹
-    </app-button>
-    <span class="calendar__month-label">{{ calendarMonthLabel }}</span>
-    <app-button
-      variant="icon"
-      iconName="chevron-right"
-      (click)="nextMonth()"
-      aria-label="Next month"
-    />
-  </div>
+  @if (!hideNav) {
+    <div class="calendar__nav">
+      <app-button
+        variant="icon"
+        iconName="chevron-left"
+        (click)="prevMonth()"
+        aria-label="Previous month"
+      >
+        ‹
+      </app-button>
+      <span class="calendar__month-label">{{ calendarMonthLabel }}</span>
+      <app-button
+        variant="icon"
+        iconName="chevron-right"
+        (click)="nextMonth()"
+        aria-label="Next month"
+      />
+    </div>
+  }
 
   <div class="calendar__grid">
     <span class="calendar__dow">M</span>

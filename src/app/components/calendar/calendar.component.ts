@@ -1,4 +1,11 @@
-import { Component, Input, OnChanges, SimpleChanges } from "@angular/core";
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+} from "@angular/core";
 import { ButtonComponent } from "../button/button.component";
 
 interface CalendarDay {
@@ -17,6 +24,8 @@ interface CalendarDay {
 })
 export class CalendarComponent implements OnChanges {
   @Input() workoutDates: string[] = [];
+  @Input() hideNav = false;
+  @Output() monthChange = new EventEmitter<Date>();
 
   calendarDays: CalendarDay[] = [];
   calendarMonth: Date = new Date();
@@ -57,6 +66,7 @@ export class CalendarComponent implements OnChanges {
       month: "long",
       year: "numeric",
     });
+    this.monthChange.emit(new Date(year, month, 1));
 
     const days: CalendarDay[] = [];
     const firstDay = new Date(year, month, 1);

@@ -20,4 +20,26 @@
       </button>
     }
   </div>
+
+  @if (tabs.length) {
+    <div
+      class="page-header__tabs"
+      role="tablist"
+      [style.--tab-count]="tabs.length"
+      [style.--selected-tab-index]="selectedTabIndex"
+    >
+      @for (tab of tabs; track tab) {
+        <button
+          type="button"
+          role="tab"
+          class="page-header__tab"
+          [class.page-header__tab--selected]="isTabSelected(tab)"
+          [attr.aria-selected]="isTabSelected(tab)"
+          (click)="selectTab(tab)"
+        >
+          {{ tab }}
+        </button>
+      }
+    </div>
+  }
 }

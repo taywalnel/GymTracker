@@ -1,39 +1,61 @@
-<!-- ── Full session history ── -->
-<app-page-header title="Session history" />
+<app-page-header
+  title="History"
+  [tabs]="['Overview', 'Activities']"
+  (selectedTab)="activeTab = $event"
+/>
 
-<div class="page-content">
-  @if (isLoading) {
-    <div class="loading-state" role="status" aria-label="Loading history">
-      <app-loading-spinner />
-    </div>
-  } @else {
-    <app-calendar [workoutDates]="workoutDates"></app-calendar>
-
-    @if (sessions.length === 0) {
-      <p class="state-message state-message--left">No sessions logged yet.</p>
-    } @else {
-      <div class="session-list-container">
-        <div class="session-list">
-          @for (session of sessions; track session.id) {
-            <div class="session-item">
-              <a
-                class="session-item__header"
-                [routerLink]="['/history/session', session.id]"
-              >
-                <div class="session-item__meta">
-                  <span class="session-item__routine">{{
-                    session.routineName
-                  }}</span>
-                  <span class="session-item__date">{{
-                    formatDate(session.date)
-                  }}</span>
-                </div>
-                <span class="session-item__chevron">›</span>
-              </a>
-            </div>
-          }
-        </div>
+@if (activeTab === "Overview") {
+  <div class="page-content">
+    @if (isLoading) {
+      <div class="loading-state" role="status" aria-label="Loading history">
+        <app-loading-spinner />
       </div>
+    } @else {
+      <section class="month-overview" aria-labelledby="month-overview-title">
+        <div class="month-overview__header">
+          <h2 id="month-overview-title" class="month-overview__month">
+            {{ overviewMonthLabel }}
+          </h2>
+          <div class="month-overview__nav">
+            <app-button
+              variant="icon"
+              iconName="chevron-left"
+              (click)="previousMonth()"
+              aria-label="Previous month"
+            >
+              ‹
+            </app-button>
+            <app-button
+              variant="icon"
+              iconName="chevron-right"
+              (click)="nextMonth()"
+              aria-label="Next month"
+            />
+          </div>
+        </div>
+        <div class="month-overview__stats">
+          <div class="month-overview__stat">
+            <strong>{{ completedWorkouts }}</strong>
+            <span>Workouts completed</span>
+          </div>
+          <div class="month-overview__stat">
+            <strong>{{ averageWorkoutsPerWeek }}</strong>
+            <span>Avg / week</span>
+          </div>
+          <div class="month-overview__stat">
+            <strong
+              >{{ longestStreak }}
+              {{ longestStreak === 1 ? "day" : "days" }}</strong
+            >
+            <span>Longest streak</span>
+          </div>
+        </div>
+      </section>
+      <app-calendar
+        [workoutDates]="workoutDates"
+        [hideNav]="true"
+        (monthChange)="onCalendarMonthChange($event)"
+      ></app-calendar>
     }
-  }
-</div>
+  </div>
+}

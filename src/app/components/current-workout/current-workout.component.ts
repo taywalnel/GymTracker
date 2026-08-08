@@ -12,13 +12,11 @@ import {
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { RestTimerService } from "../../services/rest-timer.service";
 import { ButtonComponent } from "../button/button.component";
+import { ConfirmationModalComponent } from "../confirmation-modal/confirmation-modal.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import { NavDotItem } from "../nav-dots/nav-dots.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
-import {
-  WeightAndRepsComponent,
-  WeightAndRepsSet,
-} from "../weight-and-reps/weight-and-reps.component";
+import { WeightAndRepsSet } from "../weight-and-reps/weight-and-reps.component";
 
 interface CurrentExerciseDisplay {
   id: string;
@@ -32,9 +30,9 @@ interface CurrentExerciseDisplay {
   selector: "app-current-workout",
   imports: [
     ButtonComponent,
+    ConfirmationModalComponent,
     LoadingSpinnerComponent,
     PageHeaderComponent,
-    WeightAndRepsComponent,
   ],
   templateUrl: "./current-workout.component.html",
   styleUrl: "./current-workout.component.scss",
@@ -44,6 +42,7 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
   exercises: CurrentExerciseDisplay[] = [];
   isLoading = true;
   isSaving = false;
+  showDiscardConfirmation = false;
   elapsedTime = "00:00:00";
   private elapsedTimeInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -59,6 +58,32 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
     return this.totalExerciseCount === 0
       ? 0
       : (this.completedExerciseCount / this.totalExerciseCount) * 100;
+  }
+
+  get currentExercise(): CurrentExerciseDisplay | undefined {
+    return this.exercises.find(
+      (exercise) =>
+        exercise.id === this.state?.activeExerciseId &&
+        !this.state.completedExerciseIds.includes(exercise.id),
+    );
+  }
+
+  get incompleteExercises(): CurrentExerciseDisplay[] {
+    const completedExerciseIds = this.state?.completedExerciseIds ?? [];
+    return this.exercises.filter(
+      (exercise) =>
+        exercise.id !== this.currentExercise?.id &&
+        !completedExerciseIds.includes(exercise.id),
+    );
+  }
+
+  get completedExercises(): CurrentExerciseDisplay[] {
+    const completedExerciseIds = this.state?.completedExerciseIds ?? [];
+    return this.exercises.filter(
+      (exercise) =>
+        exercise.id !== this.currentExercise?.id &&
+        completedExerciseIds.includes(exercise.id),
+    );
   }
 
   constructor(
@@ -166,6 +191,20 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
     });
   }
 
+  openDiscardConfirmation(): void {
+    this.showDiscardConfirmation = true;
+  }
+
+  cancelDiscard(): void {
+    this.showDiscardConfirmation = false;
+  }
+
+  discardWorkout(): void {
+    this.restTimer.clear();
+    this.workoutService.clearInProgressState();
+    this.router.navigate(["/"]);
+  }
+
   private setsFor(exerciseId: string): CompletedSet[] {
     return (
       this.state?.workingSets.find((sets) => sets.exerciseId === exerciseId)
@@ -192,5 +231,12 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
         `/current-workout/${this.state.today.routine.id}/${exerciseId}`,
       ]);
     }
+  }
+
+  getSetDotClass(set: WeightAndRepsSet): string {
+    if (set.achievedAmount === undefined) return "set-dot";
+    if (set.achievedAmount >= set.targetAmount) return "set-dot success";
+    if (set.achievedAmount + 2 >= set.targetAmount) return "set-dot warn";
+    return "set-dot danger";
   }
 }

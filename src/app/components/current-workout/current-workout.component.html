@@ -3,24 +3,72 @@
     <app-loading-spinner />
   </div>
 } @else if (state) {
-  <app-page-header [title]="state.today.routine.name" backLink="/" />
+  <app-page-header [title]="state.today.routine.name" />
 
   <div class="page-content">
     <div class="exercise-list-container">
       <div class="exercise-list">
-        @for (exercise of exercises; track exercise.id) {
-          <button
-            type="button"
-            class="exercise-card"
-            [class.is-current]="state.activeExerciseId === exercise.id"
-            (click)="navigateToExercise(exercise.id)"
-          >
-            <span class="exercise-card__name">{{ exercise.name }}</span>
-            <app-weight-and-reps
-              [weight]="exercise.targetWeightKg"
-              [sets]="exercise.setReps"
-            />
-          </button>
+        @if (currentExercise) {
+          <section class="exercise-section">
+            <h2 class="exercise-section__title">Current</h2>
+            <div class="exercise-section__list">
+              <div
+                class="exercise-card is-current"
+                (click)="navigateToExercise(currentExercise.id)"
+              >
+                <span class="exercise-card__name">{{
+                  currentExercise.name
+                }}</span>
+                <div class="set-dots-container" aria-label="Set progress">
+                  @for (set of currentExercise.setReps; track $index) {
+                    <span [class]="getSetDotClass(set)"></span>
+                  }
+                </div>
+              </div>
+            </div>
+          </section>
+        }
+
+        @if (incompleteExercises.length > 0) {
+          <section class="exercise-section">
+            <h2 class="exercise-section__title">Incomplete</h2>
+            <div class="exercise-section__list">
+              @for (exercise of incompleteExercises; track exercise.id) {
+                <div
+                  class="exercise-card"
+                  (click)="navigateToExercise(exercise.id)"
+                >
+                  <span class="exercise-card__name">{{ exercise.name }}</span>
+                  <div class="set-dots-container" aria-label="Set progress">
+                    @for (set of exercise.setReps; track $index) {
+                      <span [class]="getSetDotClass(set)"></span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        @if (completedExercises.length > 0) {
+          <section class="exercise-section">
+            <h2 class="exercise-section__title">Completed</h2>
+            <div class="exercise-section__list">
+              @for (exercise of completedExercises; track exercise.id) {
+                <div
+                  class="exercise-card"
+                  (click)="navigateToExercise(exercise.id)"
+                >
+                  <span class="exercise-card__name">{{ exercise.name }}</span>
+                  <div class="set-dots-container" aria-label="Set progress">
+                    @for (set of exercise.setReps; track $index) {
+                      <span [class]="getSetDotClass(set)"></span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </section>
         }
       </div>
     </div>
@@ -29,6 +77,15 @@
       Elapsed time: {{ elapsedTime }}
     </div>
     <div class="action-buttons">
+      <app-button
+        variant="secondary"
+        [fullWidth]="true"
+        [height]="'40px'"
+        [disabled]="isSaving"
+        (click)="openDiscardConfirmation()"
+      >
+        Discard
+      </app-button>
       <app-button
         variant="primary"
         [fullWidth]="true"
@@ -40,4 +97,15 @@
       </app-button>
     </div>
   </div>
+
+  @if (showDiscardConfirmation) {
+    <app-confirmation-modal
+      title="Discard workout?"
+      message="Your current workout progress will be discarded."
+      confirmLabel="Discard"
+      [danger]="true"
+      (confirmed)="discardWorkout()"
+      (cancelled)="cancelDiscard()"
+    />
+  }
 }
