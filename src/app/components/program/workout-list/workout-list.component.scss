@@ -1,5 +1,8 @@
 :host {
+  position: relative;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .workout-list-container {
@@ -30,6 +33,14 @@
 }
 
 .routine-list {
+  position: relative;
+  flex: 1;
+}
+
+.routine-list-scroll {
+  position: absolute;
+  height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 10px;

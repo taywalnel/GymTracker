@@ -1,14 +1,12 @@
 import { Component, OnInit } from "@angular/core";
 import { Exercise } from "../../../models/workout.models";
 import { WorkoutService } from "../../../services/workout.service";
-import { EditableCardComponent } from "../../editable-card/editable-card.component";
 import { LoadingSpinnerComponent } from "../../loading-spinner/loading-spinner.component";
-import { PageHeaderComponent } from "../../page-header/page-header.component";
 import { RoutineCardComponent } from "../../routine-card/routine-card.component";
 
 @Component({
   selector: "app-exercises-list",
-  imports: [RoutineCardComponent, LoadingSpinnerComponent, PageHeaderComponent],
+  imports: [RoutineCardComponent, LoadingSpinnerComponent],
   templateUrl: "./exercises-list.component.html",
   styleUrl: "./exercises-list.component.scss",
 })

@@ -1,20 +1,12 @@
-<div class="workout-list-container">
-  <app-page-header title="Workouts" backLink="/program" />
+@if (!loading && routines.length === 0) {
+  <div class="empty-state">
+    <p>No routines yet. Create your first routine to get started.</p>
+  </div>
+}
 
-  @if (loading) {
-    <div class="loading-state" role="status" aria-label="Loading workouts">
-      <app-loading-spinner />
-    </div>
-  }
-
-  @if (!loading && routines.length === 0) {
-    <div class="empty-state">
-      <p>No routines yet. Create your first routine to get started.</p>
-    </div>
-  }
-
-  @if (!loading && routines.length > 0) {
-    <div class="routine-list">
+@if (!loading && routines.length > 0) {
+  <div class="routine-list">
+    <div class="routine-list-scroll">
       @for (routine of routines; track routine.id) {
         <app-card
           [title]="routine.name"
@@ -28,16 +20,16 @@
         ></app-card>
       }
     </div>
-  }
-
-  <div class="workout-list-actions">
-    <app-button
-      variant="primary"
-      [fullWidth]="true"
-      [height]="'40px'"
-      (click)="createRoutine()"
-    >
-      New Routine
-    </app-button>
   </div>
+}
+
+<div class="workout-list-actions">
+  <app-button
+    variant="primary"
+    [fullWidth]="true"
+    [height]="'40px'"
+    (click)="createRoutine()"
+  >
+    New Routine
+  </app-button>
 </div>

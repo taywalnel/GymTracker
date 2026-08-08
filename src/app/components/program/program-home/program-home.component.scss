@@ -1,7 +1,11 @@
+:host {
+  height: 100%;
+}
+
 .program-home-container {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  height: 100%;
 }
 
 .loading-state {
@@ -15,4 +19,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.page-content {
+  flex: 1;
 }

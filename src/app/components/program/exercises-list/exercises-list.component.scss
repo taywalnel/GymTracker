@@ -1,5 +1,7 @@
 :host {
+  position: relative;
   height: 100%;
+  display: block;
 }
 
 .exercises-list-container {
@@ -24,8 +26,10 @@
 }
 
 .exercise-list {
+  position: absolute;
+  width: 100%;
   display: flex;
-  flex: 1;
+  height: 100%;
   flex-direction: column;
   gap: 10px;
   margin: 0;

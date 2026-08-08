@@ -1,26 +1,15 @@
 <div class="program-home-container">
-  <app-page-header title="Program" />
+  <app-page-header
+    title="Program"
+    [tabs]="['Routines', 'Exercises']"
+    (selectedTab)="selectTab($event)"
+  />
 
-  @if (isLoading) {
-    <div class="loading-state" role="status" aria-label="Loading program">
-      <app-loading-spinner />
-    </div>
-  } @else {
-    <div class="program-home__cards">
-      <app-card
-        [featured]="true"
-        [showFeaturedBorder]="false"
-        title="Workouts"
-        [description]="pluralize(workoutCount, 'workout')"
-        routerLink="/program/workouts"
-      />
-      <app-card
-        [featured]="true"
-        [showFeaturedBorder]="false"
-        title="Exercises"
-        [description]="pluralize(exerciseCount, 'exercise')"
-        routerLink="/program/exercises"
-      />
-    </div>
-  }
+  <div class="page-content">
+    @if (activeTab === "Routines") {
+      <app-workout-list />
+    } @else {
+      <app-exercises-list />
+    }
+  </div>
 </div>
