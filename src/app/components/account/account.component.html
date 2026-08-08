@@ -1,7 +1,11 @@
 <div class="account-page">
-  <app-page-header title="Account" />
+  <app-page-header
+    title="Account"
+    [tabs]="['Account', 'Settings']"
+    (selectedTab)="selectTab($event)"
+  />
 
-  @if (auth.currentUser(); as user) {
+  @if (activeTab === "Account" && auth.currentUser(); as user) {
     <section class="account-section">
       <div class="account-row">
         <span class="account-row__label">Signed in as</span>
@@ -16,7 +20,9 @@
         >Sign out</app-button
       >
     </section>
+  }
 
+  @if (activeTab === "Settings") {
     <section class="account-section">
       <h3 class="account-section__heading">Units</h3>
       <div class="account-row">

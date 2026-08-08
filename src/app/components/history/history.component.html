@@ -59,3 +59,51 @@
     }
   </div>
 }
+
+@if (activeTab === "Activities") {
+  @if (isLoading) {
+    <div class="loading-state" role="status" aria-label="Loading activities">
+      <app-loading-spinner />
+    </div>
+  } @else if (completedSessions.length === 0) {
+    <p class="state-message">No activities yet.</p>
+  } @else {
+    <div class="session-list-container">
+      <div class="session-list" aria-label="Workout activities">
+        @for (session of completedSessions; track session.id) {
+          <div class="session-item">
+            <a
+              class="session-item__header"
+              [routerLink]="['/history/session', session.id]"
+              [attr.aria-label]="
+                session.routineName + ', ' + formatDate(session.date)
+              "
+            >
+              <div class="session-item__meta">
+                <span class="session-item__routine">{{
+                  session.routineName
+                }}</span>
+                <span class="session-item__date">{{
+                  formatDate(session.date)
+                }}</span>
+              </div>
+              <div
+                class="session-item__exercise-dots"
+                aria-label="Exercise progress"
+              >
+                @for (log of session.exerciseLogs; track log.exerciseId) {
+                  <span
+                    [class]="getExerciseDotClass(log)"
+                    [attr.aria-label]="log.exerciseName"
+                    role="img"
+                  ></span>
+                }
+              </div>
+              <span class="session-item__chevron" aria-hidden="true">›</span>
+            </a>
+          </div>
+        }
+      </div>
+    </div>
+  }
+}

@@ -134,6 +134,38 @@
   font-size: 0.78rem;
 }
 
+.session-item__exercise-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: flex-end;
+  max-width: 96px;
+}
+
+.session-dot {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-panel);
+  flex-shrink: 0;
+}
+
+.session-dot.success {
+  border-color: var(--color-success);
+  background: var(--color-success);
+}
+
+.session-dot.warn {
+  border-color: var(--color-warning);
+  background: var(--color-warning);
+}
+
+.session-dot.danger {
+  border-color: var(--color-danger);
+  background: var(--color-danger);
+}
+
 .session-item__chevron {
   color: var(--color-text-muted);
   font-size: 1.1rem;

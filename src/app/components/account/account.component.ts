@@ -11,5 +11,11 @@ import { UnitToggleComponent } from "../unit-toggle/unit-toggle.component";
   styleUrl: "./account.component.scss",
 })
 export class AccountComponent {
+  activeTab = "Account";
+
   constructor(public auth: AuthService) {}
+
+  selectTab(tab: string): void {
+    this.activeTab = tab;
+  }
 }

@@ -38,6 +38,10 @@ export class HistoryComponent implements OnInit {
   averageWorkoutsPerWeek = "0.0";
   longestStreak = 0;
 
+  get completedSessions(): WorkoutSession[] {
+    return this.sessions.filter((session) => !session.inProgress);
+  }
+
   // Single-exercise mode
   exerciseId: string | null = null;
   exerciseName: string | null = null;
@@ -215,5 +219,18 @@ export class HistoryComponent implements OnInit {
       month: "short",
       day: "numeric",
     });
+  }
+
+  getExerciseDotClass(log: ExerciseLog): string {
+    if (log.targetReps === undefined) return "session-dot";
+    if (!log.completedSets.length) return "session-dot danger";
+
+    const averageReps =
+      log.completedSets.reduce((total, set) => total + set.reps, 0) /
+      log.completedSets.length;
+
+    if (averageReps >= log.targetReps) return "session-dot success";
+    if (log.targetReps - averageReps <= 2) return "session-dot warn";
+    return "session-dot danger";
   }
 }
