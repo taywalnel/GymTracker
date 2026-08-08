@@ -11,6 +11,13 @@
   text-align: center;
 }
 
+.loading-state {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
 .state-message--left {
   text-align: left;
   padding: 12px 0;

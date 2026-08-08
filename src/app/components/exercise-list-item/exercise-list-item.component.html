@@ -5,7 +5,7 @@
     <span class="name">{{ name }}</span>
   }
   @if (showEditBtn) {
-    <app-button variant="icon" aria-label="Edit exercise">✏</app-button>
+    <app-button variant="icon" iconName="edit" aria-label="Edit exercise" />
   } @else if (meta) {
     <span class="meta">{{ meta }}</span>
   }

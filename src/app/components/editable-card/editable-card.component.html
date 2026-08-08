@@ -2,19 +2,17 @@
 <div class="buttons-wrapper">
   <app-button
     variant="icon"
+    iconName="edit"
     [height]="'100%'"
     ariaLabel="Edit {{ title }}"
     (click)="edit.emit()"
-  >
-    <span [innerHTML]="editSvg"></span>
-  </app-button>
+  />
   <app-button
     variant="icon"
+    iconName="delete"
     [height]="'100%'"
     [danger]="true"
     ariaLabel="Delete {{ title }}"
     (click)="delete.emit()"
-  >
-    <span [innerHTML]="deleteSvg"></span>
-  </app-button>
+  />
 </div>

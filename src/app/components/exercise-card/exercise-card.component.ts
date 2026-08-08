@@ -8,10 +8,8 @@ import {
   SimpleChanges,
   inject,
 } from "@angular/core";
-import { DomSanitizer } from "@angular/platform-browser";
 import { Router } from "@angular/router";
 
-import { HISTORY_SVG } from "../../constants/svg.constants";
 import {
   ResolvedExercisePrescription,
   CompletedSet,
@@ -47,11 +45,6 @@ interface ExerciseHistoryEntry {
   styleUrl: "./exercise-card.component.scss",
 })
 export class ExerciseCardComponent implements OnInit, OnChanges {
-  private readonly sanitizer = inject(DomSanitizer);
-
-  protected readonly historySvg =
-    this.sanitizer.bypassSecurityTrustHtml(HISTORY_SVG);
-
   @Input({ required: true }) exercise!: ResolvedExercisePrescription;
   @Input() isCurrent = false;
   @Input() progressionSuggestionAlreadyShown = false;

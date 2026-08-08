@@ -12,6 +12,7 @@ import {
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { RestTimerService } from "../../services/rest-timer.service";
 import { ButtonComponent } from "../button/button.component";
+import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import { NavDotItem } from "../nav-dots/nav-dots.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
 import {
@@ -29,7 +30,12 @@ interface CurrentExerciseDisplay {
 
 @Component({
   selector: "app-current-workout",
-  imports: [ButtonComponent, PageHeaderComponent, WeightAndRepsComponent],
+  imports: [
+    ButtonComponent,
+    LoadingSpinnerComponent,
+    PageHeaderComponent,
+    WeightAndRepsComponent,
+  ],
   templateUrl: "./current-workout.component.html",
   styleUrl: "./current-workout.component.scss",
 })

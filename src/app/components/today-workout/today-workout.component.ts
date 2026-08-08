@@ -3,12 +3,18 @@ import { Router } from "@angular/router";
 import { Routine } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
 import { ButtonComponent } from "../button/button.component";
+import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
 import { RoutineCardComponent } from "../routine-card/routine-card.component";
 
 @Component({
   selector: "app-today-workout",
-  imports: [ButtonComponent, PageHeaderComponent, RoutineCardComponent],
+  imports: [
+    ButtonComponent,
+    LoadingSpinnerComponent,
+    PageHeaderComponent,
+    RoutineCardComponent,
+  ],
   templateUrl: "./today-workout.component.html",
   styleUrl: "./today-workout.component.scss",
 })

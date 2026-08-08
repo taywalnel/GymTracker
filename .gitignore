@@ -10,6 +10,8 @@
 .DS_Store
 *.log
 npm-debug.log*
+service-account*.json
+firebase-adminsdk-*.json
 
 # IDE
 .vscode/*

@@ -1,5 +1,7 @@
 @if (isLoading) {
-  <div class="state-message">Loading today's workout…</div>
+  <div class="loading-state" role="status" aria-label="Loading today's workout">
+    <app-loading-spinner />
+  </div>
 } @else if (noRoutines) {
   <div class="state-message">
     <p>

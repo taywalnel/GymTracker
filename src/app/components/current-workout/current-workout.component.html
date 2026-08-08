@@ -1,5 +1,7 @@
 @if (isLoading) {
-  <div class="state-message">Loading workout…</div>
+  <div class="loading-state" role="status" aria-label="Loading workout">
+    <app-loading-spinner />
+  </div>
 } @else if (state) {
   <app-page-header [title]="state.today.routine.name" backLink="/" />
 

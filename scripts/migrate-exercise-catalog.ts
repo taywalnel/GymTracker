@@ -60,8 +60,8 @@ async function migrateUser(userId: string): Promise<void> {
   const [userSnapshot, routinesSnapshot, catalogSnapshot, sessionsSnapshot] =
     await Promise.all([
       userRef.get(),
-    userRef.collection("routines").get(),
-    userRef.collection("exercises").get(),
+      userRef.collection("routines").get(),
+      userRef.collection("exercises").get(),
       userRef.collection("sessions").get(),
     ]);
 

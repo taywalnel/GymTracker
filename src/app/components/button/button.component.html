@@ -13,5 +13,11 @@
   [class.app-btn--full]="fullWidth"
   [style.height]="height"
 >
-  <ng-content></ng-content>
+  @if (variant === "icon") {
+    @if (iconSvg) {
+      <span class="icon-container" [innerHTML]="iconSvg"></span>
+    }
+  } @else {
+    <ng-content></ng-content>
+  }
 </button>

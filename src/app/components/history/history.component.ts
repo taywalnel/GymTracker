@@ -5,6 +5,7 @@ import { WorkoutSession, ExerciseLog } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { CalendarComponent } from "../calendar/calendar.component";
+import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
 
 interface ExerciseHistoryEntry {
@@ -14,7 +15,12 @@ interface ExerciseHistoryEntry {
 
 @Component({
   selector: "app-history",
-  imports: [RouterLink, CalendarComponent, PageHeaderComponent],
+  imports: [
+    RouterLink,
+    CalendarComponent,
+    LoadingSpinnerComponent,
+    PageHeaderComponent,
+  ],
   templateUrl: "./history.component.html",
   styleUrl: "./history.component.scss",
 })

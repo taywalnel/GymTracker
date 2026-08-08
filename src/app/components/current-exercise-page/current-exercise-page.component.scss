@@ -6,11 +6,11 @@
   gap: 16px;
 }
 
-.state-message {
-  padding: 40px 0;
-  color: var(--color-text-muted);
-  font-family: var(--font-display);
-  text-align: center;
+.loading-state {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
 }
 
 .action-buttons {

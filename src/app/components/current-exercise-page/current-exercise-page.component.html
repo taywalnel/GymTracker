@@ -1,5 +1,7 @@
 @if (isLoading) {
-  <div class="state-message">Loading exercise…</div>
+  <div class="loading-state" role="status" aria-label="Loading exercise">
+    <app-loading-spinner />
+  </div>
 } @else if (state && exercise) {
   <app-exercise-card
     [exercise]="exercise"

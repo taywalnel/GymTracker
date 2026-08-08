@@ -9,10 +9,11 @@ import {
   WorkoutService,
 } from "../../services/workout.service";
 import { ExerciseCardComponent } from "../exercise-card/exercise-card.component";
+import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 
 @Component({
   selector: "app-current-exercise-page",
-  imports: [ExerciseCardComponent],
+  imports: [ExerciseCardComponent, LoadingSpinnerComponent],
   templateUrl: "./current-exercise-page.component.html",
   styleUrl: "./current-exercise-page.component.scss",
 })
@@ -98,13 +99,21 @@ export class CurrentExercisePageComponent implements OnInit {
   adjustRoutine(): void {
     if (!this.state || !this.exercise) return;
 
-    this.router.navigate(["/program/workout/edit/edit-exercise"], {
-      state: {
-        routine: this.state.today.routine,
-        exercise: this.exercise,
-        returnUrl: this.router.url,
+    this.router.navigate(
+      [
+        "/program/workout/edit",
+        this.state.today.routine.id,
+        "exercise",
+        this.exercise.id,
+      ],
+      {
+        state: {
+          routine: this.state.today.routine,
+          exercise: this.exercise,
+          returnUrl: this.router.url,
+        },
       },
-    });
+    );
   }
 
   onProgressionSuggestionShown(): void {

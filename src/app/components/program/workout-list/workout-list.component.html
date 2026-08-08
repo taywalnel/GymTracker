@@ -2,7 +2,9 @@
   <app-page-header title="Workouts" backLink="/program" />
 
   @if (loading) {
-    (click)="viewRoutine(routine)"
+    <div class="loading-state" role="status" aria-label="Loading workouts">
+      <app-loading-spinner />
+    </div>
   }
 
   @if (!loading && routines.length === 0) {

@@ -1,6 +1,14 @@
 .program-home-container {
   display: flex;
   flex-direction: column;
+  flex: 1;
+}
+
+.loading-state {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
 }
 
 .program-home__cards {

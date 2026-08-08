@@ -12,6 +12,7 @@ import { ButtonComponent } from "../../button/button.component";
 import { ConfirmationModalComponent } from "../../confirmation-modal/confirmation-modal.component";
 import { EditableCardComponent } from "../../editable-card/editable-card.component";
 import { InputComponent } from "../../input/input.component";
+import { LoadingSpinnerComponent } from "../../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
 
 @Component({
@@ -22,6 +23,7 @@ import { PageHeaderComponent } from "../../page-header/page-header.component";
     ConfirmationModalComponent,
     EditableCardComponent,
     InputComponent,
+    LoadingSpinnerComponent,
     PageHeaderComponent,
   ],
   templateUrl: "./workout-editor.component.html",
@@ -112,24 +114,30 @@ export class WorkoutEditorComponent implements OnInit {
   }
 
   addExercise(): void {
-    this.router.navigate(["/program/workout/edit/add-exercise"], {
-      state: {
-        routine: this.routine,
-        originalRoutine: this.originalRoutine,
-        returnUrl: this.router.url,
+    this.router.navigate(
+      ["/program/workout/edit", this.routine.id, "exercise", "new"],
+      {
+        state: {
+          routine: this.routine,
+          originalRoutine: this.originalRoutine,
+          returnUrl: this.router.url,
+        },
       },
-    });
+    );
   }
 
   editExercise(exercise: ResolvedExercisePrescription): void {
-    this.router.navigate(["/program/workout/edit/edit-exercise"], {
-      state: {
-        routine: this.routine,
-        originalRoutine: this.originalRoutine,
-        exercise,
-        returnUrl: this.router.url,
+    this.router.navigate(
+      ["/program/workout/edit", this.routine.id, "exercise", exercise.id],
+      {
+        state: {
+          routine: this.routine,
+          originalRoutine: this.originalRoutine,
+          exercise,
+          returnUrl: this.router.url,
+        },
       },
-    });
+    );
   }
 
   deleteExercise(exerciseId: string): void {
@@ -158,6 +166,11 @@ export class WorkoutEditorComponent implements OnInit {
       name: false,
       exercises: false,
     };
+  }
+
+  discardChangesAndNavigate(): void {
+    this.discardChanges();
+    this.navigateBack();
   }
 
   save(): void {

@@ -1,27 +1,42 @@
 import { Component, OnInit } from "@angular/core";
 import { RouterLink } from "@angular/router";
+import { forkJoin } from "rxjs";
 import { WorkoutService } from "../../../services/workout.service";
+import { LoadingSpinnerComponent } from "../../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
 import { RoutineCardComponent } from "../../routine-card/routine-card.component";
 
 @Component({
   selector: "app-program-home",
-  imports: [PageHeaderComponent, RouterLink, RoutineCardComponent],
+  imports: [
+    LoadingSpinnerComponent,
+    PageHeaderComponent,
+    RouterLink,
+    RoutineCardComponent,
+  ],
   templateUrl: "./program-home.component.html",
   styleUrl: "./program-home.component.scss",
 })
 export class ProgramHomeComponent implements OnInit {
+  isLoading = true;
   workoutCount = 0;
   exerciseCount = 0;
 
   constructor(private workoutService: WorkoutService) {}
 
   ngOnInit(): void {
-    this.workoutService.getAllRoutines().subscribe({
-      next: (routines) => (this.workoutCount = routines.length),
-    });
-    this.workoutService.getExerciseCount().subscribe({
-      next: (count) => (this.exerciseCount = count),
+    forkJoin({
+      routines: this.workoutService.getAllRoutines(),
+      exerciseCount: this.workoutService.getExerciseCount(),
+    }).subscribe({
+      next: ({ routines, exerciseCount }) => {
+        this.workoutCount = routines.length;
+        this.exerciseCount = exerciseCount;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      },
     });
   }
 

@@ -1,7 +1,13 @@
 <app-page-header title="Exercise History" [showBack]="true" (back)="goBack()" />
 
 @if (isLoading) {
-  <p class="state-message">Loading exercise history...</p>
+  <div
+    class="loading-state"
+    role="status"
+    aria-label="Loading exercise history"
+  >
+    <app-loading-spinner />
+  </div>
 } @else if (historyEntries.length === 0) {
   <p class="state-message">No completed sets yet.</p>
 } @else {

@@ -12,16 +12,14 @@
           <app-weight-and-reps
             [weight]="lastHistoryEntry.log.completedSets[0].weightKg"
             [sets]="toWeightAndRepsSets(lastHistoryEntry.log)"
-            [size]="'small'"
           ></app-weight-and-reps>
           <app-button
             variant="icon"
-            height="30px"
+            iconName="history"
+            height="40px"
             ariaLabel="View exercise history"
             (click)="viewExerciseHistory()"
-          >
-            <span [innerHTML]="historySvg"></span>
-          </app-button>
+          />
         </div>
       </div>
     }
@@ -39,6 +37,13 @@
           [activeIndex]="activeSetIndex"
           (setSelected)="navigateToSet($event)"
         ></app-weight-and-reps>
+        <app-button
+          variant="icon"
+          iconName="edit"
+          height="40px"
+          ariaLabel="Edit exercise"
+          (click)="adjustRoutine()"
+        />
       </div>
     </div>
   </div>

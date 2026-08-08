@@ -4,6 +4,7 @@ import { ActivatedRoute } from "@angular/router";
 import { ExerciseLog } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
 import { PageHeaderComponent } from "../page-header/page-header.component";
+import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import {
   WeightAndRepsComponent,
   WeightAndRepsSet,
@@ -16,7 +17,11 @@ interface ExerciseHistoryEntry {
 
 @Component({
   selector: "app-exercise-history-page",
-  imports: [PageHeaderComponent, WeightAndRepsComponent],
+  imports: [
+    PageHeaderComponent,
+    LoadingSpinnerComponent,
+    WeightAndRepsComponent,
+  ],
   templateUrl: "./exercise-history-page.component.html",
   styleUrl: "./exercise-history-page.component.scss",
 })

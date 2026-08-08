@@ -1,6 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { Router } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import {
   Exercise,
   ResolvedExercisePrescription,
@@ -10,6 +10,7 @@ import { UnitPreferenceService } from "../../../services/unit-preference.service
 import { WorkoutService } from "../../../services/workout.service";
 import { ButtonComponent } from "../../button/button.component";
 import { InputComponent } from "../../input/input.component";
+import { LoadingSpinnerComponent } from "../../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
 import { SelectComponent, SelectOption } from "../../select/select.component";
 import { StepperComponent } from "../../stepper/stepper.component";
@@ -21,6 +22,7 @@ import { UnitToggleComponent } from "../../unit-toggle/unit-toggle.component";
     FormsModule,
     ButtonComponent,
     InputComponent,
+    LoadingSpinnerComponent,
     PageHeaderComponent,
     SelectComponent,
     StepperComponent,
@@ -39,9 +41,7 @@ export class AddExerciseComponent implements OnInit {
   validationAttempted = false;
 
   get pageTitle(): string {
-    return this.router.url.endsWith("/edit-exercise")
-      ? "Edit Exercise"
-      : "Add Exercise";
+    return this.routeExerciseId === "new" ? "Add Exercise" : "Edit Exercise";
   }
 
   private get isActiveWorkoutAdjustment(): boolean {
@@ -55,13 +55,16 @@ export class AddExerciseComponent implements OnInit {
     }));
   }
 
-  private readonly routine: Routine | undefined;
+  private routine: Routine | undefined;
   private readonly originalRoutine: Routine | undefined;
-  readonly existingExercise: ResolvedExercisePrescription | undefined;
+  existingExercise: ResolvedExercisePrescription | undefined;
   private readonly returnUrl: string;
+  private routineId = "";
+  private routeExerciseId = "";
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private workoutService: WorkoutService,
     private units: UnitPreferenceService,
   ) {
@@ -69,32 +72,73 @@ export class AddExerciseComponent implements OnInit {
       this.router.getCurrentNavigation()?.extras.state ?? history.state;
     this.routine = state["routine"] as Routine | undefined;
     this.originalRoutine = state["originalRoutine"] as Routine | undefined;
-    this.existingExercise = state["exercise"] as
-      | ResolvedExercisePrescription
-      | undefined;
-    this.returnUrl =
-      (state["returnUrl"] as string | undefined) ?? "/program/workout/edit";
-
-    if (this.existingExercise) {
-      this.exerciseId = this.existingExercise.id;
-      this.weightKg = this.existingExercise.targetWeightKg;
-      this.sets = this.existingExercise.targetSets;
-      this.reps = this.existingExercise.targetReps;
-    }
+    this.returnUrl = (state["returnUrl"] as string | undefined) ?? "";
   }
 
   ngOnInit(): void {
+    const params = this.route.snapshot.paramMap;
+    this.routineId = params.get("id") ?? "";
+    this.routeExerciseId = params.get("exerciseId") ?? "";
+
     this.workoutService.getAllExercises().subscribe({
       next: (exercises) => {
         this.exercises = [...exercises].sort((first, second) =>
           first.name.localeCompare(second.name),
         );
         this.isLoadingExercises = false;
+        this.loadRoutine();
       },
       error: () => {
         this.isLoadingExercises = false;
       },
     });
+  }
+
+  private loadRoutine(): void {
+    if (!this.routineId) {
+      this.router.navigateByUrl("/program");
+      return;
+    }
+
+    const stateRoutine = this.routine;
+    if (stateRoutine?.id === this.routineId) {
+      this.initializeFromRoutine(stateRoutine);
+      return;
+    }
+
+    this.workoutService.getRoutineById(this.routineId).subscribe({
+      next: (routine) => {
+        if (!routine) {
+          this.router.navigateByUrl("/program");
+          return;
+        }
+        this.initializeFromRoutine(routine);
+      },
+      error: () => this.router.navigateByUrl("/program"),
+    });
+  }
+
+  private initializeFromRoutine(routine: Routine): void {
+    this.routine = routine;
+
+    if (this.routeExerciseId === "new") {
+      return;
+    }
+
+    this.existingExercise = routine.exercises.find(
+      (exercise) => exercise.id === this.routeExerciseId,
+    );
+    if (!this.existingExercise) {
+      this.router.navigateByUrl(
+        this.returnUrl || `/program/workout/edit/${this.routineId}`,
+      );
+      return;
+    }
+
+    this.exerciseId = this.existingExercise.id;
+    this.weightKg = this.existingExercise.targetWeightKg;
+    this.sets = this.existingExercise.targetSets;
+    this.reps = this.existingExercise.targetReps;
   }
 
   get weight(): number | null {

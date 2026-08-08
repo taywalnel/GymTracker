@@ -1,5 +1,7 @@
 @if (isLoading) {
-  <div class="state-message">Loading…</div>
+  <div class="loading-state" role="status" aria-label="Loading session">
+    <app-loading-spinner />
+  </div>
 } @else if (!session) {
   <app-page-header
     backLink="/history"

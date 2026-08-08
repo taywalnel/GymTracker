@@ -5,6 +5,7 @@ import { WorkoutSession, ExerciseLog } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { ExerciseListItemComponent } from "../exercise-list-item/exercise-list-item.component";
+import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
 import { WeightAndRepsSet } from "../weight-and-reps/weight-and-reps.component";
 
@@ -16,7 +17,11 @@ interface ExerciseDisplay {
 
 @Component({
   selector: "app-session-detail",
-  imports: [ExerciseListItemComponent, PageHeaderComponent],
+  imports: [
+    ExerciseListItemComponent,
+    LoadingSpinnerComponent,
+    PageHeaderComponent,
+  ],
   templateUrl: "./session-detail.component.html",
   styleUrl: "./session-detail.component.scss",
 })

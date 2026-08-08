@@ -2,33 +2,38 @@
 <app-page-header title="Session history" />
 
 <div class="page-content">
-  <app-calendar [workoutDates]="workoutDates"></app-calendar>
-
-  <!-- Session list -->
-  @if (sessions.length === 0) {
-    <p class="state-message state-message--left">No sessions logged yet.</p>
-  } @else {
-    <div class="session-list-container">
-      <div class="session-list">
-        @for (session of sessions; track session.id) {
-          <div class="session-item">
-            <a
-              class="session-item__header"
-              [routerLink]="['/history/session', session.id]"
-            >
-              <div class="session-item__meta">
-                <span class="session-item__routine">{{
-                  session.routineName
-                }}</span>
-                <span class="session-item__date">{{
-                  formatDate(session.date)
-                }}</span>
-              </div>
-              <span class="session-item__chevron">›</span>
-            </a>
-          </div>
-        }
-      </div>
+  @if (isLoading) {
+    <div class="loading-state" role="status" aria-label="Loading history">
+      <app-loading-spinner />
     </div>
+  } @else {
+    <app-calendar [workoutDates]="workoutDates"></app-calendar>
+
+    @if (sessions.length === 0) {
+      <p class="state-message state-message--left">No sessions logged yet.</p>
+    } @else {
+      <div class="session-list-container">
+        <div class="session-list">
+          @for (session of sessions; track session.id) {
+            <div class="session-item">
+              <a
+                class="session-item__header"
+                [routerLink]="['/history/session', session.id]"
+              >
+                <div class="session-item__meta">
+                  <span class="session-item__routine">{{
+                    session.routineName
+                  }}</span>
+                  <span class="session-item__date">{{
+                    formatDate(session.date)
+                  }}</span>
+                </div>
+                <span class="session-item__chevron">›</span>
+              </a>
+            </div>
+          }
+        </div>
+      </div>
+    }
   }
 </div>
