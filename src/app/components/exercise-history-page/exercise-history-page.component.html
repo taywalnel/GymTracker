@@ -22,24 +22,7 @@
       <section class="progress-panel" aria-labelledby="progress-title">
         <div class="progress-panel__header">
           <div>
-            <span class="eyebrow">Progress</span>
-            <h2 id="progress-title">{{ metricTitle }}</h2>
-          </div>
-          <div class="metric-toggle" role="group" aria-label="Progress metric">
-            <button
-              type="button"
-              [class.is-selected]="selectedMetric === 'strength'"
-              (click)="selectMetric('strength')"
-            >
-              Strength
-            </button>
-            <button
-              type="button"
-              [class.is-selected]="selectedMetric === 'volume'"
-              (click)="selectMetric('volume')"
-            >
-              Volume
-            </button>
+            <span class="eyebrow" id="progress-title">{{ metricTitle }}</span>
           </div>
         </div>
 
@@ -111,15 +94,20 @@
           </div>
         </div>
 
-        @if (selectedMetric === "strength") {
-          <p class="metric-note">
-            Based on your best set each session using estimated one-rep max.
-          </p>
-        } @else {
-          <p class="metric-note">
-            Total weight × reps across all completed sets in each session.
-          </p>
-        }
+        <p class="metric-note">
+          Total weight × reps across all completed sets in each session.
+        </p>
+      </section>
+
+      <section class="strength-summary" aria-label="Strength records">
+        <div>
+          <strong>{{ formatValue(heaviestWeightKg) }}</strong>
+          <span>Heaviest weight</span>
+        </div>
+        <div>
+          <strong>{{ formatValue(estimatedOneRepMaxKg) }}</strong>
+          <span>Estimated 1-rep max</span>
+        </div>
       </section>
     } @else {
       <section class="history-section" aria-labelledby="history-title">
@@ -131,6 +119,7 @@
                 <app-weight-and-reps
                   [weight]="entry.log.completedSets[0].weightKg"
                   [sets]="toWeightAndRepsSets(entry.log)"
+                  [size]="'small'"
                 />
               </div>
             </div>

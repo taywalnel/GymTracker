@@ -16,12 +16,9 @@ interface ExerciseHistoryEntry {
   log: ExerciseLog;
 }
 
-type ProgressMetric = "strength" | "volume";
-
 interface ProgressPoint {
   date: string;
   label: string;
-  bestSet: string;
   valueKg: number;
   x: number;
   y: number;
@@ -47,7 +44,6 @@ export class ExerciseHistoryPageComponent implements OnInit {
   exerciseName = "Exercise";
   historyEntries: ExerciseHistoryEntry[] = [];
   activeTab = "Progression";
-  selectedMetric: ProgressMetric = "volume";
   isLoading = true;
 
   get completedEntries(): ExerciseHistoryEntry[] {
@@ -62,19 +58,15 @@ export class ExerciseHistoryPageComponent implements OnInit {
 
   get chartPoints(): ProgressPoint[] {
     const values = this.completedEntries.map((entry) =>
-      this.selectedMetric === "strength"
-        ? this.estimatedOneRepMax(this.bestSet(entry.log))
-        : this.sessionVolume(entry.log),
+      this.sessionVolume(entry.log),
     );
     const { min, max } = this.chartDomain(values);
 
     return this.completedEntries.map((entry, index) => {
-      const bestSet = this.bestSet(entry.log);
       const value = values[index];
       return {
         date: entry.date,
         label: this.shortDate(entry.date),
-        bestSet: `${this.units.formatWeight(bestSet.weightKg)} ${this.units.unitLabel()} × ${bestSet.reps}`,
         valueKg: value,
         x: values.length === 1 ? 50 : (index / (values.length - 1)) * 100,
         y: max === min ? 50 : 92 - ((value - min) / (max - min)) * 76,
@@ -94,11 +86,7 @@ export class ExerciseHistoryPageComponent implements OnInit {
 
   get chartAxisLabels(): number[] {
     const { min, max } = this.chartDomain(
-      this.completedEntries.map((entry) =>
-        this.selectedMetric === "strength"
-          ? this.estimatedOneRepMax(this.bestSet(entry.log))
-          : this.sessionVolume(entry.log),
-      ),
+      this.completedEntries.map((entry) => this.sessionVolume(entry.log)),
     );
     return Array.from(
       { length: 4 },
@@ -125,10 +113,32 @@ export class ExerciseHistoryPageComponent implements OnInit {
     );
   }
 
+  get heaviestWeightKg(): number {
+    return this.historyEntries.reduce(
+      (heaviest, entry) =>
+        Math.max(
+          heaviest,
+          ...entry.log.completedSets.map((set) => set.weightKg),
+        ),
+      0,
+    );
+  }
+
+  get estimatedOneRepMaxKg(): number {
+    return this.historyEntries.reduce(
+      (best, entry) =>
+        Math.max(
+          best,
+          ...entry.log.completedSets.map(
+            (set) => set.weightKg * (1 + set.reps / 30),
+          ),
+        ),
+      0,
+    );
+  }
+
   get metricTitle(): string {
-    return this.selectedMetric === "strength"
-      ? "Estimated strength"
-      : "Session volume";
+    return "Session volume";
   }
 
   constructor(
@@ -156,10 +166,6 @@ export class ExerciseHistoryPageComponent implements OnInit {
     });
   }
 
-  selectMetric(metric: ProgressMetric): void {
-    this.selectedMetric = metric;
-  }
-
   formatValue(valueKg: number): string {
     return `${this.units.formatWeight(valueKg)} ${this.units.unitLabel()}`;
   }
@@ -178,16 +184,6 @@ export class ExerciseHistoryPageComponent implements OnInit {
       targetAmount: log.targetReps ?? set.reps,
       achievedAmount: log.targetReps === undefined ? undefined : set.reps,
     }));
-  }
-
-  private bestSet(log: ExerciseLog) {
-    return log.completedSets.reduce((best, set) =>
-      this.estimatedOneRepMax(set) > this.estimatedOneRepMax(best) ? set : best,
-    );
-  }
-
-  private estimatedOneRepMax(set: { weightKg: number; reps: number }): number {
-    return set.weightKg * (1 + set.reps / 30);
   }
 
   private sessionVolume(log: ExerciseLog): number {
