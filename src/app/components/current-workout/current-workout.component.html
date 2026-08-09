@@ -108,4 +108,14 @@
       (cancelled)="cancelDiscard()"
     />
   }
+
+  @if (showCompleteConfirmation) {
+    <app-confirmation-modal
+      title="Complete workout early?"
+      message="You still have incomplete exercises. Are you sure you want to complete this workout?"
+      confirmLabel="Complete"
+      (confirmed)="confirmFinishWorkout()"
+      (cancelled)="cancelFinishWorkout()"
+    />
+  }
 }

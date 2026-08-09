@@ -112,6 +112,11 @@
       );
     }
 
+    &:disabled {
+      color: #565c66;
+      filter: grayscale(1);
+    }
+
     &.app-btn--danger {
       background: #6c2d30;
       border-color: #8c3538;

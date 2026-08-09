@@ -14,6 +14,7 @@
         variant="icon"
         iconName="chevron-right"
         (click)="nextMonth()"
+        [disabled]="isCurrentMonth"
         aria-label="Next month"
       />
     </div>

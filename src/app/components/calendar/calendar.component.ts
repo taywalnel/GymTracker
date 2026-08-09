@@ -33,6 +33,14 @@ export class CalendarComponent implements OnChanges {
 
   private workoutDateSet = new Set<string>();
 
+  get isCurrentMonth(): boolean {
+    const today = new Date();
+    return (
+      this.calendarMonth.getFullYear() === today.getFullYear() &&
+      this.calendarMonth.getMonth() === today.getMonth()
+    );
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes["workoutDates"]) {
       this.workoutDateSet = new Set(this.workoutDates);
@@ -50,6 +58,8 @@ export class CalendarComponent implements OnChanges {
   }
 
   nextMonth(): void {
+    if (this.isCurrentMonth) return;
+
     this.calendarMonth = new Date(
       this.calendarMonth.getFullYear(),
       this.calendarMonth.getMonth() + 1,

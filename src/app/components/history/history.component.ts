@@ -42,6 +42,10 @@ export class HistoryComponent implements OnInit {
     return this.sessions.filter((session) => !session.inProgress);
   }
 
+  get isCurrentMonth(): boolean {
+    return this.calendar?.isCurrentMonth ?? true;
+  }
+
   // Single-exercise mode
   exerciseId: string | null = null;
   exerciseName: string | null = null;

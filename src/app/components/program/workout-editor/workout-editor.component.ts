@@ -206,7 +206,7 @@ export class WorkoutEditorComponent implements OnInit {
 
   private navigateBack(): void {
     this.showDiscardConfirmation = false;
-    this.router.navigate(["/program/workouts"]);
+    this.router.navigate(["/program"]);
   }
 
   private cloneRoutine(routine: Routine): Routine {

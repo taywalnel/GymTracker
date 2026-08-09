@@ -1,4 +1,10 @@
-<app-page-header title="Exercise History" [showBack]="true" (back)="goBack()" />
+<app-page-header
+  [title]="exerciseName"
+  [showBack]="true"
+  [tabs]="['Progression', 'History']"
+  (back)="goBack()"
+  (selectedTab)="activeTab = $event"
+/>
 
 @if (isLoading) {
   <div
@@ -8,22 +14,129 @@
   >
     <app-loading-spinner />
   </div>
-} @else if (historyEntries.length === 0) {
+} @else if (completedEntries.length === 0) {
   <p class="state-message">No completed sets yet.</p>
 } @else {
-  <div class="history-list">
-    @for (entry of historyEntries; track entry.date) {
-      @if (entry.log.completedSets.length > 0) {
-        <div class="history-entry">
-          <span class="date-header">{{ formatDate(entry.date) }}</span>
-          <div class="set-list">
-            <app-weight-and-reps
-              [weight]="entry.log.completedSets[0].weightKg"
-              [sets]="toWeightAndRepsSets(entry.log)"
-            />
+  <main class="exercise-detail">
+    @if (activeTab === "Progression") {
+      <section class="progress-panel" aria-labelledby="progress-title">
+        <div class="progress-panel__header">
+          <div>
+            <span class="eyebrow">Progress</span>
+            <h2 id="progress-title">{{ metricTitle }}</h2>
+          </div>
+          <div class="metric-toggle" role="group" aria-label="Progress metric">
+            <button
+              type="button"
+              [class.is-selected]="selectedMetric === 'strength'"
+              (click)="selectMetric('strength')"
+            >
+              Strength
+            </button>
+            <button
+              type="button"
+              [class.is-selected]="selectedMetric === 'volume'"
+              (click)="selectMetric('volume')"
+            >
+              Volume
+            </button>
           </div>
         </div>
-      }
+
+        <div class="progress-summary">
+          <div>
+            <strong>{{
+              latestPoint ? formatValue(latestPoint.valueKg) : "—"
+            }}</strong>
+            <span>Latest</span>
+          </div>
+          <div>
+            <strong>{{
+              bestPoint ? formatValue(bestPoint.valueKg) : "—"
+            }}</strong>
+            <span>Best</span>
+          </div>
+          @if (progressChange !== null) {
+            <div>
+              <strong
+                [class.is-negative]="progressChange! < 0"
+                [class.is-positive]="progressChange! >= 0"
+              >
+                {{ progressChange! >= 0 ? "+" : ""
+                }}{{ progressChange! | number: "1.0-1" }}%
+              </strong>
+              <span>Since first</span>
+            </div>
+          }
+        </div>
+
+        <div
+          class="chart"
+          role="img"
+          [attr.aria-label]="metricTitle + ' over time'"
+        >
+          <div class="chart__axis" aria-hidden="true">
+            @for (label of chartAxisLabels; track $index) {
+              <span>{{ formatValue(label) }}</span>
+            }
+          </div>
+          <div class="chart__plot">
+            <div class="chart__grid" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <svg
+              viewBox="0 0 100 100"
+              preserveAspectRatio="xMidYMid meet"
+              aria-hidden="true"
+            >
+              <polygon class="chart__area" [attr.points]="chartAreaPoints" />
+              <polyline class="chart__line" [attr.points]="chartLinePoints" />
+              @for (point of chartPoints; track point.date) {
+                <circle
+                  class="chart__point"
+                  [attr.cx]="point.x"
+                  [attr.cy]="point.y"
+                  r="2.5"
+                >
+                  <title>
+                    {{ point.label }}: {{ formatValue(point.valueKg) }}
+                  </title>
+                </circle>
+              }
+            </svg>
+            <div class="chart__labels">
+              <span>{{ chartPoints[0]?.label }}</span>
+              <span>{{ chartPoints.at(-1)?.label }}</span>
+            </div>
+          </div>
+        </div>
+
+        @if (selectedMetric === "strength") {
+          <p class="metric-note">
+            Based on your best set each session using estimated one-rep max.
+          </p>
+        } @else {
+          <p class="metric-note">
+            Total weight × reps across all completed sets in each session.
+          </p>
+        }
+      </section>
+    } @else {
+      <section class="history-section" aria-labelledby="history-title">
+        <div class="history-list">
+          @for (entry of historyDisplayEntries; track entry.date) {
+            <div class="history-entry">
+              <span class="date-header">{{ formatDate(entry.date) }}</span>
+              <div class="set-list">
+                <app-weight-and-reps
+                  [weight]="entry.log.completedSets[0].weightKg"
+                  [sets]="toWeightAndRepsSets(entry.log)"
+                />
+              </div>
+            </div>
+          }
+        </div>
+      </section>
     }
-  </div>
+  </main>
 }

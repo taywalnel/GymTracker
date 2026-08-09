@@ -49,7 +49,7 @@ export const routes: Routes = [
   {
     path: "history/exercises/:exerciseId",
     component: ExerciseHistoryPageComponent,
-    title: "Exercise History — Gym Tracker",
+    title: "Exercise Progress — Gym Tracker",
     canActivate: [authGuard],
   },
   {

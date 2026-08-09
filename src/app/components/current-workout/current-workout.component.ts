@@ -43,6 +43,7 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
   isLoading = true;
   isSaving = false;
   showDiscardConfirmation = false;
+  showCompleteConfirmation = false;
   elapsedTime = "00:00:00";
   private elapsedTimeInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -155,6 +156,25 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
   }
 
   finishWorkout(): void {
+    if (!this.state) return;
+    if (this.completedExerciseCount < this.totalExerciseCount) {
+      this.showCompleteConfirmation = true;
+      return;
+    }
+
+    this.saveWorkout();
+  }
+
+  confirmFinishWorkout(): void {
+    this.showCompleteConfirmation = false;
+    this.saveWorkout();
+  }
+
+  cancelFinishWorkout(): void {
+    this.showCompleteConfirmation = false;
+  }
+
+  private saveWorkout(): void {
     if (!this.state) return;
     this.isSaving = true;
     this.restTimer.clear();
