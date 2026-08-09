@@ -63,6 +63,7 @@ src/app/
     mock-data.ts            — seed data transcribed from your notes app
   components/
     today-workout/          — main landing page: shows today's routine + logging
+    progress/               — body-weight entries, trend chart, and moving average
     exercise-card/           — one exercise: target, last time, stepper inputs
     rotation-tracker/        — the vertical loop visual (Chest/Tri → Shoulders → Back/Bi)
     history/                 — session list (collapsible) + per-exercise drill-down
@@ -76,6 +77,7 @@ users/{uid}/
   exercises/{exerciseId}  { id, name }
   routines/{routineId}    { id, name, rotationOrder, exercises[] }
   sessions/{sessionId}    { id, routineId, routineName, date, exerciseLogs[] }
+  bodyWeights/{yyyy-mm-dd} { id, date, weightKg, note? }
 ```
 
 Routine `exercises[]` items store only the exercise ID and routine-specific
@@ -85,6 +87,11 @@ updates its name across every active routine that references it.
 
 Each historical `sessions[].exerciseLogs[]` item retains `exerciseName` as an
 immutable snapshot. A later catalog rename never changes workout history.
+
+Body weight is stored in kilograms and keyed by the user's local calendar date,
+so there is at most one weigh-in per day. The Progress tab displays raw
+weigh-ins alongside a 7-day moving average and converts values for the active
+metric or imperial display preference.
 
 ## Exercise Catalog Migration
 
