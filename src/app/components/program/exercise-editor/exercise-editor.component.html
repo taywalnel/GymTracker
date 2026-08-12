@@ -1,0 +1,40 @@
+<app-page-header
+  title="New Exercise"
+  [showBack]="true"
+  (back)="cancel()"
+></app-page-header>
+
+<form class="exercise-form" (ngSubmit)="save()">
+  <app-input
+    id="exerciseName"
+    label="Exercise Name"
+    [(ngModel)]="name"
+    name="exerciseName"
+    placeholder="e.g., Barbell Row"
+    [required]="true"
+    [invalid]="validationAttempted && !name.trim()"
+    [error]="
+      validationAttempted && !name.trim() ? 'Enter an exercise name.' : null
+    "
+  ></app-input>
+
+  <div class="form-actions">
+    <app-button
+      variant="secondary"
+      [fullWidth]="true"
+      [disabled]="saving"
+      type="button"
+      (click)="cancel()"
+    >
+      Cancel
+    </app-button>
+    <app-button
+      variant="primary"
+      [fullWidth]="true"
+      [disabled]="saving"
+      type="submit"
+    >
+      {{ saving ? "Saving..." : "Save" }}
+    </app-button>
+  </div>
+</form>

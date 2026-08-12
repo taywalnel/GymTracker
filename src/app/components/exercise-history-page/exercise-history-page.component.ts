@@ -1,6 +1,7 @@
 import { DecimalPipe, Location } from "@angular/common";
 import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute } from "@angular/router";
+import { forkJoin } from "rxjs";
 import { ExerciseLog } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
@@ -155,11 +156,15 @@ export class ExerciseHistoryPageComponent implements OnInit {
       return;
     }
 
-    this.workoutService.getExerciseHistory(exerciseId).subscribe((entries) => {
+    forkJoin({
+      entries: this.workoutService.getExerciseHistory(exerciseId),
+      exercises: this.workoutService.getAllExercises(),
+    }).subscribe(({ entries, exercises }) => {
       this.historyEntries = entries
         .slice()
         .sort((left, right) => left.date.localeCompare(right.date));
       this.exerciseName =
+        exercises.find((exercise) => exercise.id === exerciseId)?.name ??
         this.historyEntries[0]?.log.exerciseName ??
         this.humanizeExerciseId(exerciseId);
       this.isLoading = false;
@@ -171,8 +176,7 @@ export class ExerciseHistoryPageComponent implements OnInit {
   }
 
   formatDate(date: string): string {
-    return new Date(date).toLocaleDateString(undefined, {
-      weekday: "long",
+    return new Date(date).toLocaleDateString("en-GB", {
       month: "long",
       day: "numeric",
       year: "numeric",

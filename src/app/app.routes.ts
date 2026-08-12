@@ -5,6 +5,7 @@ import { SessionDetailComponent } from "./components/session-detail/session-deta
 import { ProgramHomeComponent } from "./components/program/program-home/program-home.component";
 import { WorkoutListComponent } from "./components/program/workout-list/workout-list.component";
 import { ExercisesListComponent } from "./components/program/exercises-list/exercises-list.component";
+import { ExerciseEditorComponent } from "./components/program/exercise-editor/exercise-editor.component";
 import { WorkoutEditorComponent } from "./components/program/workout-editor/workout-editor.component";
 import { AddExerciseComponent } from "./components/program/add-exercise/add-exercise.component";
 import { AccountComponent } from "./components/account/account.component";
@@ -12,7 +13,7 @@ import { LoginComponent } from "./components/login/login.component";
 import { CurrentExercisePageComponent } from "./components/current-exercise-page/current-exercise-page.component";
 import { CurrentWorkoutComponent } from "./components/current-workout/current-workout.component";
 import { ExerciseHistoryPageComponent } from "./components/exercise-history-page/exercise-history-page.component";
-import { ProgressComponent } from "./components/progress/progress.component";
+import { BodyWeightComponent } from "./components/body-weight/body-weight.component";
 import { authGuard } from "./guards/auth.guard";
 
 export const routes: Routes = [
@@ -42,9 +43,9 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: "progress",
-    component: ProgressComponent,
-    title: "Progress — Gym Tracker",
+    path: "body-weight",
+    component: BodyWeightComponent,
+    title: "Body Weight — Gym Tracker",
     canActivate: [authGuard],
   },
   {
@@ -75,6 +76,12 @@ export const routes: Routes = [
     path: "program/workouts",
     component: WorkoutListComponent,
     title: "Workouts — Gym Tracker",
+    canActivate: [authGuard],
+  },
+  {
+    path: "program/exercises/new",
+    component: ExerciseEditorComponent,
+    title: "New Exercise — Gym Tracker",
     canActivate: [authGuard],
   },
   {

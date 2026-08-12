@@ -1,7 +1,7 @@
 :host {
-  position: relative;
   height: 100%;
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 .exercises-list-container {
@@ -26,6 +26,11 @@
 }
 
 .exercise-list {
+  position: relative;
+  flex: 1;
+}
+
+.exercise-list-scroll {
   position: absolute;
   width: 100%;
   display: flex;
@@ -34,4 +39,10 @@
   gap: 10px;
   margin: 0;
   overflow-y: auto;
+}
+
+.exercise-list-actions {
+  display: flex;
+  flex-shrink: 0;
+  padding-top: 20px;
 }

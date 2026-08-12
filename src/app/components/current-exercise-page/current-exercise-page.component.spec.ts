@@ -40,17 +40,34 @@ describe("CurrentExercisePageComponent", () => {
   let component: CurrentExercisePageComponent;
   let navigate: jasmine.Spy;
   let saveInProgressState: jasmine.Spy;
+  let startRestTimer: jasmine.Spy;
 
   beforeEach(() => {
     navigate = jasmine.createSpy("navigate");
     saveInProgressState = jasmine.createSpy("saveInProgressState");
+    startRestTimer = jasmine.createSpy("start");
     component = new CurrentExercisePageComponent(
       {} as ActivatedRoute,
       { navigate } as unknown as Router,
       { saveInProgressState } as unknown as WorkoutService,
       {} as UnitPreferenceService,
-      {} as RestTimerService,
+      { start: startRestTimer } as unknown as RestTimerService,
     );
+  });
+
+  it("uses the displayed previous-set reps when completing an untouched set", () => {
+    setCurrentExercise("first", []);
+    component.workingSets = [
+      { setNumber: 1, reps: 8, weightKg: 10 },
+      { setNumber: 2, reps: 0, weightKg: 10 },
+      { setNumber: 3, reps: 0, weightKg: 10 },
+    ];
+    component.completedSetIndices = new Set([0]);
+    component.activeSetIndex = 1;
+
+    component.completeCurrentSet();
+
+    expect(component.workingSets[1].reps).toBe(8);
   });
 
   it("navigates to the next incomplete exercise after the completed exercise", () => {

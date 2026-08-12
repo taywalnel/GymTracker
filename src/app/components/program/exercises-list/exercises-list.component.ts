@@ -1,12 +1,13 @@
 import { Component, OnInit } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { Exercise } from "../../../models/workout.models";
 import { WorkoutService } from "../../../services/workout.service";
+import { ButtonComponent } from "../../button/button.component";
 import { RoutineCardComponent } from "../../routine-card/routine-card.component";
 
 @Component({
   selector: "app-exercises-list",
-  imports: [RouterLink, RoutineCardComponent],
+  imports: [ButtonComponent, RouterLink, RoutineCardComponent],
   templateUrl: "./exercises-list.component.html",
   styleUrl: "./exercises-list.component.scss",
 })
@@ -14,7 +15,10 @@ export class ExercisesListComponent implements OnInit {
   exercises: Exercise[] = [];
   loading = false;
 
-  constructor(private workoutService: WorkoutService) {}
+  constructor(
+    private workoutService: WorkoutService,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
     this.loadExercises();
@@ -30,5 +34,9 @@ export class ExercisesListComponent implements OnInit {
         this.loading = false;
       },
     });
+  }
+
+  createExercise(): void {
+    this.router.navigate(["/program/exercises/new"]);
   }
 }

@@ -66,8 +66,34 @@ export class InputComponent implements ControlValueAccessor {
       this.type === "number"
         ? input.value === ""
           ? null
-          : input.valueAsNumber
+          : Number.isFinite(input.valueAsNumber)
+            ? input.valueAsNumber
+            : null
         : input.value;
     this.onChange(this.value);
+  }
+
+  handleKeydown(event: KeyboardEvent): void {
+    if (this.type !== "number") return;
+
+    if (
+      event.ctrlKey ||
+      event.metaKey ||
+      [
+        "Backspace",
+        "Delete",
+        "Tab",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "ArrowDown",
+        "Home",
+        "End",
+      ].includes(event.key)
+    ) {
+      return;
+    }
+
+    if (!/^[0-9.]$/.test(event.key)) event.preventDefault();
   }
 }

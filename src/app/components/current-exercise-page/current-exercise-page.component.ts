@@ -234,7 +234,7 @@ export class CurrentExercisePageComponent implements OnInit {
     if (!this.setTouched[idx]) {
       this.workingSets[idx] = {
         ...this.workingSets[idx],
-        reps: this.exercise!.targetReps,
+        reps: this.activeSetDefaultReps,
       };
       this.setStarted[idx] = true;
     }

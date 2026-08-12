@@ -4,6 +4,7 @@ import { BodyWeightEntry } from "../../models/body-weight.models";
 import { BodyWeightService } from "../../services/body-weight.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { ButtonComponent } from "../button/button.component";
+import { DateInputComponent } from "../date-input/date-input.component";
 import { InputComponent } from "../input/input.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
@@ -20,10 +21,11 @@ interface ChartPoint {
 }
 
 @Component({
-  selector: "app-progress",
+  selector: "app-body-weight",
   imports: [
     FormsModule,
     ButtonComponent,
+    DateInputComponent,
     InputComponent,
     LoadingSpinnerComponent,
     PageHeaderComponent,
@@ -31,17 +33,18 @@ interface ChartPoint {
   templateUrl: "./progress.component.html",
   styleUrl: "./progress.component.scss",
 })
-export class ProgressComponent implements OnInit {
+export class BodyWeightComponent implements OnInit {
   entries: BodyWeightEntry[] = [];
   isLoading = true;
   isSaving = false;
   showEntryForm = false;
   editingDate: string | null = null;
   selectedPeriod: PeriodDays = 30;
+  activeTab = "Overview";
+  readonly bodyWeightTabs = ["Overview", "History"];
 
   formDate = "";
   formWeight: number | null = null;
-  formNote = "";
   validationAttempted = false;
 
   readonly periodOptions: { label: string; value: PeriodDays }[] = [
@@ -123,6 +126,12 @@ export class ProgressComponent implements OnInit {
     return this.entries[0];
   }
 
+  get historyEntries(): BodyWeightEntry[] {
+    return this.entries
+      .slice()
+      .sort((left, right) => right.date.localeCompare(left.date));
+  }
+
   get periodChangeKg(): number | null {
     const points = this.chartPoints;
     if (points.length < 2) return null;
@@ -138,13 +147,14 @@ export class ProgressComponent implements OnInit {
     this.selectedPeriod = period;
   }
 
+  selectTab(tab: string): void {
+    if (this.bodyWeightTabs.includes(tab)) this.activeTab = tab;
+  }
+
   openNewEntry(): void {
     this.editingDate = null;
     this.formDate = this.todayString();
-    this.formWeight = this.latestRecordedEntry
-      ? Number(this.units.fromKg(this.latestRecordedEntry.weightKg).toFixed(1))
-      : null;
-    this.formNote = "";
+    this.formWeight = null;
     this.validationAttempted = false;
     this.showEntryForm = true;
   }
@@ -153,7 +163,6 @@ export class ProgressComponent implements OnInit {
     this.editingDate = entry.date;
     this.formDate = entry.date;
     this.formWeight = Number(this.units.fromKg(entry.weightKg).toFixed(1));
-    this.formNote = entry.note ?? "";
     this.validationAttempted = false;
     this.showEntryForm = true;
   }
@@ -174,7 +183,6 @@ export class ProgressComponent implements OnInit {
       id: this.formDate,
       date: this.formDate,
       weightKg: this.units.toKg(this.formWeight),
-      ...(this.formNote.trim() ? { note: this.formNote.trim() } : {}),
     };
 
     this.bodyWeightService.saveEntry(entry).subscribe({

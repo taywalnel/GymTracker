@@ -1,0 +1,263 @@
+<app-page-header
+  title="Body Weight"
+  [tabs]="bodyWeightTabs"
+  (selectedTab)="selectTab($event)"
+/>
+
+@if (isLoading) {
+  <div class="loading-state" role="status" aria-label="Loading body weight">
+    <app-loading-spinner />
+  </div>
+} @else {
+  @if (pendingDeleteEntry) {
+    <app-confirmation-modal
+      title="Delete weigh-in?"
+      [message]="
+        'Delete the body weight entry for ' +
+        formatDate(pendingDeleteEntry.date) +
+        '?'
+      "
+      confirmLabel="Delete"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="cancelDelete()"
+    />
+  }
+
+  <main class="body-weight-page">
+    @if (showEntryForm) {
+      <div class="modal-backdrop" (click)="cancelEntry()">
+        <section
+          class="entry-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="entry-title"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="section-heading">
+            <h2 id="entry-title">Add weight</h2>
+          </div>
+
+          <app-date-input
+            id="body-weight-date"
+            label="Date"
+            [(ngModel)]="formDate"
+            [disabled]="isSaving"
+            [invalid]="validationAttempted && !formDate"
+            error="Choose a date."
+          />
+          <app-input
+            id="body-weight"
+            label="Weight ({{ units.unitLabel() }})"
+            type="number"
+            inputmode="decimal"
+            [step]="0.1"
+            [min]="0"
+            [(ngModel)]="formWeight"
+            [disabled]="isSaving"
+            [invalid]="
+              validationAttempted && (formWeight === null || formWeight <= 0)
+            "
+            error="Enter a body weight greater than zero."
+          />
+
+          <div class="entry-actions">
+            <app-button
+              variant="secondary"
+              [fullWidth]="true"
+              [disabled]="isSaving"
+              (click)="cancelEntry()"
+            >
+              Cancel
+            </app-button>
+            <app-button
+              [fullWidth]="true"
+              [disabled]="isSaving"
+              (click)="saveEntry()"
+            >
+              {{ isSaving ? "Saving..." : "Save" }}
+            </app-button>
+          </div>
+        </section>
+      </div>
+    }
+
+    @if (activeTab === "Overview") {
+      @if (entries.length === 0 && !showEntryForm) {
+        <section class="empty-panel">
+          <h3>Track your trend</h3>
+          <p>
+            Add your first body-weight entry to see your progress over time.
+          </p>
+          <app-button (click)="openNewEntry()">Add first weigh-in</app-button>
+        </section>
+      } @else if (entries.length > 0) {
+        <section class="summary-panel" aria-label="Body weight summary">
+          <div class="summary-metrics">
+            <div>
+              <strong>{{
+                latestEntry ? formatValue(latestEntry.weightKg) : "—"
+              }}</strong>
+              <span>Latest</span>
+            </div>
+            <div>
+              <strong>{{
+                averageWeightKg !== null ? formatValue(averageWeightKg) : "—"
+              }}</strong>
+              <span>7-day average</span>
+            </div>
+            <div>
+              <strong
+                [class.is-negative]="
+                  periodChangeKg !== null && periodChangeKg < 0
+                "
+                [class.is-positive]="
+                  periodChangeKg !== null && periodChangeKg >= 0
+                "
+              >
+                @if (periodChangeKg !== null) {
+                  {{ periodChangeKg >= 0 ? "+" : ""
+                  }}{{ formatValue(periodChangeKg) }}
+                } @else {
+                  —
+                }
+              </strong>
+              <span>Change in period</span>
+            </div>
+          </div>
+        </section>
+
+        @if (chartPoints.length > 0) {
+          <section class="chart-panel" aria-labelledby="chart-title">
+            <div
+              class="chart"
+              role="img"
+              aria-label="Body weight trend over time"
+            >
+              <div class="chart__axis" aria-hidden="true">
+                @for (label of chartAxisLabels; track $index) {
+                  <span>{{ formatValue(label) }}</span>
+                }
+              </div>
+              <div class="chart__plot">
+                <div class="chart__grid" aria-hidden="true">
+                  <span></span><span></span><span></span><span></span>
+                </div>
+                <svg
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="xMidYMid meet"
+                  aria-hidden="true"
+                >
+                  <polyline
+                    class="chart__raw-line"
+                    [attr.points]="chartWeightPoints"
+                  />
+                  <polyline
+                    class="chart__average-line"
+                    [attr.points]="chartAveragePoints"
+                  />
+                  @for (point of chartPoints; track point.date) {
+                    <circle
+                      class="chart__point"
+                      [attr.cx]="point.x"
+                      [attr.cy]="point.weightY"
+                      r="2.2"
+                    >
+                      <title>
+                        {{ formatDate(point.date) }}:
+                        {{ formatValue(point.weightKg) }}
+                      </title>
+                    </circle>
+                  }
+                </svg>
+                <div class="chart__labels">
+                  <span>{{ formatDate(chartPoints[0].date) }}</span>
+                  <span>{{ formatDate(chartPoints.at(-1)!.date) }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="chart-legend" aria-label="Chart legend">
+              <span><i class="legend-dot legend-dot--raw"></i>Weigh-in</span>
+              <span
+                ><i class="legend-dot legend-dot--average"></i>7-day
+                average</span
+              >
+            </div>
+          </section>
+        }
+
+        <div
+          class="period-switcher"
+          role="tablist"
+          aria-label="Progress period"
+        >
+          @for (option of periodOptions; track option.value) {
+            <button
+              type="button"
+              role="tab"
+              [attr.aria-selected]="selectedPeriod === option.value"
+              [class.is-selected]="selectedPeriod === option.value"
+              (click)="selectPeriod(option.value)"
+            >
+              {{ option.label }}
+            </button>
+          }
+        </div>
+
+        @if (!showEntryForm) {
+          <div class="weight-actions">
+            <app-button
+              [fullWidth]="true"
+              (click)="openNewEntry()"
+              variant="secondary"
+            >
+              Add weight
+            </app-button>
+          </div>
+        }
+      }
+    }
+
+    @if (activeTab === "History") {
+      @if (historyEntries.length === 0) {
+        <p class="state-message">No weigh-ins yet.</p>
+      } @else {
+        <div class="history-list-container">
+          <div class="history-list" aria-label="Body weight history">
+            @for (entry of historyEntries; track entry.date) {
+              <div class="history-item">
+                <div class="history-item__header">
+                  <div class="history-item__meta">
+                    <span class="history-item__weight">
+                      {{ formatValue(entry.weightKg) }}
+                    </span>
+                    <span class="history-item__date">
+                      {{ formatDate(entry.date) }}
+                    </span>
+                  </div>
+                  <div class="history-item__actions">
+                    <app-button
+                      variant="icon"
+                      iconName="edit"
+                      size="sm"
+                      [ariaLabel]="'Edit ' + formatDate(entry.date)"
+                      (click)="editEntry(entry)"
+                    />
+                    <app-button
+                      variant="icon"
+                      iconName="delete"
+                      size="sm"
+                      [danger]="true"
+                      [ariaLabel]="'Delete ' + formatDate(entry.date)"
+                      (click)="deleteEntry(entry)"
+                    />
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </main>
+}

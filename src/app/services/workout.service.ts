@@ -307,6 +307,10 @@ export class WorkoutService {
     return from(this._saveRoutine(routine));
   }
 
+  saveExercise(exercise: Exercise): Observable<Exercise> {
+    return from(this._saveExercise(exercise));
+  }
+
   deleteRoutine(id: string): Observable<boolean> {
     return from(this._deleteRoutine(id));
   }
@@ -449,6 +453,21 @@ export class WorkoutService {
     this.routinesLoaded = true;
     this._setExercisesFromRoutines(current);
     return routine;
+  }
+
+  private async _saveExercise(exercise: Exercise): Promise<Exercise> {
+    const current = [...(await this._loadExercises())];
+    const index = current.findIndex((item) => item.id === exercise.id);
+    if (index >= 0) {
+      current[index] = exercise;
+    } else {
+      current.push(exercise);
+    }
+
+    await setDoc(doc(this.exercisesCol(), exercise.id), exercise);
+    this.exercisesSignal.set(current);
+    this.exercisesLoaded = true;
+    return exercise;
   }
 
   private async _deleteRoutine(id: string): Promise<boolean> {

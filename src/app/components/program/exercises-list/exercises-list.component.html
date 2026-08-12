@@ -1,10 +1,23 @@
 <div class="exercise-list">
-  @for (exercise of exercises; track exercise.id) {
-    <app-card
-      [title]="exercise.name"
-      [description]="''"
-      [showChevron]="true"
-      [routerLink]="['/history/exercises', exercise.id]"
-    ></app-card>
-  }
+  <div class="exercise-list-scroll">
+    @for (exercise of exercises; track exercise.id) {
+      <app-card
+        [title]="exercise.name"
+        [description]="''"
+        [showChevron]="true"
+        [routerLink]="['/history/exercises', exercise.id]"
+      ></app-card>
+    }
+  </div>
+</div>
+
+<div class="exercise-list-actions">
+  <app-button
+    variant="primary"
+    [fullWidth]="true"
+    [height]="'40px'"
+    (click)="createExercise()"
+  >
+    New exercise
+  </app-button>
 </div>

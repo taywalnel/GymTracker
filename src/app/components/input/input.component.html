@@ -13,12 +13,13 @@
     [required]="required"
     [disabled]="disabled"
     [attr.aria-invalid]="invalid ? 'true' : null"
-    [attr.aria-describedby]="error ? errorId : null"
+    [attr.aria-describedby]="error && invalid ? errorId : null"
     class="form-input"
     (input)="handleInput($event)"
+    (keydown)="handleKeydown($event)"
     (blur)="onTouched()"
   />
-  @if (error) {
+  @if (error && invalid) {
     <p [id]="errorId" class="form-error" role="alert">{{ error }}</p>
   }
 </div>
