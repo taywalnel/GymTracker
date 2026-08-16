@@ -5,7 +5,10 @@ import { forkJoin } from "rxjs";
 import { ExerciseLog } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
-import { PageHeaderComponent } from "../page-header/page-header.component";
+import {
+  PageHeaderComponent,
+  PageHeaderTab,
+} from "../page-header/page-header.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import {
   WeightAndRepsComponent,
@@ -46,6 +49,13 @@ export class ExerciseHistoryPageComponent implements OnInit {
   historyEntries: ExerciseHistoryEntry[] = [];
   activeTab = "Progression";
   isLoading = true;
+
+  get historyTabs(): PageHeaderTab[] {
+    return [
+      { label: "Progression" },
+      { label: "History", count: this.completedEntries.length },
+    ];
+  }
 
   get completedEntries(): ExerciseHistoryEntry[] {
     return this.historyEntries.filter(

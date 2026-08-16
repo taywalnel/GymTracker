@@ -12,6 +12,13 @@ import { RoutineCardComponent } from "../routine-card/routine-card.component";
 export class EditableCardComponent {
   @Input({ required: true }) title = "";
   @Input({ required: false }) description = "";
+  @Input() active = false;
+  @Input() showActive = false;
   @Output() edit = new EventEmitter<void>();
   @Output() delete = new EventEmitter<void>();
+  @Output() activeChange = new EventEmitter<boolean>();
+
+  onActiveChange(event: Event): void {
+    this.activeChange.emit((event.target as HTMLInputElement).checked);
+  }
 }

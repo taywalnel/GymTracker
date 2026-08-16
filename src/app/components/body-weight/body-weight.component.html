@@ -224,7 +224,11 @@
       } @else {
         <div class="history-list-container">
           <div class="history-list" aria-label="Body weight history">
-            @for (entry of historyEntries; track entry.date) {
+            @for (
+              entry of historyEntries;
+              track entry.date;
+              let index = $index
+            ) {
               <div class="history-item">
                 <div class="history-item__header">
                   <div class="history-item__meta">
@@ -235,22 +239,35 @@
                       {{ formatDate(entry.date) }}
                     </span>
                   </div>
-                  <div class="history-item__actions">
-                    <app-button
-                      variant="icon"
-                      iconName="edit"
-                      size="sm"
-                      [ariaLabel]="'Edit ' + formatDate(entry.date)"
-                      (click)="editEntry(entry)"
-                    />
-                    <app-button
-                      variant="icon"
-                      iconName="delete"
-                      size="sm"
-                      [danger]="true"
-                      [ariaLabel]="'Delete ' + formatDate(entry.date)"
-                      (click)="deleteEntry(entry)"
-                    />
+                  <div class="right-content">
+                    @if (historyChangeKg(entry, index) !== null) {
+                      <span
+                        class="history-item__change"
+                        [class.is-negative]="historyChangeKg(entry, index)! < 0"
+                        [class.is-positive]="
+                          historyChangeKg(entry, index)! >= 0
+                        "
+                      >
+                        {{ formatChange(historyChangeKg(entry, index)!) }}
+                      </span>
+                    }
+                    <div class="history-item__actions">
+                      <app-button
+                        variant="icon"
+                        iconName="edit"
+                        size="sm"
+                        [ariaLabel]="'Edit ' + formatDate(entry.date)"
+                        (click)="editEntry(entry)"
+                      />
+                      <app-button
+                        variant="icon"
+                        iconName="delete"
+                        size="sm"
+                        [danger]="true"
+                        [ariaLabel]="'Delete ' + formatDate(entry.date)"
+                        (click)="deleteEntry(entry)"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

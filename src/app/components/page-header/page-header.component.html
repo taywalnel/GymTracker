@@ -28,16 +28,21 @@
       [style.--tab-count]="tabs.length"
       [style.--selected-tab-index]="selectedTabIndex"
     >
-      @for (tab of tabs; track tab) {
+      @for (tab of tabs; track tabLabel(tab)) {
         <button
           type="button"
           role="tab"
           class="page-header__tab"
-          [class.page-header__tab--selected]="isTabSelected(tab)"
-          [attr.aria-selected]="isTabSelected(tab)"
-          (click)="selectTab(tab)"
+          [class.page-header__tab--selected]="isTabSelected(tabLabel(tab))"
+          [attr.aria-selected]="isTabSelected(tabLabel(tab))"
+          (click)="selectTab(tabLabel(tab))"
         >
-          {{ tab }}
+          {{ tabLabel(tab) }}
+          @if (tabCount(tab) !== undefined) {
+            <span class="page-header__tab-count" aria-hidden="true">
+              {{ tabCount(tab) }}
+            </span>
+          }
         </button>
       }
     </div>

@@ -50,6 +50,8 @@ export interface Routine {
   name: string;
   /** Position in the rotation loop, 0-indexed */
   rotationOrder: number;
+  /** True when the routine belongs to the active workout rotation. */
+  active?: boolean;
   exercises: ResolvedExercisePrescription[];
 }
 
@@ -58,6 +60,8 @@ export interface StoredRoutine {
   id: string;
   name: string;
   rotationOrder: number;
+  /** True when the routine belongs to the active workout rotation. */
+  active?: boolean;
   exercises: ExercisePrescription[];
 }
 
@@ -84,6 +88,8 @@ export interface WorkoutSession {
   exerciseLogs: ExerciseLog[];
   /** True while the session is in progress and not yet marked complete */
   inProgress: boolean;
+  /** True when the session belongs to the active workout rotation. */
+  active?: boolean;
 }
 
 /**

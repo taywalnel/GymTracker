@@ -8,7 +8,10 @@ import { ConfirmationModalComponent } from "../confirmation-modal/confirmation-m
 import { DateInputComponent } from "../date-input/date-input.component";
 import { InputComponent } from "../input/input.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
-import { PageHeaderComponent } from "../page-header/page-header.component";
+import {
+  PageHeaderComponent,
+  PageHeaderTab,
+} from "../page-header/page-header.component";
 
 type PeriodDays = 7 | 30 | 0;
 
@@ -44,7 +47,12 @@ export class BodyWeightComponent implements OnInit {
   editingDate: string | null = null;
   selectedPeriod: PeriodDays = 30;
   activeTab = "Overview";
-  readonly bodyWeightTabs = ["Overview", "History"];
+  get bodyWeightTabs(): PageHeaderTab[] {
+    return [
+      { label: "Overview" },
+      { label: "History", count: this.historyEntries.length },
+    ];
+  }
 
   formDate = "";
   formWeight: number | null = null;
@@ -135,6 +143,15 @@ export class BodyWeightComponent implements OnInit {
       .sort((left, right) => right.date.localeCompare(left.date));
   }
 
+  historyChangeKg(entry: BodyWeightEntry, index: number): number | null {
+    const previousEntry = this.historyEntries[index + 1];
+    return previousEntry ? entry.weightKg - previousEntry.weightKg : null;
+  }
+
+  formatChange(changeKg: number): string {
+    return `${changeKg >= 0 ? "+" : ""}${this.units.formatWeight(changeKg)} ${this.units.unitLabel()}`;
+  }
+
   get periodChangeKg(): number | null {
     const points = this.chartPoints;
     if (points.length < 2) return null;
@@ -151,7 +168,9 @@ export class BodyWeightComponent implements OnInit {
   }
 
   selectTab(tab: string): void {
-    if (this.bodyWeightTabs.includes(tab)) this.activeTab = tab;
+    if (this.bodyWeightTabs.some((item) => item.label === tab)) {
+      this.activeTab = tab;
+    }
   }
 
   openNewEntry(): void {

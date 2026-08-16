@@ -6,7 +6,10 @@ import { WorkoutService } from "../../services/workout.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { CalendarComponent } from "../calendar/calendar.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
-import { PageHeaderComponent } from "../page-header/page-header.component";
+import {
+  PageHeaderComponent,
+  PageHeaderTab,
+} from "../page-header/page-header.component";
 import { ButtonComponent } from "../button/button.component";
 
 interface ExerciseHistoryEntry {
@@ -29,6 +32,13 @@ interface ExerciseHistoryEntry {
 export class HistoryComponent implements OnInit {
   @ViewChild(CalendarComponent) private calendar?: CalendarComponent;
   activeTab = "Overview";
+
+  get historyTabs(): PageHeaderTab[] {
+    return [
+      { label: "Overview" },
+      { label: "Activities", count: this.completedSessions.length },
+    ];
+  }
 
   // Session-list mode
   sessions: WorkoutSession[] = [];

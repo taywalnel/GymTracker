@@ -81,6 +81,12 @@ p {
   flex: 1;
 }
 
+.right-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
 .history-item__weight {
   font-family: var(--font-display);
 }
@@ -88,6 +94,18 @@ p {
 .history-item__date {
   color: var(--color-text-muted);
   font-size: 0.78rem;
+}
+
+.history-item__change {
+  font-size: 0.78rem;
+}
+
+.history-item__change.is-negative {
+  color: var(--color-danger);
+}
+
+.history-item__change.is-positive {
+  color: var(--color-success);
 }
 
 .history-item__actions {

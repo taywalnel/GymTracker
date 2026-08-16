@@ -1,6 +1,11 @@
 import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { RouterLink } from "@angular/router";
 
+export interface PageHeaderTab {
+  label: string;
+  count?: number;
+}
+
 @Component({
   selector: "app-page-header",
   imports: [RouterLink],
@@ -14,7 +19,7 @@ export class PageHeaderComponent {
   @Input() showBack = false;
   @Input() rightActionLabel = "";
   @Input() showRightAction = false;
-  @Input() tabs: string[] = [];
+  @Input() tabs: (string | PageHeaderTab)[] = [];
   @Output() back = new EventEmitter<void>();
   @Output() rightAction = new EventEmitter<void>();
   @Output() selectedTab = new EventEmitter<string>();
@@ -27,11 +32,22 @@ export class PageHeaderComponent {
   }
 
   isTabSelected(tab: string): boolean {
-    return (this.activeTab ?? this.tabs[0]) === tab;
+    return (this.activeTab ?? this.tabLabel(this.tabs[0])) === tab;
+  }
+
+  tabLabel(tab: string | PageHeaderTab): string {
+    return typeof tab === "string" ? tab : tab.label;
+  }
+
+  tabCount(tab: string | PageHeaderTab): number | undefined {
+    return typeof tab === "string" ? undefined : tab.count;
   }
 
   get selectedTabIndex(): number {
-    const index = this.tabs.indexOf(this.activeTab ?? this.tabs[0]);
+    const index = this.tabs.findIndex(
+      (tab) =>
+        this.tabLabel(tab) === (this.activeTab ?? this.tabLabel(this.tabs[0])),
+    );
     return index < 0 ? 0 : index;
   }
 }

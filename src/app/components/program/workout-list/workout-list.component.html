@@ -7,25 +7,65 @@
 @if (!loading && routines.length > 0) {
   <div class="routine-list">
     <div class="routine-list-scroll">
-      @for (routine of routines; track routine.id) {
-        <app-card
-          [title]="routine.name"
-          [description]="
-            routine.exercises.length +
-            ' exercise' +
-            (routine.exercises.length !== 1 ? 's' : '')
-          "
-          [showChevron]="true"
-          (click)="viewRoutine(routine)"
-        ></app-card>
-      }
+      <section class="routine-group" aria-labelledby="active-routines-title">
+        <h2 id="active-routines-title" class="routine-group__title">Active</h2>
+        @for (routine of activeRoutines; track routine.id) {
+          <app-editable-card
+            [title]="routine.name"
+            [active]="routine.active === true"
+            [showActive]="true"
+            [description]="
+              routine.exercises.length +
+              ' exercise' +
+              (routine.exercises.length !== 1 ? 's' : '')
+            "
+            (edit)="viewRoutine(routine)"
+            (delete)="deleteRoutine(routine)"
+            (activeChange)="setRoutineActive(routine, $event)"
+          ></app-editable-card>
+        }
+      </section>
+
+      <section class="routine-group" aria-labelledby="inactive-routines-title">
+        <h2 id="inactive-routines-title" class="routine-group__title">
+          Inactive
+        </h2>
+        @for (routine of inactiveRoutines; track routine.id) {
+          <app-editable-card
+            [title]="routine.name"
+            [active]="routine.active === true"
+            [showActive]="true"
+            [description]="
+              routine.exercises.length +
+              ' exercise' +
+              (routine.exercises.length !== 1 ? 's' : '')
+            "
+            (edit)="viewRoutine(routine)"
+            (delete)="deleteRoutine(routine)"
+            (activeChange)="setRoutineActive(routine, $event)"
+          ></app-editable-card>
+        }
+      </section>
     </div>
   </div>
 }
 
+@if (pendingDeleteRoutine) {
+  <app-confirmation-modal
+    title="Delete routine?"
+    [message]="
+      'Delete ' + pendingDeleteRoutine.name + '? This cannot be undone.'
+    "
+    confirmLabel="Delete"
+    [danger]="true"
+    (confirmed)="confirmDelete()"
+    (cancelled)="cancelDelete()"
+  />
+}
+
 <div class="workout-list-actions">
   <app-button
-    variant="primary"
+    variant="secondary"
     [fullWidth]="true"
     [height]="'40px'"
     (click)="createRoutine()"

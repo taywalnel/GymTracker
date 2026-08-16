@@ -1,9 +1,41 @@
 :host {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .buttons-wrapper {
-  width: 90px;
   display: flex;
+}
+
+.active-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 55px;
+  height: 100%;
+  cursor: pointer;
+  background: var(--color-panel);
+  border: 1px solid var(--color-border);
+  box-sizing: border-box;
+  transition: background 0.12s;
+}
+
+.active-control__label {
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 300;
+  line-height: 1;
+  // text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.active-control input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
 }
