@@ -1,0 +1,87 @@
+<div class="progression-page">
+  @if (bestSessionVolumeEntry; as bestEntry) {
+    <section class="best-session" aria-labelledby="best-session-title">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow" id="best-session-title">Personal best</span>
+          <h3>Best session volume</h3>
+        </div>
+      </div>
+      <div class="best-session__meta">
+        <strong>{{ formatValue(bestSessionVolumeKg) }}</strong>
+        <span>{{ formatDate(bestEntry.date) }}</span>
+      </div>
+      <app-weight-and-reps
+        [weight]="bestEntry.log.completedSets[0].weightKg"
+        [sets]="toWeightAndRepsSets(bestEntry.log)"
+        [size]="'small'"
+      />
+    </section>
+  }
+
+  <section class="progress-panel" aria-labelledby="volume-title">
+    <div class="progress-panel__header">
+      <div>
+        <span class="eyebrow" id="volume-title">Volume trend</span>
+        <h3>Session by session</h3>
+      </div>
+      <span class="progress-panel__count">{{ entries.length }} sessions</span>
+    </div>
+
+    <div class="chart" role="img" aria-label="Session volume over time">
+      <div class="chart__axis" aria-hidden="true">
+        @for (label of chartAxisLabels; track $index) {
+          <span>{{ formatValue(label) }}</span>
+        }
+      </div>
+      <div class="chart__plot">
+        <div class="chart__grid" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="xMidYMid meet"
+          aria-hidden="true"
+        >
+          <polygon class="chart__area" [attr.points]="chartAreaPoints" />
+          <polyline class="chart__line" [attr.points]="chartLinePoints" />
+          @for (point of chartPoints; track point.date) {
+            <circle
+              class="chart__point"
+              [attr.cx]="point.x"
+              [attr.cy]="point.y"
+              r="2.5"
+            >
+              <title>{{ point.label }}: {{ formatValue(point.valueKg) }}</title>
+            </circle>
+          }
+        </svg>
+        <div class="chart__labels">
+          <span>{{ chartPoints[0]?.label }}</span>
+          <span>{{ chartPoints.at(-1)?.label }}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="insights-grid">
+    <section class="strength-summary" aria-labelledby="strength-title">
+      <div class="section-heading">
+        <div>
+          <span class="eyebrow" id="strength-title">Strength markers</span>
+          <h3>Current records</h3>
+        </div>
+      </div>
+      <div class="strength-summary__metrics">
+        <div>
+          <strong>{{ formatValue(heaviestWeightKg) }}</strong>
+          <span>Heaviest weight</span>
+        </div>
+        <div>
+          <strong>{{ formatValue(estimatedOneRepMaxKg) }}</strong>
+          <span>Estimated 1-rep max</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
