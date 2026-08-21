@@ -15,8 +15,6 @@ import { EditableCardComponent } from "../../editable-card/editable-card.compone
 })
 export class WorkoutListComponent implements OnInit {
   routines: Routine[] = [];
-  activeRoutines: Routine[] = [];
-  inactiveRoutines: Routine[] = [];
   loading = false;
   pendingDeleteRoutine: Routine | null = null;
 
@@ -34,8 +32,6 @@ export class WorkoutListComponent implements OnInit {
     this.workoutService.getAllRoutines().subscribe({
       next: (routines) => {
         this.routines = routines;
-        this.activeRoutines = routines.filter((routine) => routine.active);
-        this.inactiveRoutines = routines.filter((routine) => !routine.active);
         this.loading = false;
       },
     });
@@ -47,19 +43,6 @@ export class WorkoutListComponent implements OnInit {
 
   deleteRoutine(routine: Routine): void {
     this.pendingDeleteRoutine = routine;
-  }
-
-  setRoutineActive(routine: Routine, active: boolean): void {
-    const previousActive = routine.active;
-    routine.active = active;
-    this.updateRoutineGroups();
-
-    this.workoutService.saveRoutine(routine).subscribe({
-      error: () => {
-        routine.active = previousActive;
-        this.updateRoutineGroups();
-      },
-    });
   }
 
   cancelDelete(): void {
@@ -74,12 +57,6 @@ export class WorkoutListComponent implements OnInit {
     this.workoutService.deleteRoutine(routine.id).subscribe({
       next: () => {
         this.routines = this.routines.filter((item) => item.id !== routine.id);
-        this.activeRoutines = this.activeRoutines.filter(
-          (item) => item.id !== routine.id,
-        );
-        this.inactiveRoutines = this.inactiveRoutines.filter(
-          (item) => item.id !== routine.id,
-        );
         this.pendingDeleteRoutine = null;
         this.loading = false;
       },
@@ -91,10 +68,5 @@ export class WorkoutListComponent implements OnInit {
 
   createRoutine(): void {
     this.router.navigate(["/program/workout/edit"]);
-  }
-
-  private updateRoutineGroups(): void {
-    this.activeRoutines = this.routines.filter((routine) => routine.active);
-    this.inactiveRoutines = this.routines.filter((routine) => !routine.active);
   }
 }

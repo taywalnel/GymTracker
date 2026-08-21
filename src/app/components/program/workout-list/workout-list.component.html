@@ -7,45 +7,18 @@
 @if (!loading && routines.length > 0) {
   <div class="routine-list">
     <div class="routine-list-scroll">
-      <section class="routine-group" aria-labelledby="active-routines-title">
-        <h2 id="active-routines-title" class="routine-group__title">Active</h2>
-        @for (routine of activeRoutines; track routine.id) {
-          <app-editable-card
-            [title]="routine.name"
-            [active]="routine.active === true"
-            [showActive]="true"
-            [description]="
-              routine.exercises.length +
-              ' exercise' +
-              (routine.exercises.length !== 1 ? 's' : '')
-            "
-            (edit)="viewRoutine(routine)"
-            (delete)="deleteRoutine(routine)"
-            (activeChange)="setRoutineActive(routine, $event)"
-          ></app-editable-card>
-        }
-      </section>
-
-      <section class="routine-group" aria-labelledby="inactive-routines-title">
-        <h2 id="inactive-routines-title" class="routine-group__title">
-          Inactive
-        </h2>
-        @for (routine of inactiveRoutines; track routine.id) {
-          <app-editable-card
-            [title]="routine.name"
-            [active]="routine.active === true"
-            [showActive]="true"
-            [description]="
-              routine.exercises.length +
-              ' exercise' +
-              (routine.exercises.length !== 1 ? 's' : '')
-            "
-            (edit)="viewRoutine(routine)"
-            (delete)="deleteRoutine(routine)"
-            (activeChange)="setRoutineActive(routine, $event)"
-          ></app-editable-card>
-        }
-      </section>
+      @for (routine of routines; track routine.id) {
+        <app-editable-card
+          [title]="routine.name"
+          [description]="
+            routine.exercises.length +
+            ' exercise' +
+            (routine.exercises.length !== 1 ? 's' : '')
+          "
+          (edit)="viewRoutine(routine)"
+          (delete)="deleteRoutine(routine)"
+        ></app-editable-card>
+      }
     </div>
   </div>
 }

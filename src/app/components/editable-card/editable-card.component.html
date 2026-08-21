@@ -1,16 +1,5 @@
 <app-card [title]="title" [description]="description"></app-card>
 <div class="buttons-wrapper">
-  @if (showActive) {
-    <label class="active-control">
-      <span class="active-control__label">Active</span>
-      <input
-        type="checkbox"
-        [checked]="active"
-        (change)="onActiveChange($event)"
-        [attr.aria-label]="(active ? 'Deactivate ' : 'Activate ') + title"
-      />
-    </label>
-  }
   <app-button
     variant="icon"
     iconName="edit"
