@@ -1,4 +1,8 @@
-<app-card [title]="title" [description]="description"></app-card>
+<app-card
+  [title]="title"
+  [description]="description"
+  (click)="cardClick.emit()"
+></app-card>
 <div class="buttons-wrapper">
   <app-button
     variant="icon"
@@ -7,12 +11,14 @@
     ariaLabel="Edit {{ title }}"
     (click)="edit.emit()"
   />
-  <app-button
-    variant="icon"
-    iconName="delete"
-    [height]="'100%'"
-    [danger]="true"
-    ariaLabel="Delete {{ title }}"
-    (click)="delete.emit()"
-  />
+  @if (showDelete) {
+    <app-button
+      variant="icon"
+      iconName="delete"
+      [height]="'100%'"
+      [danger]="true"
+      ariaLabel="Delete {{ title }}"
+      (click)="delete.emit()"
+    />
+  }
 </div>

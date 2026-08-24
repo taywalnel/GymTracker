@@ -5,6 +5,36 @@
  */
 export type UnitSystem = "metric" | "imperial";
 
+export const MUSCLE_GROUPS = [
+  "chest",
+  "back",
+  "shoulders",
+  "biceps",
+  "triceps",
+  "forearms",
+  "core",
+  "glutes",
+  "quadriceps",
+  "hamstrings",
+  "calves",
+] as const;
+
+export type MuscleGroup = (typeof MUSCLE_GROUPS)[number];
+
+export const MUSCLE_GROUP_LABELS: Record<MuscleGroup, string> = {
+  chest: "Chest",
+  back: "Back",
+  shoulders: "Shoulders",
+  biceps: "Biceps",
+  triceps: "Triceps",
+  forearms: "Forearms",
+  core: "Core",
+  glutes: "Glutes",
+  quadriceps: "Quadriceps",
+  hamstrings: "Hamstrings",
+  calves: "Calves",
+};
+
 /**
  * A single completed set within a session: how many reps were actually done.
  * Weight is recorded per-set because some exercises drop weight across sets,
@@ -21,6 +51,8 @@ export interface CompletedSet {
 export interface Exercise {
   id: string;
   name: string;
+  primaryMuscleGroup?: MuscleGroup;
+  secondaryMuscleGroups?: MuscleGroup[];
 }
 
 /**

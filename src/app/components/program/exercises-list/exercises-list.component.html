@@ -1,15 +1,38 @@
 <div class="exercise-list">
   <div class="exercise-list-scroll">
-    @for (exercise of exercises; track exercise.id) {
-      <app-card
-        [title]="exercise.name"
-        [description]="''"
-        [showChevron]="true"
-        [routerLink]="['/history/exercises', exercise.id]"
-      ></app-card>
+    @for (group of exerciseGroups; track group.key) {
+      <section class="exercise-group">
+        <h2 class="exercise-group-title">{{ group.label }}</h2>
+        @for (exercise of group.exercises; track exercise.id) {
+          <div class="exercise-row">
+            <app-editable-card
+              [title]="exercise.name"
+              [description]="exerciseUsageDescription(exercise)"
+              (cardClick)="viewExercise(exercise)"
+              (edit)="editExercise(exercise)"
+              (delete)="deleteExercise(exercise)"
+            ></app-editable-card>
+          </div>
+        }
+      </section>
     }
   </div>
 </div>
+
+@if (pendingDeleteExercise) {
+  <app-confirmation-modal
+    title="Delete exercise?"
+    [message]="
+      'Delete ' +
+      pendingDeleteExercise.name +
+      '? It will also be removed from any routines. This cannot be undone.'
+    "
+    confirmLabel="Delete"
+    [danger]="true"
+    (confirmed)="confirmDelete()"
+    (cancelled)="cancelDelete()"
+  />
+}
 
 <div class="exercise-list-actions">
   <app-button

@@ -36,9 +36,34 @@
   display: flex;
   height: 100%;
   flex-direction: column;
-  gap: 10px;
   margin: 0;
   overflow-y: auto;
+}
+
+.exercise-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.exercise-group-title {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.exercise-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.exercise-row app-editable-card {
+  min-width: 0;
+  flex: 1;
 }
 
 .exercise-list-actions {

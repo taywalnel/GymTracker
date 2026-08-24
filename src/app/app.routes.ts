@@ -85,6 +85,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: "program/exercises/edit/:id",
+    component: ExerciseEditorComponent,
+    title: "Edit Exercise — Gym Tracker",
+    canActivate: [authGuard],
+  },
+  {
     path: "program/exercises",
     component: ExercisesListComponent,
     title: "Exercises — Gym Tracker",

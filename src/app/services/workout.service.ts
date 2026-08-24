@@ -239,6 +239,22 @@ export class WorkoutService {
     );
   }
 
+  getExerciseUsageCounts(): Observable<Record<string, number>> {
+    return from(
+      this._loadSessions().then((sessions) => {
+        const counts: Record<string, number> = {};
+        for (const session of sessions) {
+          if (session.inProgress) continue;
+          for (const log of session.exerciseLogs) {
+            if (log.completedSets.length === 0) continue;
+            counts[log.exerciseId] = (counts[log.exerciseId] ?? 0) + 1;
+          }
+        }
+        return counts;
+      }),
+    );
+  }
+
   getSessionDates(): Observable<string[]> {
     return from(this._loadSessions()).pipe(
       map((sessions) =>
@@ -313,6 +329,10 @@ export class WorkoutService {
 
   deleteRoutine(id: string): Observable<boolean> {
     return from(this._deleteRoutine(id));
+  }
+
+  deleteExercise(id: string): Observable<boolean> {
+    return from(this._deleteExercise(id));
   }
 
   // ---- id generators ----------------------------------------------------
@@ -439,12 +459,16 @@ export class WorkoutService {
     });
 
     const batch = writeBatch(this.firestore);
+    const catalogExercises = await this._loadExercises();
     for (const r of current) {
       for (const exercise of r.exercises) {
-        batch.set(doc(this.exercisesCol(), exercise.id), {
-          id: exercise.id,
-          name: exercise.name,
-        });
+        const catalogExercise = catalogExercises.find(
+          (item) => item.id === exercise.id,
+        );
+        batch.set(
+          doc(this.exercisesCol(), exercise.id),
+          catalogExercise ?? { id: exercise.id, name: exercise.name },
+        );
       }
       batch.set(doc(this.routinesCol(), r.id), this._storeRoutine(r));
     }
@@ -485,6 +509,32 @@ export class WorkoutService {
     }
     await batch.commit();
     this.routinesSignal.set([...remaining]);
+    this.routinesLoaded = true;
+    return true;
+  }
+
+  private async _deleteExercise(id: string): Promise<boolean> {
+    const exercises = [...(await this._loadExercises())].filter(
+      (exercise) => exercise.id !== id,
+    );
+    const routines = (await this._loadRoutines()).map((routine) => ({
+      ...routine,
+      exercises: routine.exercises.filter((exercise) => exercise.id !== id),
+    }));
+
+    const batch = writeBatch(this.firestore);
+    batch.delete(doc(this.exercisesCol(), id));
+    for (const routine of routines) {
+      batch.set(
+        doc(this.routinesCol(), routine.id),
+        this._storeRoutine(routine),
+      );
+    }
+    await batch.commit();
+
+    this.exercisesSignal.set(exercises);
+    this.exercisesLoaded = true;
+    this.routinesSignal.set(routines);
     this.routinesLoaded = true;
     return true;
   }
