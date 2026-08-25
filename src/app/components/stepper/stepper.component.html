@@ -2,14 +2,34 @@
   <button
     type="button"
     class="stepper__btn stepper__btn--minus"
-    (click)="decrease()"
+    (pointerdown)="startPress(decrease.bind(this), $event)"
+    (pointerup)="stopPress()"
+    (pointercancel)="stopPress()"
+    (click)="handleClick(decrease.bind(this))"
     [disabled]="value <= minimum"
     [attr.aria-label]="'Decrease ' + ariaLabel"
   >
     −
   </button>
   <div class="stepper__value" aria-live="polite">
-    <span class="stepper__number">{{ value }}</span>
+    @if (editing) {
+      <input
+        #valueInput
+        class="stepper__number"
+        type="text"
+        inputmode="numeric"
+        pattern="-?[0-9]*"
+        autocomplete="off"
+        [value]="draftValue"
+        [attr.aria-label]="ariaLabel"
+        (input)="sanitizeDraft($event)"
+        (keydown)="handleEditKeydown($event)"
+        (blur)="commitDraft()"
+        autofocus
+      />
+    } @else {
+      <span class="stepper__number" (click)="startEditing()">{{ value }}</span>
+    }
     @if (unit) {
       <span class="stepper__unit">{{ unit }}</span>
     }
@@ -17,7 +37,10 @@
   <button
     type="button"
     class="stepper__btn stepper__btn--plus"
-    (click)="increase()"
+    (pointerdown)="startPress(increase.bind(this), $event)"
+    (pointerup)="stopPress()"
+    (pointercancel)="stopPress()"
+    (click)="handleClick(increase.bind(this))"
     [attr.aria-label]="'Increase ' + ariaLabel"
   >
     +

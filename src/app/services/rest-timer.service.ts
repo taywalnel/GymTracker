@@ -2,7 +2,8 @@ import { Injectable, OnDestroy } from "@angular/core";
 
 @Injectable({ providedIn: "root" })
 export class RestTimerService implements OnDestroy {
-  readonly duration = 60;
+  readonly defaultDuration = 60;
+  duration = this.defaultDuration;
 
   private endsAt: number | null = null;
   private remainingSeconds: number | null = null;
@@ -13,10 +14,12 @@ export class RestTimerService implements OnDestroy {
     return this.remainingSeconds;
   }
 
-  start(): void {
+  start(durationSeconds = this.defaultDuration): void {
     this.clear();
-    this.endsAt = Date.now() + this.duration * 1000;
-    this.remainingSeconds = this.duration;
+    this.duration = durationSeconds;
+    if (durationSeconds <= 0) return;
+    this.endsAt = Date.now() + durationSeconds * 1000;
+    this.remainingSeconds = durationSeconds;
     this.interval = setInterval(() => {
       this.updateRemainingSeconds();
     }, 1000);

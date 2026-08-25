@@ -64,6 +64,8 @@ export interface ExercisePrescription {
   targetWeightKg: number;
   targetReps: number;
   targetSets: number;
+  /** Rest between sets in seconds; absent on legacy routines and defaults to 60. */
+  restSeconds?: number;
   /** Order within the routine, for display */
   order: number;
 }

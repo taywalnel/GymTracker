@@ -263,7 +263,7 @@ export class CurrentExercisePageComponent implements OnInit {
       return;
     }
 
-    this.restTimer.start();
+    this.restTimer.start(this.exercise?.restSeconds ?? 60);
   }
 
   skipRestTimer(): void {

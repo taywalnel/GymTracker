@@ -38,10 +38,15 @@ export class AddExerciseComponent implements OnInit {
   weightKg: number | null = null;
   sets = 1;
   reps = 1;
+  restSeconds = 60;
   validationAttempted = false;
 
   get pageTitle(): string {
     return this.routeExerciseId === "new" ? "Add Exercise" : "Edit Exercise";
+  }
+
+  get isEditMode(): boolean {
+    return this.routeExerciseId !== "new";
   }
 
   private get isActiveWorkoutAdjustment(): boolean {
@@ -53,6 +58,10 @@ export class AddExerciseComponent implements OnInit {
       value: exercise.id,
       label: exercise.name,
     }));
+  }
+
+  get invalidRestSeconds(): boolean {
+    return !Number.isInteger(this.restSeconds) || this.restSeconds < 0;
   }
 
   private routine: Routine | undefined;
@@ -139,6 +148,7 @@ export class AddExerciseComponent implements OnInit {
     this.weightKg = this.existingExercise.targetWeightKg;
     this.sets = this.existingExercise.targetSets;
     this.reps = this.existingExercise.targetReps;
+    this.restSeconds = this.existingExercise.restSeconds ?? 60;
   }
 
   get weight(): number | null {
@@ -166,7 +176,8 @@ export class AddExerciseComponent implements OnInit {
       !selectedExercise ||
       this.weightKg === null ||
       this.sets < 1 ||
-      this.reps < 1
+      this.reps < 1 ||
+      this.invalidRestSeconds
     ) {
       return;
     }
@@ -177,6 +188,7 @@ export class AddExerciseComponent implements OnInit {
       targetWeightKg: this.weightKg,
       targetSets: this.sets,
       targetReps: this.reps,
+      restSeconds: this.restSeconds,
       order:
         this.existingExercise?.order ?? this.routine?.exercises.length ?? 0,
     };

@@ -70,6 +70,31 @@ describe("CurrentExercisePageComponent", () => {
     expect(component.workingSets[1].reps).toBe(8);
   });
 
+  it("starts the rest timer with the exercise duration", () => {
+    setCurrentExercise("first", []);
+    component.exercise = { ...component.exercise!, restSeconds: 45 };
+    component.workingSets = [
+      { setNumber: 1, reps: 10, weightKg: 10 },
+      { setNumber: 2, reps: 0, weightKg: 10 },
+    ];
+
+    component.completeCurrentSet();
+
+    expect(startRestTimer).toHaveBeenCalledWith(45);
+  });
+
+  it("uses 60 seconds for an exercise without a rest duration", () => {
+    setCurrentExercise("first", []);
+    component.workingSets = [
+      { setNumber: 1, reps: 10, weightKg: 10 },
+      { setNumber: 2, reps: 0, weightKg: 10 },
+    ];
+
+    component.completeCurrentSet();
+
+    expect(startRestTimer).toHaveBeenCalledWith(60);
+  });
+
   it("navigates to the next incomplete exercise after the completed exercise", () => {
     setCurrentExercise("first", []);
 

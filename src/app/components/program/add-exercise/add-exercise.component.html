@@ -9,75 +9,95 @@
     <app-loading-spinner></app-loading-spinner>
   </div>
 } @else {
-  <form class="exercise-form" (ngSubmit)="save()">
-    <app-select
-      id="exerciseTitle"
-      [(ngModel)]="exerciseId"
-      name="exerciseId"
-      [options]="exerciseOptions"
-      [placeholder]="
-        isLoadingExercises ? 'Loading exercises...' : 'Select an exercise'
-      "
-      [required]="true"
-      [disabled]="isLoadingExercises || exercises.length === 0"
-      [invalid]="validationAttempted && !exerciseId"
-      [error]="
-        validationAttempted && !exerciseId ? 'Select an exercise.' : null
-      "
-    ></app-select>
+  <div class="content-container">
+    @if (isEditMode) {
+      <h2 class="exercise-heading">{{ existingExercise?.name }}</h2>
+    }
 
-    <div class="form-group">
-      <p class="label">Weight</p>
-      <div class="weight-input-row">
-        <app-input
-          class="weight-input"
-          type="number"
-          [(ngModel)]="weight"
-          name="weight"
-          [min]="0"
-          [step]="0.1"
-          inputmode="decimal"
-          [required]="true"
-          [invalid]="validationAttempted && weightKg === null"
-          [error]="
-            validationAttempted && weightKg === null
-              ? 'Enter a weight amount.'
-              : null
+    <form class="exercise-form" (ngSubmit)="save()">
+      @if (!isEditMode) {
+        <app-select
+          id="exerciseTitle"
+          [(ngModel)]="exerciseId"
+          name="exerciseId"
+          [options]="exerciseOptions"
+          [placeholder]="
+            isLoadingExercises ? 'Loading exercises...' : 'Select an exercise'
           "
-        ></app-input>
-        <app-unit-toggle />
+          [required]="true"
+          [disabled]="isLoadingExercises || exercises.length === 0"
+          [invalid]="validationAttempted && !exerciseId"
+          [error]="
+            validationAttempted && !exerciseId ? 'Select an exercise.' : null
+          "
+        ></app-select>
+      }
+
+      <div class="form-group">
+        <p class="label">Weight</p>
+        <div class="weight-input-row">
+          <app-input
+            class="weight-input"
+            type="number"
+            [(ngModel)]="weight"
+            name="weight"
+            [min]="0"
+            [step]="0.1"
+            inputmode="decimal"
+            [required]="true"
+            [invalid]="validationAttempted && weightKg === null"
+            [error]="
+              validationAttempted && weightKg === null
+                ? 'Enter a weight amount.'
+                : null
+            "
+          ></app-input>
+          <app-unit-toggle />
+        </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="form-group stepper-container">
-        <p class="form-label" id="setsLabel">Sets</p>
-        <app-stepper
-          [value]="sets"
-          [minimum]="1"
-          unit="sets"
-          ariaLabel="sets"
-          aria-labelledby="setsLabel"
-          (valueChange)="sets = $event"
-        ></app-stepper>
+      <div class="row">
+        <div class="form-group stepper-container">
+          <p class="form-label" id="setsLabel">Sets</p>
+          <app-stepper
+            [value]="sets"
+            [minimum]="1"
+            unit="sets"
+            ariaLabel="sets"
+            aria-labelledby="setsLabel"
+            (valueChange)="sets = $event"
+          ></app-stepper>
+        </div>
+
+        <div class="form-group stepper-container">
+          <p class="form-label" id="repsLabel">Reps</p>
+          <app-stepper
+            [value]="reps"
+            [minimum]="1"
+            unit="reps"
+            ariaLabel="reps"
+            aria-labelledby="repsLabel"
+            (valueChange)="reps = $event"
+          ></app-stepper>
+        </div>
       </div>
 
       <div class="form-group stepper-container">
-        <p class="form-label" id="repsLabel">Reps</p>
+        <p class="form-label" id="restLabel">Rest between sets</p>
         <app-stepper
-          [value]="reps"
-          [minimum]="1"
-          unit="reps"
-          ariaLabel="reps"
-          aria-labelledby="repsLabel"
-          (valueChange)="reps = $event"
+          [value]="restSeconds"
+          [minimum]="0"
+          unit="seconds"
+          ariaLabel="rest between sets in seconds"
+          aria-labelledby="restLabel"
+          (valueChange)="restSeconds = $event"
         ></app-stepper>
       </div>
-    </div>
 
-    <div class="form-actions">
-      <app-button type="submit" variant="primary" [fullWidth]="true">
-        Save
-      </app-button>
-    </div>
-  </form>
+      <div class="form-actions">
+        <app-button type="submit" variant="primary" [fullWidth]="true">
+          Save
+        </app-button>
+      </div>
+    </form>
+  </div>
 }
