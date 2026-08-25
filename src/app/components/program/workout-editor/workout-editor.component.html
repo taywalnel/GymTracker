@@ -27,7 +27,6 @@
         @for (ex of routine.exercises; track ex.id) {
           <app-editable-card
             [title]="ex.name"
-            [description]="exerciseDescription(ex)"
             (edit)="editExercise(ex)"
             (delete)="deleteExercise(ex.id)"
           ></app-editable-card>
@@ -38,17 +37,10 @@
     @if (validationErrors.exercises) {
       <p class="form-error" role="alert">Add at least one exercise.</p>
     }
-    <app-button variant="secondary" [fullWidth]="true" (click)="addExercise()"
-      >Add exercise
-    </app-button>
+
     <div class="main-actions">
-      <app-button
-        variant="secondary"
-        [fullWidth]="true"
-        [disabled]="saving || !hasUnsavedChanges"
-        (click)="discardChanges()"
-      >
-        Discard
+      <app-button variant="secondary" [fullWidth]="true" (click)="addExercise()"
+        >Add exercise
       </app-button>
       <app-button
         variant="primary"
