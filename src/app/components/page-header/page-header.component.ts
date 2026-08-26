@@ -34,10 +34,8 @@ export class PageHeaderComponent {
 
   isTabSelected(tab: string): boolean {
     return (
-      this.activeTab ??
-      this.initialTab ??
-      this.tabLabel(this.tabs[0])
-    ) === tab;
+      (this.activeTab ?? this.initialTab ?? this.tabLabel(this.tabs[0])) === tab
+    );
   }
 
   tabLabel(tab: string | PageHeaderTab): string {
