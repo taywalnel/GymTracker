@@ -105,10 +105,7 @@
             </div>
             @if (!showEntryForm) {
               <div class="weight-actions">
-                <app-button
-                  (click)="openNewEntry()"
-                  variant="secondary"
-                >
+                <app-button (click)="openNewEntry()" variant="secondary">
                   Add weight
                 </app-button>
               </div>
@@ -226,7 +223,11 @@
                 </div>
               </div>
             </div>
-            <div class="chart-view-switcher" role="tablist" aria-label="Chart view">
+            <div
+              class="chart-view-switcher"
+              role="tablist"
+              aria-label="Chart view"
+            >
               @for (option of chartViewOptions; track option.value) {
                 <button
                   type="button"
@@ -241,7 +242,6 @@
             </div>
           </section>
         }
-
       }
     }
 

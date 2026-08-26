@@ -40,8 +40,8 @@ export class WorkoutDetailComponent implements OnInit {
   get detailTabs(): PageHeaderTab[] {
     return [
       { label: "Overview" },
-      { label: "History", count: this.sessions.length },
       { label: "Manage" },
+      { label: "History", count: this.sessions.length },
     ];
   }
 

@@ -20,6 +20,7 @@ export class PageHeaderComponent {
   @Input() rightActionLabel = "";
   @Input() showRightAction = false;
   @Input() tabs: (string | PageHeaderTab)[] = [];
+  @Input() initialTab: string | null = null;
   @Output() back = new EventEmitter<void>();
   @Output() rightAction = new EventEmitter<void>();
   @Output() selectedTab = new EventEmitter<string>();
@@ -32,7 +33,11 @@ export class PageHeaderComponent {
   }
 
   isTabSelected(tab: string): boolean {
-    return (this.activeTab ?? this.tabLabel(this.tabs[0])) === tab;
+    return (
+      this.activeTab ??
+      this.initialTab ??
+      this.tabLabel(this.tabs[0])
+    ) === tab;
   }
 
   tabLabel(tab: string | PageHeaderTab): string {
@@ -46,7 +51,8 @@ export class PageHeaderComponent {
   get selectedTabIndex(): number {
     const index = this.tabs.findIndex(
       (tab) =>
-        this.tabLabel(tab) === (this.activeTab ?? this.tabLabel(this.tabs[0])),
+        this.tabLabel(tab) ===
+        (this.activeTab ?? this.initialTab ?? this.tabLabel(this.tabs[0])),
     );
     return index < 0 ? 0 : index;
   }

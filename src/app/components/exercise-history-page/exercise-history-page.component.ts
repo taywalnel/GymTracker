@@ -1,4 +1,3 @@
-import { Location } from "@angular/common";
 import { Component, OnInit } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import { forkJoin } from "rxjs";
@@ -45,8 +44,8 @@ export class ExerciseHistoryPageComponent implements OnInit {
   get historyTabs(): PageHeaderTab[] {
     return [
       { label: "Progression" },
-      { label: "History", count: this.completedEntries.length },
       { label: "Manage" },
+      { label: "History", count: this.completedEntries.length },
     ];
   }
 
@@ -61,7 +60,6 @@ export class ExerciseHistoryPageComponent implements OnInit {
   }
 
   constructor(
-    private location: Location,
     private route: ActivatedRoute,
     private router: Router,
     private workoutService: WorkoutService,
@@ -136,6 +134,8 @@ export class ExerciseHistoryPageComponent implements OnInit {
   }
 
   goBack(): void {
-    this.location.back();
+    this.router.navigate(["/program"], {
+      queryParams: { tab: "Exercises" },
+    });
   }
 }

@@ -1,4 +1,5 @@
 import { Component, OnInit } from "@angular/core";
+import { ActivatedRoute } from "@angular/router";
 import { forkJoin } from "rxjs";
 import { WorkoutService } from "../../../services/workout.service";
 import { ExercisesListComponent } from "../exercises-list/exercises-list.component";
@@ -26,9 +27,17 @@ export class ProgramHomeComponent implements OnInit {
     ];
   }
 
-  constructor(private workoutService: WorkoutService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private workoutService: WorkoutService,
+  ) {}
 
   ngOnInit(): void {
+    const requestedTab = this.route.snapshot.queryParamMap.get("tab");
+    if (requestedTab === "Exercises" || requestedTab === "Routines") {
+      this.activeTab = requestedTab;
+    }
+
     forkJoin({
       routines: this.workoutService.getAllRoutines(),
       exercises: this.workoutService.getAllExercises(),
