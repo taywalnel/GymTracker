@@ -175,7 +175,14 @@ p {
 }
 
 .weight-actions {
-  display: block;
+  flex-shrink: 0;
+}
+
+.summary-latest-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .period-switcher button.is-selected {
@@ -186,7 +193,26 @@ p {
 .summary-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
+}
+
+.summary-latest {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.summary-latest span,
+.summary-latest small {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.summary-latest strong {
+  color: #c6f135;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  font-weight: 600;
 }
 
 .summary-heading {
@@ -229,35 +255,31 @@ p {
 .chart-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
-.chart-legend {
-  display: flex;
-  gap: 15px;
+.chart-view-switcher {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+}
+
+.chart-view-switcher button {
+  min-height: 28px;
+  border: 0;
+  background: transparent;
   color: var(--color-text-muted);
-  font-size: 0.68rem;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
-.chart-legend span {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.legend-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
-
-.legend-dot--raw {
-  background: var(--color-text-muted);
-}
-
-.legend-dot--average {
+.chart-view-switcher button.is-selected {
   background: var(--color-accent);
+  color: var(--color-bg);
 }
 
 .chart {
@@ -265,7 +287,7 @@ p {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
   column-gap: 10px;
-  height: 210px;
+  height: 170px;
 }
 
 .chart__axis {
@@ -320,15 +342,40 @@ p {
 }
 
 .chart__average-line {
-  stroke: var(--color-accent);
+  stroke: var(--color-text-muted);
   stroke-width: 2;
 }
 
+.chart__average-line.is-increased {
+  stroke: var(--color-success);
+}
+
+.chart__average-line.is-decreased {
+  stroke: var(--color-danger);
+}
+
 .chart__point {
-  fill: var(--color-text-muted);
-  stroke: var(--color-panel);
-  stroke-width: 1.2;
-  vector-effect: non-scaling-stroke;
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border: 1.2px solid var(--color-panel);
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  transform: translate(-50%, -50%);
+}
+
+.chart__point.is-increased {
+  background: var(--color-success);
+}
+
+.chart__point.is-decreased {
+  background: var(--color-danger);
+}
+
+.chart__points {
+  position: absolute;
+  inset: 8px 0 26px;
+  pointer-events: none;
 }
 
 .chart__labels {

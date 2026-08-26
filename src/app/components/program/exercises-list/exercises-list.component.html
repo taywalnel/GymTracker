@@ -8,9 +8,9 @@
             <app-editable-card
               [title]="exercise.name"
               [description]="exerciseUsageDescription(exercise)"
+              [showEdit]="false"
+              [showDelete]="false"
               (cardClick)="viewExercise(exercise)"
-              (edit)="editExercise(exercise)"
-              (delete)="deleteExercise(exercise)"
             ></app-editable-card>
           </div>
         }
@@ -18,21 +18,6 @@
     }
   </div>
 </div>
-
-@if (pendingDeleteExercise) {
-  <app-confirmation-modal
-    title="Delete exercise?"
-    [message]="
-      'Delete ' +
-      pendingDeleteExercise.name +
-      '? It will also be removed from any routines. This cannot be undone.'
-    "
-    confirmLabel="Delete"
-    [danger]="true"
-    (confirmed)="confirmDelete()"
-    (cancelled)="cancelDelete()"
-  />
-}
 
 <div class="exercise-list-actions">
   <app-button

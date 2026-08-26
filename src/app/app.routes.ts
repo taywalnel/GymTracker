@@ -14,6 +14,7 @@ import { CurrentExercisePageComponent } from "./components/current-exercise-page
 import { CurrentWorkoutComponent } from "./components/current-workout/current-workout.component";
 import { ExerciseHistoryPageComponent } from "./components/exercise-history-page/exercise-history-page.component";
 import { BodyWeightComponent } from "./components/body-weight/body-weight.component";
+import { WorkoutDetailComponent } from "./components/program/workout-detail/workout-detail.component";
 import { authGuard } from "./guards/auth.guard";
 
 export const routes: Routes = [
@@ -112,6 +113,12 @@ export const routes: Routes = [
     path: "program/workout/edit/:id",
     component: WorkoutEditorComponent,
     title: "Edit Routine — Gym Tracker",
+    canActivate: [authGuard],
+  },
+  {
+    path: "program/workout/:id",
+    component: WorkoutDetailComponent,
+    title: "Routine — Gym Tracker",
     canActivate: [authGuard],
   },
   {

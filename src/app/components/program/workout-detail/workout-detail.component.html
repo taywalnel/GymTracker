@@ -1,0 +1,158 @@
+<app-page-header
+  [title]="routine?.name ?? 'Routine'"
+  [showBack]="true"
+  [tabs]="detailTabs"
+  (back)="goBack()"
+  (selectedTab)="activeTab = $event"
+/>
+
+@if (isLoading) {
+  <div class="loading-state" role="status" aria-label="Loading routine">
+    <app-loading-spinner />
+  </div>
+} @else if (!routine) {
+  <p class="state-message">Routine not found.</p>
+} @else {
+  <main class="workout-detail">
+    @if (activeTab === "Overview") {
+      <section class="routine-overview" aria-labelledby="routine-summary-title">
+        <h2 id="routine-summary-title" class="routine-overview__title">
+          Routine summary
+        </h2>
+        <div class="routine-overview__stats">
+          <div class="routine-overview__stat">
+            <strong>{{ sessions.length }}</strong>
+            <span>Workouts completed</span>
+          </div>
+          <div class="routine-overview__stat">
+            <strong>
+              @if (lastCompletedSession) {
+                {{ lastCompletedSession.date | date: "MMM d, y" }}
+              } @else {
+                Never
+              }
+            </strong>
+            <span>Last completed</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="exercise-section" aria-labelledby="exercises-title">
+        <div class="exercise-section__header">
+          <h2 id="exercises-title">Exercises</h2>
+          <span>{{ routine.exercises.length }} planned</span>
+        </div>
+        <ul class="exercise-list">
+          @for (exercise of routine.exercises; track exercise.id) {
+            <li class="exercise-item">
+              <div class="exercise-item__header">
+                <span class="exercise-item__order">{{ exercise.order }}</span>
+                <a
+                  class="exercise-item__name"
+                  [routerLink]="['/history/exercises', exercise.id]"
+                >
+                  {{ exercise.name }}
+                </a>
+                <span class="exercise-item__chevron" aria-hidden="true">›</span>
+              </div>
+              <dl class="exercise-item__prescription">
+                <div>
+                  <dt>Sets</dt>
+                  <dd>{{ exercise.targetSets }}</dd>
+                </div>
+                <div>
+                  <dt>Reps</dt>
+                  <dd>{{ exercise.targetReps }}</dd>
+                </div>
+                <div>
+                  <dt>Weight</dt>
+                  <dd>{{ exercise.targetWeightKg }} kg</dd>
+                </div>
+                <div>
+                  <dt>Rest</dt>
+                  <dd>{{ exercise.restSeconds ?? 60 }} sec</dd>
+                </div>
+              </dl>
+            </li>
+          }
+        </ul>
+      </section>
+    } @else if (activeTab === "History") {
+      @if (sessions.length === 0) {
+        <p class="state-message">No completed workouts yet.</p>
+      } @else {
+        <section class="history-section" aria-label="Routine history">
+          <div class="history-list">
+            @for (session of sessions; track session.id) {
+              <div class="history-item">
+                <a
+                  class="history-item__header"
+                  [routerLink]="['/history/session', session.id]"
+                  [attr.aria-label]="
+                    session.routineName +
+                    ', ' +
+                    (session.date | date: 'longDate')
+                  "
+                >
+                  <div class="history-item__meta">
+                    <span class="history-item__date">{{
+                      session.date | date: "dd/MM/yyyy"
+                    }}</span>
+                    <span class="history-item__count">
+                      {{ formatDaysAgo(session.date) }}
+                    </span>
+                  </div>
+                  <div
+                    class="history-item__exercise-dots"
+                    aria-label="Exercise progress"
+                  >
+                    @for (log of session.exerciseLogs; track log.exerciseId) {
+                      <span
+                        [class]="getExerciseDotClass(log)"
+                        [attr.aria-label]="log.exerciseName"
+                        role="img"
+                      ></span>
+                    }
+                  </div>
+                  <span class="history-item__chevron" aria-hidden="true"
+                    >›</span
+                  >
+                </a>
+              </div>
+            }
+          </div>
+        </section>
+      }
+    } @else {
+      <section class="manage-section" aria-label="Routine management">
+        <app-button
+          variant="secondary"
+          [fullWidth]="true"
+          (click)="editRoutine()"
+        >
+          Edit routine
+        </app-button>
+        <app-button
+          variant="secondary"
+          [fullWidth]="true"
+          [danger]="true"
+          [disabled]="isDeleting"
+          (click)="deleteRoutine()"
+        >
+          Delete routine
+        </app-button>
+      </section>
+    }
+  </main>
+}
+
+@if (showDeleteConfirmation && routine) {
+  <app-confirmation-modal
+    title="Delete routine?"
+    [message]="'Delete ' + routine.name + '? This cannot be undone.'"
+    confirmLabel="Delete"
+    [danger]="true"
+    (confirmed)="confirmDelete()"
+    (cancelled)="cancelDelete()"
+  />
+}

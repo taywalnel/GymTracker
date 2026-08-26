@@ -14,11 +14,29 @@
   >
     <app-loading-spinner />
   </div>
-} @else if (completedEntries.length === 0) {
-  <p class="state-message">No completed sets yet.</p>
 } @else {
   <main class="exercise-detail">
-    @if (activeTab === "Progression") {
+    @if (activeTab === "Manage") {
+      <section class="manage-section" aria-label="Exercise management">
+        <app-button
+          variant="secondary"
+          [fullWidth]="true"
+          (click)="editExercise()"
+        >
+          Edit exercise
+        </app-button>
+        <app-button
+          variant="secondary"
+          [fullWidth]="true"
+          [danger]="true"
+          (click)="deleteExercise()"
+        >
+          Delete exercise
+        </app-button>
+      </section>
+    } @else if (completedEntries.length === 0) {
+      <p class="state-message">No completed sets yet.</p>
+    } @else if (activeTab === "Progression") {
       <app-exercise-progression [entries]="completedEntries" />
     } @else {
       <section class="history-section" aria-labelledby="history-title">
@@ -39,4 +57,19 @@
       </section>
     }
   </main>
+}
+
+@if (showDeleteConfirmation) {
+  <app-confirmation-modal
+    title="Delete exercise?"
+    [message]="
+      'Delete ' +
+      exerciseName +
+      '? It will also be removed from any routines. This cannot be undone.'
+    "
+    confirmLabel="Delete"
+    [danger]="true"
+    (confirmed)="confirmDelete()"
+    (cancelled)="cancelDelete()"
+  />
 }

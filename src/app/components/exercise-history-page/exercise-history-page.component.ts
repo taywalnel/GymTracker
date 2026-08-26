@@ -1,6 +1,6 @@
 import { Location } from "@angular/common";
 import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { forkJoin } from "rxjs";
 import { ExerciseLog } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
@@ -13,6 +13,8 @@ import {
   PageHeaderTab,
 } from "../page-header/page-header.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
+import { ButtonComponent } from "../button/button.component";
+import { ConfirmationModalComponent } from "../confirmation-modal/confirmation-modal.component";
 import {
   WeightAndRepsComponent,
   WeightAndRepsSet,
@@ -25,6 +27,8 @@ import {
     PageHeaderComponent,
     LoadingSpinnerComponent,
     WeightAndRepsComponent,
+    ButtonComponent,
+    ConfirmationModalComponent,
   ],
   templateUrl: "./exercise-history-page.component.html",
   styleUrl: "./exercise-history-page.component.scss",
@@ -34,11 +38,15 @@ export class ExerciseHistoryPageComponent implements OnInit {
   historyEntries: ExerciseHistoryEntry[] = [];
   activeTab = "Progression";
   isLoading = true;
+  exerciseId: string | null = null;
+  isDeleting = false;
+  showDeleteConfirmation = false;
 
   get historyTabs(): PageHeaderTab[] {
     return [
       { label: "Progression" },
       { label: "History", count: this.completedEntries.length },
+      { label: "Manage" },
     ];
   }
 
@@ -55,6 +63,7 @@ export class ExerciseHistoryPageComponent implements OnInit {
   constructor(
     private location: Location,
     private route: ActivatedRoute,
+    private router: Router,
     private workoutService: WorkoutService,
   ) {}
 
@@ -64,6 +73,7 @@ export class ExerciseHistoryPageComponent implements OnInit {
       this.isLoading = false;
       return;
     }
+    this.exerciseId = exerciseId;
 
     forkJoin({
       entries: this.workoutService.getExerciseHistory(exerciseId),
@@ -97,6 +107,32 @@ export class ExerciseHistoryPageComponent implements OnInit {
 
   private humanizeExerciseId(id: string): string {
     return id.replace("ex-", "").replace(/-/g, " ");
+  }
+
+  editExercise(): void {
+    if (!this.exerciseId) return;
+    this.router.navigate(["/program/exercises/edit", this.exerciseId]);
+  }
+
+  deleteExercise(): void {
+    this.showDeleteConfirmation = true;
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirmation = false;
+  }
+
+  confirmDelete(): void {
+    if (!this.exerciseId || this.isDeleting) return;
+
+    this.isDeleting = true;
+    this.workoutService.deleteExercise(this.exerciseId).subscribe({
+      next: () => this.router.navigate(["/program/exercises"]),
+      error: () => {
+        this.isDeleting = false;
+        this.showDeleteConfirmation = false;
+      },
+    });
   }
 
   goBack(): void {

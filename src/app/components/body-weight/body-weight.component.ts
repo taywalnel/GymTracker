@@ -14,14 +14,21 @@ import {
 } from "../page-header/page-header.component";
 
 type PeriodDays = 7 | 30 | 0;
+type ChartView = "weigh-ins" | "average";
 
 interface ChartPoint {
   date: string;
   weightKg: number;
   averageKg: number;
+  trend: "increased" | "decreased" | "unchanged";
   x: number;
   weightY: number;
   averageY: number;
+}
+
+interface ChartTrendSegment {
+  points: string;
+  trend: "increased" | "decreased" | "unchanged";
 }
 
 @Component({
@@ -46,6 +53,7 @@ export class BodyWeightComponent implements OnInit {
   pendingDeleteEntry: BodyWeightEntry | null = null;
   editingDate: string | null = null;
   selectedPeriod: PeriodDays = 30;
+  selectedChartView: ChartView = "weigh-ins";
   activeTab = "Overview";
   get bodyWeightTabs(): PageHeaderTab[] {
     return [
@@ -62,6 +70,10 @@ export class BodyWeightComponent implements OnInit {
     { label: "7 days", value: 7 },
     { label: "30 days", value: 30 },
     { label: "All", value: 0 },
+  ];
+  readonly chartViewOptions: { label: string; value: ChartView }[] = [
+    { label: "Weigh-ins", value: "weigh-ins" },
+    { label: "7-day average", value: "average" },
   ];
 
   constructor(
@@ -94,10 +106,17 @@ export class BodyWeightComponent implements OnInit {
 
     return entries.map((entry, index) => {
       const averageKg = this.movingAverage(entries, index);
+      const previousWeightKg = entries[index - 1]?.weightKg;
       return {
         date: entry.date,
         weightKg: entry.weightKg,
         averageKg,
+        trend:
+          previousWeightKg === undefined || entry.weightKg === previousWeightKg
+            ? "unchanged"
+            : entry.weightKg > previousWeightKg
+              ? "increased"
+              : "decreased",
         x: entries.length === 1 ? 50 : (index / (entries.length - 1)) * 100,
         weightY: this.chartY(entry.weightKg, min, max),
         averageY: this.chartY(averageKg, min, max),
@@ -117,6 +136,22 @@ export class BodyWeightComponent implements OnInit {
       .join(" ");
   }
 
+  get chartTrendSegments(): ChartTrendSegment[] {
+    const points = this.chartPoints;
+    return points.slice(1).map((point, index) => {
+      const previousPoint = points[index];
+      return {
+        points: `${previousPoint.x},${previousPoint.averageY} ${point.x},${point.averageY}`,
+        trend:
+          point.averageKg === previousPoint.averageKg
+            ? "unchanged"
+            : point.averageKg > previousPoint.averageKg
+              ? "increased"
+              : "decreased",
+      };
+    });
+  }
+
   get chartAxisLabels(): number[] {
     const values = this.chartPoints.flatMap((point) => [
       point.weightKg,
@@ -131,6 +166,10 @@ export class BodyWeightComponent implements OnInit {
 
   get latestEntry(): BodyWeightEntry | undefined {
     return this.filteredEntries.at(-1);
+  }
+
+  get periodStartEntry(): BodyWeightEntry | undefined {
+    return this.filteredEntries[0];
   }
 
   get latestRecordedEntry(): BodyWeightEntry | undefined {
@@ -165,6 +204,10 @@ export class BodyWeightComponent implements OnInit {
 
   selectPeriod(period: PeriodDays): void {
     this.selectedPeriod = period;
+  }
+
+  selectChartView(view: ChartView): void {
+    this.selectedChartView = view;
   }
 
   selectTab(tab: string): void {
@@ -262,6 +305,13 @@ export class BodyWeightComponent implements OnInit {
       day: "numeric",
       year: "numeric",
     });
+  }
+
+  formatChartDate(date: string): string {
+    const parsedDate = this.parseDate(date);
+    return `${String(parsedDate.getDate()).padStart(2, "0")}/${String(
+      parsedDate.getMonth() + 1,
+    ).padStart(2, "0")}/${parsedDate.getFullYear()}`;
   }
 
   private isInSelectedPeriod(date: string): boolean {

@@ -15,25 +15,13 @@
             ' exercise' +
             (routine.exercises.length !== 1 ? 's' : '')
           "
-          (edit)="viewRoutine(routine)"
-          (delete)="deleteRoutine(routine)"
+          [showEdit]="false"
+          [showDelete]="false"
+          (cardClick)="viewRoutine(routine)"
         ></app-editable-card>
       }
     </div>
   </div>
-}
-
-@if (pendingDeleteRoutine) {
-  <app-confirmation-modal
-    title="Delete routine?"
-    [message]="
-      'Delete ' + pendingDeleteRoutine.name + '? This cannot be undone.'
-    "
-    confirmLabel="Delete"
-    [danger]="true"
-    (confirmed)="confirmDelete()"
-    (cancelled)="cancelDelete()"
-  />
 }
 
 <div class="workout-list-actions">

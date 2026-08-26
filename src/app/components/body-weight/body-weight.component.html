@@ -93,18 +93,39 @@
         </section>
       } @else if (entries.length > 0) {
         <section class="summary-panel" aria-label="Body weight summary">
+          <div class="summary-latest-row">
+            <div class="summary-latest">
+              <span>Latest</span>
+              <strong>{{
+                latestEntry ? formatValue(latestEntry.weightKg) : "—"
+              }}</strong>
+              @if (latestEntry) {
+                <small>{{ formatDate(latestEntry.date) }}</small>
+              }
+            </div>
+            @if (!showEntryForm) {
+              <div class="weight-actions">
+                <app-button
+                  (click)="openNewEntry()"
+                  variant="secondary"
+                >
+                  Add weight
+                </app-button>
+              </div>
+            }
+          </div>
           <div class="summary-metrics">
+            <div>
+              <strong>{{
+                periodStartEntry ? formatValue(periodStartEntry.weightKg) : "—"
+              }}</strong>
+              <span>Period start</span>
+            </div>
             <div>
               <strong>{{
                 latestEntry ? formatValue(latestEntry.weightKg) : "—"
               }}</strong>
-              <span>Latest</span>
-            </div>
-            <div>
-              <strong>{{
-                averageWeightKg !== null ? formatValue(averageWeightKg) : "—"
-              }}</strong>
-              <span>7-day average</span>
+              <span>Period end</span>
             </div>
             <div>
               <strong
@@ -122,13 +143,30 @@
                   —
                 }
               </strong>
-              <span>Change in period</span>
+              <span>Period change</span>
             </div>
           </div>
         </section>
 
         @if (chartPoints.length > 0) {
           <section class="chart-panel" aria-labelledby="chart-title">
+            <div
+              class="period-switcher"
+              role="tablist"
+              aria-label="Progress period"
+            >
+              @for (option of periodOptions; track option.value) {
+                <button
+                  type="button"
+                  role="tab"
+                  [attr.aria-selected]="selectedPeriod === option.value"
+                  [class.is-selected]="selectedPeriod === option.value"
+                  (click)="selectPeriod(option.value)"
+                >
+                  {{ option.label }}
+                </button>
+              }
+            </div>
             <div
               class="chart"
               role="img"
@@ -145,76 +183,65 @@
                 </div>
                 <svg
                   viewBox="0 0 100 100"
-                  preserveAspectRatio="xMidYMid meet"
+                  preserveAspectRatio="none"
                   aria-hidden="true"
                 >
-                  <polyline
-                    class="chart__raw-line"
-                    [attr.points]="chartWeightPoints"
-                  />
-                  <polyline
-                    class="chart__average-line"
-                    [attr.points]="chartAveragePoints"
-                  />
-                  @for (point of chartPoints; track point.date) {
-                    <circle
-                      class="chart__point"
-                      [attr.cx]="point.x"
-                      [attr.cy]="point.weightY"
-                      r="2.2"
-                    >
-                      <title>
-                        {{ formatDate(point.date) }}:
-                        {{ formatValue(point.weightKg) }}
-                      </title>
-                    </circle>
+                  @if (selectedChartView === "weigh-ins") {
+                    <polyline
+                      class="chart__raw-line"
+                      [attr.points]="chartWeightPoints"
+                    />
+                  } @else {
+                    @for (segment of chartTrendSegments; track $index) {
+                      <polyline
+                        class="chart__average-line"
+                        [class.is-increased]="segment.trend === 'increased'"
+                        [class.is-decreased]="segment.trend === 'decreased'"
+                        [attr.points]="segment.points"
+                      />
+                    }
                   }
                 </svg>
+                @if (selectedChartView === "weigh-ins") {
+                  <div class="chart__points" aria-hidden="true">
+                    @for (point of chartPoints; track point.date) {
+                      <span
+                        class="chart__point"
+                        [class.is-increased]="point.trend === 'increased'"
+                        [class.is-decreased]="point.trend === 'decreased'"
+                        [style.left.%]="point.x"
+                        [style.top.%]="point.weightY"
+                        [title]="
+                          formatDate(point.date) +
+                          ': ' +
+                          formatValue(point.weightKg)
+                        "
+                      ></span>
+                    }
+                  </div>
+                }
                 <div class="chart__labels">
-                  <span>{{ formatDate(chartPoints[0].date) }}</span>
-                  <span>{{ formatDate(chartPoints.at(-1)!.date) }}</span>
+                  <span>{{ formatChartDate(chartPoints[0].date) }}</span>
+                  <span>{{ formatChartDate(chartPoints.at(-1)!.date) }}</span>
                 </div>
               </div>
             </div>
-            <div class="chart-legend" aria-label="Chart legend">
-              <span><i class="legend-dot legend-dot--raw"></i>Weigh-in</span>
-              <span
-                ><i class="legend-dot legend-dot--average"></i>7-day
-                average</span
-              >
+            <div class="chart-view-switcher" role="tablist" aria-label="Chart view">
+              @for (option of chartViewOptions; track option.value) {
+                <button
+                  type="button"
+                  role="tab"
+                  [attr.aria-selected]="selectedChartView === option.value"
+                  [class.is-selected]="selectedChartView === option.value"
+                  (click)="selectChartView(option.value)"
+                >
+                  {{ option.label }}
+                </button>
+              }
             </div>
           </section>
         }
 
-        <div
-          class="period-switcher"
-          role="tablist"
-          aria-label="Progress period"
-        >
-          @for (option of periodOptions; track option.value) {
-            <button
-              type="button"
-              role="tab"
-              [attr.aria-selected]="selectedPeriod === option.value"
-              [class.is-selected]="selectedPeriod === option.value"
-              (click)="selectPeriod(option.value)"
-            >
-              {{ option.label }}
-            </button>
-          }
-        </div>
-
-        @if (!showEntryForm) {
-          <div class="weight-actions">
-            <app-button
-              [fullWidth]="true"
-              (click)="openNewEntry()"
-              variant="secondary"
-            >
-              Add weight
-            </app-button>
-          </div>
-        }
       }
     }
 

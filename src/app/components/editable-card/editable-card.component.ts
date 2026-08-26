@@ -12,6 +12,7 @@ import { RoutineCardComponent } from "../routine-card/routine-card.component";
 export class EditableCardComponent {
   @Input({ required: true }) title = "";
   @Input({ required: false }) description = "";
+  @Input() showEdit = true;
   @Input() showDelete = true;
   @Output() edit = new EventEmitter<void>();
   @Output() delete = new EventEmitter<void>();

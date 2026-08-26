@@ -3,22 +3,26 @@
   [description]="description"
   (click)="cardClick.emit()"
 ></app-card>
-<div class="buttons-wrapper">
-  <app-button
-    variant="icon"
-    iconName="edit"
-    [height]="'100%'"
-    ariaLabel="Edit {{ title }}"
-    (click)="edit.emit()"
-  />
-  @if (showDelete) {
-    <app-button
-      variant="icon"
-      iconName="delete"
-      [height]="'100%'"
-      [danger]="true"
-      ariaLabel="Delete {{ title }}"
-      (click)="delete.emit()"
-    />
-  }
-</div>
+@if (showEdit || showDelete) {
+  <div class="buttons-wrapper">
+    @if (showEdit) {
+      <app-button
+        variant="icon"
+        iconName="edit"
+        [height]="'100%'"
+        ariaLabel="Edit {{ title }}"
+        (click)="edit.emit()"
+      />
+    }
+    @if (showDelete) {
+      <app-button
+        variant="icon"
+        iconName="delete"
+        [height]="'100%'"
+        [danger]="true"
+        ariaLabel="Delete {{ title }}"
+        (click)="delete.emit()"
+      />
+    }
+  </div>
+}
