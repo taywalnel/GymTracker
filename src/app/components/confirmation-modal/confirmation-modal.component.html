@@ -10,17 +10,41 @@
     <p>{{ message }}</p>
 
     <div class="modal-actions">
-      <app-button variant="secondary" [fullWidth]="true" (click)="cancel()">
-        {{ cancelLabel }}
-      </app-button>
-      <app-button
-        variant="primary"
-        [fullWidth]="true"
-        [danger]="danger"
-        (click)="confirm()"
-      >
-        {{ confirmLabel }}
-      </app-button>
+      @if (secondaryLabel) {
+        <div>
+          <app-button
+            variant="primary"
+            [fullWidth]="true"
+            (click)="triggerSecondary()"
+          >
+            {{ secondaryLabel }}
+          </app-button>
+        </div>
+      }
+      @if (!secondaryLabel) {
+        <div>
+          <app-button variant="secondary" [fullWidth]="true" (click)="cancel()">
+            {{ cancelLabel }}
+          </app-button>
+        </div>
+      }
+      <div>
+        <app-button
+          variant="primary"
+          [fullWidth]="true"
+          [danger]="danger"
+          (click)="confirm()"
+        >
+          {{ confirmLabel }}
+        </app-button>
+      </div>
+      @if (secondaryLabel) {
+        <div class="modal-actions__cancel">
+          <app-button variant="secondary" [fullWidth]="true" (click)="cancel()">
+            {{ cancelLabel }}
+          </app-button>
+        </div>
+      }
     </div>
   </section>
 </div>

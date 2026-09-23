@@ -337,8 +337,7 @@ p {
 
 .chart__raw-line {
   stroke: var(--color-text-muted);
-  stroke-dasharray: 2 2;
-  stroke-width: 1;
+  stroke-width: 2;
 }
 
 .chart__average-line {

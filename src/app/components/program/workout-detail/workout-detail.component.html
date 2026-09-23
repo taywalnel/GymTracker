@@ -15,25 +15,28 @@
 } @else {
   <main class="workout-detail">
     @if (activeTab === "Overview") {
-      <section class="routine-overview" aria-labelledby="routine-summary-title">
-        <h2 id="routine-summary-title" class="routine-overview__title">
-          Routine summary
-        </h2>
-        <div class="routine-overview__stats">
-          <div class="routine-overview__stat">
-            <strong>{{ sessions.length }}</strong>
-            <span>Workouts completed</span>
-          </div>
-          <div class="routine-overview__stat">
-            <strong>
-              @if (lastCompletedSession) {
-                {{ lastCompletedSession.date | date: "MMM d, y" }}
-              } @else {
-                Never
-              }
-            </strong>
-            <span>Last completed</span>
-          </div>
+      <section class="stat-grid" aria-label="Routine summary">
+        <div class="stat-tile">
+          <strong>{{ routine.exercises.length }}</strong>
+          <span>Exercises</span>
+        </div>
+        <div class="stat-tile">
+          <strong>{{ totalSets }}</strong>
+          <span>Total sets</span>
+        </div>
+        <div class="stat-tile">
+          <strong>{{ sessions.length }}</strong>
+          <span>Completed</span>
+        </div>
+        <div class="stat-tile">
+          <strong>
+            @if (lastCompletedSession) {
+              {{ formatDaysAgo(lastCompletedSession.date) }}
+            } @else {
+              Never
+            }
+          </strong>
+          <span>Last done</span>
         </div>
       </section>
 
@@ -44,35 +47,25 @@
         </div>
         <ul class="exercise-list">
           @for (exercise of routine.exercises; track exercise.id) {
-            <li class="exercise-item">
-              <div class="exercise-item__header">
+            <li>
+              <a
+                class="exercise-item"
+                [routerLink]="['/history/exercises', exercise.id]"
+              >
                 <span class="exercise-item__order">{{ exercise.order }}</span>
-                <a
-                  class="exercise-item__name"
-                  [routerLink]="['/history/exercises', exercise.id]"
-                >
-                  {{ exercise.name }}
-                </a>
+                <div class="exercise-item__content">
+                  <span class="exercise-item__name">{{ exercise.name }}</span>
+                  <span class="exercise-item__prescription">
+                    {{ exercise.targetSets }} sets ·
+                    {{ exercise.targetReps }} reps ·
+                    {{ exercise.targetWeightKg }} kg
+                  </span>
+                  <span class="exercise-item__rest">
+                    {{ exercise.restSeconds ?? 60 }}s rest between sets
+                  </span>
+                </div>
                 <span class="exercise-item__chevron" aria-hidden="true">›</span>
-              </div>
-              <dl class="exercise-item__prescription">
-                <div>
-                  <dt>Sets</dt>
-                  <dd>{{ exercise.targetSets }}</dd>
-                </div>
-                <div>
-                  <dt>Reps</dt>
-                  <dd>{{ exercise.targetReps }}</dd>
-                </div>
-                <div>
-                  <dt>Weight</dt>
-                  <dd>{{ exercise.targetWeightKg }} kg</dd>
-                </div>
-                <div>
-                  <dt>Rest</dt>
-                  <dd>{{ exercise.restSeconds ?? 60 }} sec</dd>
-                </div>
-              </dl>
+              </a>
             </li>
           }
         </ul>
@@ -82,11 +75,11 @@
         <p class="state-message">No completed workouts yet.</p>
       } @else {
         <section class="history-section" aria-label="Routine history">
-          <div class="history-list">
+          <ul class="history-list">
             @for (session of sessions; track session.id) {
-              <div class="history-item">
+              <li>
                 <a
-                  class="history-item__header"
+                  class="history-item"
                   [routerLink]="['/history/session', session.id]"
                   [attr.aria-label]="
                     session.routineName +
@@ -96,14 +89,14 @@
                 >
                   <div class="history-item__meta">
                     <span class="history-item__date">{{
-                      session.date | date: "dd/MM/yyyy"
+                      session.date | date: "MMM d, y"
                     }}</span>
-                    <span class="history-item__count">
+                    <span class="history-item__ago">
                       {{ formatDaysAgo(session.date) }}
                     </span>
                   </div>
                   <div
-                    class="history-item__exercise-dots"
+                    class="history-item__dots"
                     aria-label="Exercise progress"
                   >
                     @for (log of session.exerciseLogs; track log.exerciseId) {
@@ -118,13 +111,17 @@
                     >›</span
                   >
                 </a>
-              </div>
+              </li>
             }
-          </div>
+          </ul>
         </section>
       }
     } @else {
       <section class="manage-section" aria-label="Routine management">
+        <p class="manage-section__hint">
+          Editing this routine only changes future workouts — past history stays
+          the same.
+        </p>
         <app-button
           variant="secondary"
           [fullWidth]="true"

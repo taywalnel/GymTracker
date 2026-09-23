@@ -13,10 +13,12 @@ export class ConfirmationModalComponent {
   @Input({ required: true }) message = "Are you sure you want to continue?";
   @Input() confirmLabel = "Confirm";
   @Input() cancelLabel = "Cancel";
+  @Input() secondaryLabel = "";
   @Input() danger = false;
 
   @Output() confirmed = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
+  @Output() secondary = new EventEmitter<void>();
 
   cancel(): void {
     this.cancelled.emit();
@@ -24,5 +26,9 @@ export class ConfirmationModalComponent {
 
   confirm(): void {
     this.confirmed.emit();
+  }
+
+  triggerSecondary(): void {
+    this.secondary.emit();
   }
 }

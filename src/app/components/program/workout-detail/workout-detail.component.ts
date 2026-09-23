@@ -49,6 +49,15 @@ export class WorkoutDetailComponent implements OnInit {
     return this.sessions[0] ?? null;
   }
 
+  get totalSets(): number {
+    return (
+      this.routine?.exercises.reduce(
+        (total, exercise) => total + exercise.targetSets,
+        0,
+      ) ?? 0
+    );
+  }
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,

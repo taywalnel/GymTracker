@@ -48,6 +48,7 @@ export class CurrentExercisePageComponent implements OnInit {
   activeSetIndex = 0;
   lastHistoryEntry: ExerciseHistoryEntry | null = null;
   showProgressionSuggestion = false;
+  showExerciseActions = false;
   completedSetIndices = new Set<number>();
   private setStarted: boolean[] = [];
   protected setTouched: boolean[] = [];
@@ -137,6 +138,8 @@ export class CurrentExercisePageComponent implements OnInit {
 
   adjustRoutine(): void {
     if (!this.state || !this.exercise) return;
+
+    this.showExerciseActions = false;
 
     this.router.navigate(
       [

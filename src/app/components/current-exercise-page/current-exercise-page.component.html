@@ -47,7 +47,7 @@
             iconName="edit"
             height="40px"
             ariaLabel="Edit exercise"
-            (click)="adjustRoutine()"
+            (click)="showExerciseActions = true"
           />
         </div>
       </div>
@@ -132,6 +132,18 @@
       cancelLabel="Keep"
       (confirmed)="adjustRoutine()"
       (cancelled)="dismissProgressionSuggestion()"
+    />
+  }
+
+  @if (showExerciseActions) {
+    <app-confirmation-modal
+      title="Change exercise"
+      message="Update this exercise's targets or swap it for another exercise."
+      confirmLabel="Edit"
+      secondaryLabel="Swap"
+      cancelLabel="Cancel"
+      (confirmed)="adjustRoutine()"
+      (cancelled)="showExerciseActions = false"
     />
   }
 }

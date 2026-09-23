@@ -10,15 +10,15 @@
   </div>
 } @else {
   <div class="content-container">
-    <div class="scroll-container">
-      @if (isEditMode) {
-        <div class="page-intro">
-          <p class="eyebrow">Exercise details</p>
-          <h2 class="exercise-heading">{{ existingExercise?.name }}</h2>
-        </div>
-      }
+    <form class="exercise-form" (ngSubmit)="save()">
+      <div class="scroll-container">
+        @if (isEditMode) {
+          <div class="page-intro">
+            <p class="eyebrow">Exercise details</p>
+            <h2 class="exercise-heading">{{ existingExercise?.name }}</h2>
+          </div>
+        }
 
-      <form class="exercise-form" (ngSubmit)="save()">
         @if (!isEditMode) {
           <section class="form-section form-section--exercise">
             <p class="section-label">Exercise</p>
@@ -113,12 +113,12 @@
             (valueChange)="restSeconds = $event"
           ></app-stepper>
         </section>
-      </form>
-    </div>
-    <div class="form-actions">
-      <app-button type="submit" variant="primary" [fullWidth]="true">
-        Save
-      </app-button>
-    </div>
+      </div>
+      <div class="form-actions">
+        <app-button type="submit" variant="primary" [fullWidth]="true">
+          Save
+        </app-button>
+      </div>
+    </form>
   </div>
 }

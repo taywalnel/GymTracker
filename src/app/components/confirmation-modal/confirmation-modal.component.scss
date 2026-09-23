@@ -28,8 +28,12 @@
 }
 
 .modal-actions {
-  display: flex;
-  justify-content: flex-end;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-top: 24px;
+}
+
+.modal-actions__cancel {
+  grid-column: 1 / -1;
 }
