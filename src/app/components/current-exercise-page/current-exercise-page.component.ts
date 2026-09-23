@@ -158,6 +158,22 @@ export class CurrentExercisePageComponent implements OnInit {
     );
   }
 
+  swapExercise(): void {
+    if (!this.state || !this.exercise) return;
+
+    this.showExerciseActions = false;
+    this.router.navigate(
+      ["/current-workout", this.state.today.routine.id, "add-exercise"],
+      {
+        state: {
+          routine: this.state.today.routine,
+          returnUrl: this.router.url,
+          replaceExerciseId: this.exercise.id,
+        },
+      },
+    );
+  }
+
   onProgressionSuggestionShown(): void {
     if (!this.state || !this.exercise) return;
     const progressionSuggestedExerciseIds = Array.from(

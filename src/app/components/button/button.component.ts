@@ -45,6 +45,7 @@ export class ButtonComponent {
   @Input() size: ButtonSize = "default";
   @Input() fullWidth = false;
   @Input() disabled = false;
+  @Input() selected = false;
   @Input() danger = false;
   @Input() ariaLabel: string | null = null;
   @Input() type: "button" | "submit" | "reset" = "button";

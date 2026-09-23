@@ -3,16 +3,17 @@ import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
   Exercise,
+  MuscleGroup,
+  MUSCLE_GROUP_LABELS,
+  MUSCLE_GROUPS,
   ResolvedExercisePrescription,
   Routine,
 } from "../../../models/workout.models";
 import { UnitPreferenceService } from "../../../services/unit-preference.service";
 import { WorkoutService } from "../../../services/workout.service";
 import { ButtonComponent } from "../../button/button.component";
-import { InputComponent } from "../../input/input.component";
 import { LoadingSpinnerComponent } from "../../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
-import { SelectComponent, SelectOption } from "../../select/select.component";
 import { StepperComponent } from "../../stepper/stepper.component";
 import { UnitToggleComponent } from "../../unit-toggle/unit-toggle.component";
 
@@ -21,10 +22,8 @@ import { UnitToggleComponent } from "../../unit-toggle/unit-toggle.component";
   imports: [
     FormsModule,
     ButtonComponent,
-    InputComponent,
     LoadingSpinnerComponent,
     PageHeaderComponent,
-    SelectComponent,
     StepperComponent,
     UnitToggleComponent,
   ],
@@ -32,44 +31,129 @@ import { UnitToggleComponent } from "../../unit-toggle/unit-toggle.component";
   styleUrl: "./add-exercise.component.scss",
 })
 export class AddExerciseComponent implements OnInit {
-  exerciseId = "";
   exercises: Exercise[] = [];
   isLoadingExercises = true;
+  loadError = false;
   weightKg: number | null = null;
   sets = 1;
   reps = 1;
   restSeconds = 60;
-  validationAttempted = false;
+  step = 1;
+  saving = false;
+  saveToRoutine = true;
+  selectedMuscleGroup: MuscleGroup | "unassigned" | null = null;
+  selectedExercise: Exercise | null = null;
 
   get pageTitle(): string {
-    return this.routeExerciseId === "new" ? "Add Exercise" : "Edit Exercise";
+    return "Add Exercise";
   }
 
-  get isEditMode(): boolean {
-    return this.routeExerciseId !== "new";
+  get isLiveWorkout(): boolean {
+    return Boolean(this.workoutId);
   }
 
-  private get isActiveWorkoutAdjustment(): boolean {
-    return this.returnUrl.startsWith("/current-workout/");
+  get stepTitle(): string {
+    return ["Exercise type", "Exercise", "Workout targets", "Overview"][
+      this.step - 1
+    ];
   }
 
-  get exerciseOptions(): SelectOption[] {
-    return this.exercises.map((exercise) => ({
-      value: exercise.id,
-      label: exercise.name,
-    }));
+  get muscleGroups(): { value: MuscleGroup | "unassigned"; label: string }[] {
+    const availableGroups = [
+      ...MUSCLE_GROUPS.map((value) => ({
+        value,
+        label: MUSCLE_GROUP_LABELS[value],
+      })),
+      { value: "unassigned" as const, label: "Unassigned" },
+    ];
+    const addableExerciseIds = new Set(
+      this.exercises
+        .filter(
+          (exercise) =>
+            !this.routine?.exercises.some(({ id }) => id === exercise.id),
+        )
+        .map(({ id }) => id),
+    );
+
+    return availableGroups.filter((group) =>
+      this.exercises.some(
+        (exercise) =>
+          addableExerciseIds.has(exercise.id) &&
+          (group.value === "unassigned"
+            ? !exercise.primaryMuscleGroup
+            : exercise.primaryMuscleGroup === group.value),
+      ),
+    );
+  }
+
+  get filteredExercises(): Exercise[] {
+    const existingIds = new Set(this.routine?.exercises.map(({ id }) => id));
+    return this.exercises.filter(
+      (exercise) =>
+        !existingIds.has(exercise.id) &&
+        (this.selectedMuscleGroup === "unassigned"
+          ? !exercise.primaryMuscleGroup
+          : exercise.primaryMuscleGroup === this.selectedMuscleGroup),
+    );
   }
 
   get invalidRestSeconds(): boolean {
     return !Number.isInteger(this.restSeconds) || this.restSeconds < 0;
   }
 
+  get canContinue(): boolean {
+    switch (this.step) {
+      case 1:
+        return this.selectedMuscleGroup !== null;
+      case 2:
+        return this.selectedExercise !== null;
+      case 3:
+        return (
+          this.weightKg !== null &&
+          this.sets >= 1 &&
+          this.reps >= 1 &&
+          !this.invalidRestSeconds
+        );
+      default:
+        return false;
+    }
+  }
+
+  get selectedMuscleGroupLabel(): string {
+    return this.selectedMuscleGroup === "unassigned"
+      ? "Unassigned"
+      : this.selectedMuscleGroup
+        ? MUSCLE_GROUP_LABELS[this.selectedMuscleGroup]
+        : "";
+  }
+
+  get formattedWeight(): string {
+    return this.weightKg === null
+      ? ""
+      : `${this.units.formatWeight(this.weightKg)} ${this.units.unitLabel()}`;
+  }
+
+  get weightUnit(): string {
+    return this.units.unitLabel();
+  }
+
+  get weightStep(): number {
+    return this.units.weightStep;
+  }
+
+  private get returnDestination(): string {
+    if (this.returnUrl) return this.returnUrl;
+    return this.workoutId
+      ? `/current-workout/${this.workoutId}`
+      : `/program/workout/edit/${this.routineId}`;
+  }
+
   private routine: Routine | undefined;
   private readonly originalRoutine: Routine | undefined;
-  existingExercise: ResolvedExercisePrescription | undefined;
   private readonly returnUrl: string;
+  private readonly replaceExerciseId: string | undefined;
   private routineId = "";
-  private routeExerciseId = "";
+  private workoutId = "";
 
   constructor(
     private router: Router,
@@ -82,12 +166,17 @@ export class AddExerciseComponent implements OnInit {
     this.routine = state["routine"] as Routine | undefined;
     this.originalRoutine = state["originalRoutine"] as Routine | undefined;
     this.returnUrl = (state["returnUrl"] as string | undefined) ?? "";
+    this.replaceExerciseId = state["replaceExerciseId"] as string | undefined;
+  }
+
+  private get isSwap(): boolean {
+    return Boolean(this.replaceExerciseId);
   }
 
   ngOnInit(): void {
     const params = this.route.snapshot.paramMap;
     this.routineId = params.get("id") ?? "";
-    this.routeExerciseId = params.get("exerciseId") ?? "";
+    this.workoutId = params.get("workoutId") ?? "";
 
     this.workoutService.getAllExercises().subscribe({
       next: (exercises) => {
@@ -99,11 +188,22 @@ export class AddExerciseComponent implements OnInit {
       },
       error: () => {
         this.isLoadingExercises = false;
+        this.loadError = true;
       },
     });
   }
 
   private loadRoutine(): void {
+    if (this.workoutId) {
+      const state = this.workoutService.getInProgressState();
+      if (!state || state.today.routine.id !== this.workoutId) {
+        this.router.navigateByUrl("/");
+        return;
+      }
+      this.routine = state.today.routine;
+      return;
+    }
+
     if (!this.routineId) {
       this.router.navigateByUrl("/program");
       return;
@@ -129,26 +229,6 @@ export class AddExerciseComponent implements OnInit {
 
   private initializeFromRoutine(routine: Routine): void {
     this.routine = routine;
-
-    if (this.routeExerciseId === "new") {
-      return;
-    }
-
-    this.existingExercise = routine.exercises.find(
-      (exercise) => exercise.id === this.routeExerciseId,
-    );
-    if (!this.existingExercise) {
-      this.router.navigateByUrl(
-        this.returnUrl || `/program/workout/edit/${this.routineId}`,
-      );
-      return;
-    }
-
-    this.exerciseId = this.existingExercise.id;
-    this.weightKg = this.existingExercise.targetWeightKg;
-    this.sets = this.existingExercise.targetSets;
-    this.reps = this.existingExercise.targetReps;
-    this.restSeconds = this.existingExercise.restSeconds ?? 60;
   }
 
   get weight(): number | null {
@@ -167,113 +247,134 @@ export class AddExerciseComponent implements OnInit {
     }
   }
 
+  setWeight(value: number): void {
+    this.weight = value;
+  }
+
+  chooseMuscleGroup(group: MuscleGroup | "unassigned"): void {
+    this.selectedMuscleGroup = group;
+    this.selectedExercise = null;
+    this.step = 2;
+  }
+
+  chooseExercise(exercise: Exercise): void {
+    this.selectedExercise = exercise;
+    this.step = 3;
+  }
+
+  next(): void {
+    if (!this.canContinue) {
+      return;
+    }
+    this.step += 1;
+  }
+
+  previous(): void {
+    if (this.step > 1) {
+      this.step -= 1;
+      return;
+    }
+    this.goBack();
+  }
+
+  goToStep(step: number): void {
+    this.step = step;
+  }
+
   save(): void {
-    const selectedExercise = this.exercises.find(
-      (exercise) => exercise.id === this.exerciseId,
-    );
-    this.validationAttempted = true;
-    if (
-      !selectedExercise ||
-      this.weightKg === null ||
-      this.sets < 1 ||
-      this.reps < 1 ||
-      this.invalidRestSeconds
-    ) {
+    if (!this.selectedExercise || this.weightKg === null || !this.routine) {
       return;
     }
 
     const exercise: ResolvedExercisePrescription = {
-      id: selectedExercise.id,
-      name: selectedExercise.name,
+      id: this.selectedExercise.id,
+      name: this.selectedExercise.name,
       targetWeightKg: this.weightKg,
       targetSets: this.sets,
       targetReps: this.reps,
       restSeconds: this.restSeconds,
       order:
-        this.existingExercise?.order ?? this.routine?.exercises.length ?? 0,
+        this.routine.exercises.find(
+          (item) => item.id === this.replaceExerciseId,
+        )?.order ?? this.routine.exercises.length,
     };
 
-    if (this.isActiveWorkoutAdjustment && this.routine) {
-      const updatedRoutine: Routine = {
+    if (this.isLiveWorkout) {
+      const updatedRoutine = {
         ...this.routine,
-        exercises: this.routine.exercises.map((routineExercise) =>
-          routineExercise.id === this.existingExercise?.id
-            ? exercise
-            : routineExercise,
-        ),
+        exercises: this.isSwap
+          ? this.routine.exercises.map((item) =>
+              item.id === this.replaceExerciseId ? exercise : item,
+            )
+          : [...this.routine.exercises, exercise],
       };
       const inProgressState = this.workoutService.getInProgressState();
+      if (!inProgressState) {
+        this.router.navigateByUrl("/");
+        return;
+      }
 
+      const saveState = () => {
+        const workingSets = this.isSwap
+          ? inProgressState.workingSets.filter(
+              (entry) => entry.exerciseId !== this.replaceExerciseId,
+            )
+          : inProgressState.workingSets;
+        const completedExerciseIds = this.isSwap
+          ? inProgressState.completedExerciseIds.filter(
+              (id) => id !== this.replaceExerciseId,
+            )
+          : inProgressState.completedExerciseIds;
+        const progressionSuggestedExerciseIds = this.isSwap
+          ? inProgressState.progressionSuggestedExerciseIds?.filter(
+              (id) => id !== this.replaceExerciseId,
+            )
+          : inProgressState.progressionSuggestedExerciseIds;
+        this.workoutService.saveInProgressState({
+          ...inProgressState,
+          today: { ...inProgressState.today, routine: updatedRoutine },
+          activeExerciseId:
+            this.isSwap &&
+            inProgressState.activeExerciseId === this.replaceExerciseId
+              ? exercise.id
+              : inProgressState.activeExerciseId,
+          workingSets,
+          completedExerciseIds,
+          progressionSuggestedExerciseIds,
+        });
+        const destination = this.isSwap
+          ? this.returnUrl.replace(`/${this.replaceExerciseId}`, `/${exercise.id}`)
+          : `/current-workout/${this.workoutId}`;
+        this.router.navigateByUrl(destination);
+      };
+
+      if (!this.saveToRoutine) {
+        saveState();
+        return;
+      }
+
+      this.saving = true;
       this.workoutService.saveRoutine(updatedRoutine).subscribe({
-        next: () => {
-          if (inProgressState) {
-            const previousExerciseId = this.existingExercise?.id;
-            const workingSets = inProgressState.workingSets.map((entry) =>
-              entry.exerciseId === previousExerciseId
-                ? { ...entry, exerciseId: exercise.id }
-                : entry,
-            );
-            const completedExerciseIds =
-              inProgressState.completedExerciseIds.map((id) =>
-                id === previousExerciseId ? exercise.id : id,
-              );
-            const progressionSuggestedExerciseIds =
-              inProgressState.progressionSuggestedExerciseIds?.map((id) =>
-                id === previousExerciseId ? exercise.id : id,
-              );
-
-            this.workoutService.saveInProgressState({
-              ...inProgressState,
-              today: { ...inProgressState.today, routine: updatedRoutine },
-              activeExerciseId:
-                inProgressState.activeExerciseId === previousExerciseId
-                  ? exercise.id
-                  : inProgressState.activeExerciseId,
-              workingSets,
-              completedExerciseIds,
-              progressionSuggestedExerciseIds,
-            });
-          }
-
-          const adjustedReturnUrl = this.existingExercise?.id
-            ? this.returnUrl.replace(
-                `/${this.existingExercise.id}`,
-                `/${exercise.id}`,
-              )
-            : this.returnUrl;
-          this.router.navigateByUrl(adjustedReturnUrl);
+        next: saveState,
+        error: () => {
+          this.saving = false;
+          alert("Error saving routine");
         },
-        error: () => alert("Error saving routine"),
       });
       return;
     }
 
-    this.router.navigateByUrl(this.returnUrl, {
+    this.router.navigateByUrl(this.returnDestination, {
       state: {
         routine: this.routine,
         originalRoutine: this.originalRoutine,
         exercise,
-        replaceExerciseId: this.existingExercise?.id,
-      },
-    });
-  }
-
-  delete(): void {
-    if (!this.existingExercise) {
-      return;
-    }
-
-    this.router.navigateByUrl(this.returnUrl, {
-      state: {
-        routine: this.routine,
-        originalRoutine: this.originalRoutine,
-        removeExerciseId: this.existingExercise.id,
       },
     });
   }
 
   goBack(): void {
-    this.router.navigateByUrl(this.returnUrl, {
+    this.router.navigateByUrl(this.returnDestination, {
       state: { routine: this.routine, originalRoutine: this.originalRoutine },
     });
   }

@@ -225,6 +225,15 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
     this.router.navigate(["/"]);
   }
 
+  addExercise(): void {
+    if (!this.state) return;
+    this.router.navigate([
+      "/current-workout",
+      this.state.today.routine.id,
+      "add-exercise",
+    ]);
+  }
+
   private setsFor(exerciseId: string): CompletedSet[] {
     return (
       this.state?.workingSets.find((sets) => sets.exerciseId === exerciseId)

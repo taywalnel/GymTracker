@@ -1,0 +1,100 @@
+:host {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.content-container {
+  display: flex;
+  width: min(100%, 42rem);
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 15px;
+  margin: 0 auto;
+}
+
+.loading-state {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+.edit-body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 18px;
+  overflow-y: auto;
+}
+
+.eyebrow,
+.form-label {
+  margin: 0;
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.edit-body h2 {
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 5vw, 1.9rem);
+  font-weight: 600;
+}
+
+.weight-input-row,
+.form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+.stepper-container,
+.weight-stepper {
+  min-width: 0;
+  flex: 1;
+}
+
+.weight-input-row {
+  align-items: stretch;
+}
+
+.weight-input-row app-unit-toggle {
+  min-width: 0;
+  flex: 1;
+}
+
+.weight-container,
+.recovery-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  margin: 0 0 6px;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 360px) {
+  .weight-input-row {
+    flex-direction: column;
+  }
+}

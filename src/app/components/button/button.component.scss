@@ -71,6 +71,11 @@
     }
   }
 
+  &--selected {
+    border-color: var(--color-accent);
+    box-shadow: inset 0 0 0 1px var(--color-accent);
+  }
+
   &--danger {
     background: #b94b50;
     color: #000;

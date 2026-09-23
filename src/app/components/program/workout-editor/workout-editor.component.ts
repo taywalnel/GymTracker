@@ -115,7 +115,7 @@ export class WorkoutEditorComponent implements OnInit {
 
   addExercise(): void {
     this.router.navigate(
-      ["/program/workout/edit", this.routine.id, "exercise", "new"],
+      ["/program/workout/edit", this.routine.id, "add-exercise"],
       {
         state: {
           routine: this.routine,

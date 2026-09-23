@@ -16,6 +16,7 @@ import {
 export class StepperComponent implements OnDestroy {
   @Input({ required: true }) value!: number;
   @Input() minimum = 0;
+  @Input() step = 1;
   @Input() unit = "";
   @Input() ariaLabel = "Value";
 
@@ -31,12 +32,12 @@ export class StepperComponent implements OnDestroy {
 
   decrease(): void {
     if (this.value > this.minimum) {
-      this.valueChange.emit(this.value - 1);
+      this.valueChange.emit(Math.max(this.minimum, this.value - this.step));
     }
   }
 
   increase(): void {
-    this.valueChange.emit(this.value + 1);
+    this.valueChange.emit(this.value + this.step);
   }
 
   startEditing(): void {
@@ -47,7 +48,7 @@ export class StepperComponent implements OnDestroy {
 
   sanitizeDraft(event: Event): void {
     const input = event.target as HTMLInputElement;
-    this.draftValue = input.value.replace(/[^0-9-]/g, "");
+    this.draftValue = input.value.replace(/[^0-9.-]/g, "");
     input.value = this.draftValue;
   }
 
@@ -63,7 +64,10 @@ export class StepperComponent implements OnDestroy {
 
   commitDraft(): void {
     const parsedValue = Number(this.draftValue);
-    if (/^-?\d+$/.test(this.draftValue) && Number.isSafeInteger(parsedValue)) {
+    if (
+      /^-?(?:\d+|\d*\.\d+)$/.test(this.draftValue) &&
+      Number.isFinite(parsedValue)
+    ) {
       if (parsedValue >= this.minimum) {
         this.valueChange.emit(parsedValue);
       }

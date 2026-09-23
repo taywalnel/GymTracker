@@ -1,0 +1,74 @@
+<app-page-header
+  [title]="pageTitle"
+  [showBack]="true"
+  (back)="goBack()"
+></app-page-header>
+
+@if (isLoadingExercises) {
+  <div class="loading-state" role="status" aria-label="Loading exercises">
+    <app-loading-spinner></app-loading-spinner>
+  </div>
+} @else {
+  <div class="content-container">
+    <div class="edit-body">
+      <h2>{{ existingExercise?.name }}</h2>
+
+      <div class="weight-container">
+        <p class="form-label">Target weight</p>
+        <div class="weight-input-row">
+          <app-stepper
+            class="weight-stepper"
+            [value]="weight ?? 0"
+            [minimum]="0"
+            [step]="weightStep"
+            [unit]="weightUnit"
+            ariaLabel="target weight"
+            (valueChange)="setWeight($event)"
+          ></app-stepper>
+          <app-unit-toggle />
+        </div>
+      </div>
+      <div class="row">
+        <div class="stepper-container">
+          <p class="form-label">Sets</p>
+          <app-stepper
+            [value]="sets"
+            [minimum]="1"
+            unit="sets"
+            ariaLabel="sets"
+            (valueChange)="sets = $event"
+          ></app-stepper>
+        </div>
+        <div class="stepper-container">
+          <p class="form-label">Reps</p>
+          <app-stepper
+            [value]="reps"
+            [minimum]="1"
+            unit="reps"
+            ariaLabel="reps"
+            (valueChange)="reps = $event"
+          ></app-stepper>
+        </div>
+      </div>
+      <div class="recovery-container">
+        <p class="form-label">Recovery time</p>
+        <app-stepper
+          [value]="restSeconds"
+          [minimum]="0"
+          unit="seconds"
+          ariaLabel="rest between sets in seconds"
+          (valueChange)="restSeconds = $event"
+        ></app-stepper>
+      </div>
+    </div>
+    <div class="form-actions">
+      <app-button
+        type="button"
+        variant="primary"
+        [fullWidth]="true"
+        (click)="save()"
+        >Save</app-button
+      >
+    </div>
+  </div>
+}

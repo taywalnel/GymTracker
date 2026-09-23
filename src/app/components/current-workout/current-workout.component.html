@@ -76,6 +76,16 @@
     <div class="workout-header__elapsed-time" aria-live="off">
       Elapsed time: {{ elapsedTime }}
     </div>
+    <app-button
+      class="add-exercise-button"
+      variant="secondary"
+      [fullWidth]="true"
+      [height]="'40px'"
+      [disabled]="isSaving"
+      (click)="addExercise()"
+    >
+      Add exercise
+    </app-button>
     <div class="action-buttons">
       <app-button
         variant="secondary"
