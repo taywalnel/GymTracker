@@ -13,7 +13,22 @@
 } @else {
   <div class="content-container">
     <div class="wizard-body">
-      <p class="eyebrow">Step {{ step }}</p>
+      <div class="progress-indicator">
+        <p class="eyebrow">Step {{ step }} of 4</p>
+        <div
+          class="progress-indicator__track"
+          role="progressbar"
+          aria-label="Add exercise progress"
+          [attr.aria-valuenow]="step"
+          aria-valuemin="1"
+          aria-valuemax="4"
+        >
+          <span
+            class="progress-indicator__fill"
+            [style.width.%]="step * 25"
+          ></span>
+        </div>
+      </div>
       <h2>{{ stepTitle }}</h2>
 
       @if (step === 1) {
