@@ -4,11 +4,11 @@ import { Router } from "@angular/router";
 import { WorkoutService } from "../../../services/workout.service";
 import { Routine } from "../../../models/workout.models";
 import { ButtonComponent } from "../../button/button.component";
-import { EditableCardComponent } from "../../editable-card/editable-card.component";
+import { RoutineCardComponent } from "../../routine-card/routine-card.component";
 
 @Component({
   selector: "app-workout-list",
-  imports: [ButtonComponent, EditableCardComponent],
+  imports: [ButtonComponent, RoutineCardComponent],
   templateUrl: "./workout-list.component.html",
   styleUrl: "./workout-list.component.scss",
 })

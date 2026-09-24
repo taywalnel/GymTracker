@@ -1,10 +1,12 @@
 :host {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px 16px;
-  background: linear-gradient(180deg, rgba(198, 241, 53, 0.02), transparent);
-  border: 1px solid rgba(143, 174, 38, 0.12);
+  gap: 8px;
+  padding: 18px 20px;
+  background: linear-gradient(135deg, var(--color-panel) 0%, #22262c 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
   cursor: pointer;
   transition:
     transform 0.08s ease,
@@ -67,20 +69,20 @@
 .routine-card__content {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   flex: 1;
   min-width: 0;
 }
 
 .routine-card__name {
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: 1.25rem;
   line-height: 1.18;
   color: var(--color-text);
 }
 
 .routine-card__meta {
-  font-size: 0.8rem;
+  font-size: 0.86rem;
   color: var(--color-text-muted);
 }
 
