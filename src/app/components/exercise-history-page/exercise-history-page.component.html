@@ -17,23 +17,63 @@
 } @else {
   <main class="exercise-detail">
     @if (activeTab === "Manage") {
-      <section class="manage-section" aria-label="Exercise management">
-        <app-button
-          variant="secondary"
-          [fullWidth]="true"
-          (click)="editExercise()"
-        >
-          Edit exercise
-        </app-button>
-        <app-button
-          variant="secondary"
-          [fullWidth]="true"
-          [danger]="true"
-          (click)="deleteExercise()"
-        >
-          Delete exercise
-        </app-button>
-      </section>
+      <form
+        class="manage-form"
+        aria-label="Edit exercise"
+        (ngSubmit)="saveExercise()"
+      >
+        @if (exercise) {
+          <app-input
+            id="exerciseName"
+            name="exerciseName"
+            label="Exercise name"
+            [(ngModel)]="editName"
+            (ngModelChange)="onEditChange()"
+            [required]="true"
+            [disabled]="isSaving"
+            [invalid]="!!nameError"
+            [error]="nameError"
+          />
+          <app-choice-list
+            label="Muscle group"
+            [options]="categoryOptions"
+            [(value)]="editCategory"
+            (valueChange)="onEditChange()"
+            [fill]="true"
+          />
+        } @else {
+          <p class="state-message">
+            This exercise is no longer in your exercise list.
+          </p>
+        }
+
+        @if (showSavedMessage) {
+          <p class="manage-form__status" role="status">Changes saved.</p>
+        }
+
+        <div class="manage-form__actions">
+          <app-button
+            variant="ghost"
+            [danger]="true"
+            [fullWidth]="true"
+            [disabled]="isSaving || isDeleting"
+            (click)="deleteExercise()"
+          >
+            Delete exercise
+          </app-button>
+          @if (exercise) {
+            <app-button
+              variant="primary"
+              type="submit"
+              [fullWidth]="true"
+              [disabled]="!canSave"
+              [loading]="isSaving"
+            >
+              Save changes
+            </app-button>
+          }
+        </div>
+      </form>
     } @else if (completedEntries.length === 0) {
       <app-empty-state
         title="No sets logged yet"

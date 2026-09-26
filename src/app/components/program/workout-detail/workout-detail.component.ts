@@ -9,6 +9,7 @@ import {
   WorkoutSession,
 } from "../../../models/workout.models";
 import { WorkoutService } from "../../../services/workout.service";
+import { formatDaysAgo } from "../../../utils/dates";
 import { ButtonComponent } from "../../button/button.component";
 import { ConfirmationModalComponent } from "../../confirmation-modal/confirmation-modal.component";
 import { LoadingSpinnerComponent } from "../../loading-spinner/loading-spinner.component";
@@ -199,20 +200,7 @@ export class WorkoutDetailComponent implements OnInit {
     });
   }
 
-  formatDaysAgo(dateStr: string): string {
-    const [year, month, day] = dateStr.slice(0, 10).split("-").map(Number);
-    const sessionDay = Date.UTC(year, month - 1, day);
-    const today = new Date();
-    const todayDay = Date.UTC(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate(),
-    );
-    const daysAgo = Math.max(0, Math.round((todayDay - sessionDay) / 86400000));
-
-    if (daysAgo === 0) return "Today";
-    return `${daysAgo} ${daysAgo === 1 ? "day" : "days"} ago`;
-  }
+  readonly formatDaysAgo = formatDaysAgo;
 
   getExerciseDotClass(log: ExerciseLog): string {
     if (log.targetReps === undefined) return "status-dot";

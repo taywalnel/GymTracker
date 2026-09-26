@@ -22,11 +22,14 @@ export class ConfirmationModalComponent {
   @Input() confirmLabel = "Confirm";
   @Input() cancelLabel = "Cancel";
   @Input() secondaryLabel = "";
+  // An extra full-width action above Cancel; only shown alongside a secondary action.
+  @Input() tertiaryLabel = "";
   @Input() danger = false;
 
   @Output() confirmed = new EventEmitter<void>();
   @Output() cancelled = new EventEmitter<void>();
   @Output() secondary = new EventEmitter<void>();
+  @Output() tertiary = new EventEmitter<void>();
 
   cancel(): void {
     this.cancelled.emit();
@@ -38,5 +41,9 @@ export class ConfirmationModalComponent {
 
   triggerSecondary(): void {
     this.secondary.emit();
+  }
+
+  triggerTertiary(): void {
+    this.tertiary.emit();
   }
 }

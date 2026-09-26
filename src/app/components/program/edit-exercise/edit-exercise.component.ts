@@ -58,6 +58,8 @@ export class EditExerciseComponent implements OnInit {
   private readonly returnUrl: string;
   private routineId = "";
   private routeExerciseId = "";
+  // True when editing the unsaved routine on the New Routine screen.
+  private isDraft = false;
 
   constructor(
     private router: Router,
@@ -93,6 +95,13 @@ export class EditExerciseComponent implements OnInit {
   private loadRoutine(): void {
     if (!this.routineId) {
       this.router.navigateByUrl("/program");
+      return;
+    }
+
+    const draft = this.workoutService.getRoutineDraft();
+    if (draft?.id === this.routineId) {
+      this.isDraft = true;
+      this.initializeFromRoutine(draft);
       return;
     }
 
@@ -185,6 +194,11 @@ export class EditExerciseComponent implements OnInit {
             : routineExercise,
         ),
       };
+      if (this.isDraft) {
+        this.workoutService.saveRoutineDraft(updatedRoutine);
+        this.router.navigateByUrl(this.returnDestination);
+        return;
+      }
       this.workoutService.saveRoutine(updatedRoutine).subscribe({
         next: () => this.router.navigateByUrl(this.returnDestination),
         error: () => alert("Error saving routine"),
@@ -256,6 +270,9 @@ export class EditExerciseComponent implements OnInit {
   }
 
   private get returnDestination(): string {
-    return this.returnUrl || `/program/workout/${this.routineId}`;
+    if (this.returnUrl) return this.returnUrl;
+    return this.isDraft
+      ? "/program/workout/new"
+      : `/program/workout/${this.routineId}`;
   }
 }

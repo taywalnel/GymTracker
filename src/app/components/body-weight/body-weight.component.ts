@@ -25,10 +25,13 @@ interface ChartPoint {
   weightY: number;
 }
 
-interface ChartDateLabel {
-  date: Date;
+interface ChartMonthMarker {
+  label: string;
   x: number;
+  showLabel: boolean;
 }
+
+const MAX_MONTH_LABELS = 6;
 
 @Component({
   selector: "app-body-weight",
@@ -123,14 +126,30 @@ export class BodyWeightComponent implements OnInit {
     });
   }
 
-  get chartDateLabels(): ChartDateLabel[] {
+  /** A marker at the 1st of each month in the visible range. */
+  get chartMonthMarkers(): ChartMonthMarker[] {
     const { startTime, endTime } = this.chartTimeDomain();
-    const intervals = 2;
     const range = endTime - startTime;
+    if (range === 0) return [];
 
-    return Array.from({ length: intervals + 1 }, (_, index) => ({
-      date: new Date(startTime + (range * index) / intervals),
-      x: (index / intervals) * 100,
+    const start = new Date(startTime);
+    const cursor = new Date(
+      start.getFullYear(),
+      start.getMonth() + (start.getDate() === 1 ? 0 : 1),
+      1,
+    );
+    const monthStarts: Date[] = [];
+    while (cursor.getTime() <= endTime) {
+      monthStarts.push(new Date(cursor));
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+
+    // Long ranges keep every line but thin the labels so they don't overlap.
+    const labelEvery = Math.ceil(monthStarts.length / MAX_MONTH_LABELS);
+    return monthStarts.map((date, index) => ({
+      label: date.toLocaleString("en-US", { month: "short" }),
+      x: ((date.getTime() - startTime) / range) * 100,
+      showLabel: index % labelEvery === 0,
     }));
   }
 
@@ -169,7 +188,7 @@ export class BodyWeightComponent implements OnInit {
   }
 
   formatChange(changeKg: number): string {
-    return `${changeKg >= 0 ? "+" : ""}${this.units.formatWeight(changeKg)} ${this.units.unitLabel()}`;
+    return `${changeKg >= 0 ? "+" : ""}${this.units.formatWeight(changeKg, 2)} ${this.units.unitLabel()}`;
   }
 
   selectPeriod(period: PeriodDays): void {
@@ -193,7 +212,7 @@ export class BodyWeightComponent implements OnInit {
   editEntry(entry: BodyWeightEntry): void {
     this.editingDate = entry.date;
     this.formDate = entry.date;
-    this.formWeight = Number(this.units.fromKg(entry.weightKg).toFixed(1));
+    this.formWeight = Number(this.units.fromKg(entry.weightKg).toFixed(2));
     this.validationAttempted = false;
     this.showEntryForm = true;
   }
@@ -261,7 +280,7 @@ export class BodyWeightComponent implements OnInit {
   }
 
   formatValue(weightKg: number): string {
-    return `${this.units.formatWeight(weightKg)} ${this.units.unitLabel()}`;
+    return `${this.units.formatWeight(weightKg, 2)} ${this.units.unitLabel()}`;
   }
 
   formatDate(date: string): string {
@@ -271,10 +290,6 @@ export class BodyWeightComponent implements OnInit {
       day: "numeric",
       year: "numeric",
     });
-  }
-
-  formatChartDate(date: Date): string {
-    return `${String(date.getDate()).padStart(2, "0")}/${date.toLocaleString("en-US", { month: "short" })}`;
   }
 
   private isInSelectedPeriod(date: string): boolean {

@@ -6,6 +6,9 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from "@angular/forms";
   imports: [],
   templateUrl: "./date-input.component.html",
   styleUrl: "./date-input.component.scss",
+  // `id` is forwarded to the inner control; drop it from the host so the
+  // label's `for` doesn't point at a duplicate, unlabelable element.
+  host: { "[attr.id]": "null" },
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

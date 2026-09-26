@@ -54,6 +54,44 @@ export interface Exercise {
   primaryMuscleGroup?: MuscleGroup;
 }
 
+/** How exercises are grouped in the UI: a muscle group, or "other" for none. */
+export type ExerciseCategory = MuscleGroup | "other";
+
+export const EXERCISE_CATEGORIES: readonly ExerciseCategory[] = [
+  ...MUSCLE_GROUPS,
+  "other",
+];
+
+export const EXERCISE_CATEGORY_LABELS: Record<ExerciseCategory, string> = {
+  ...MUSCLE_GROUP_LABELS,
+  other: "Other",
+};
+
+/**
+ * Finds a catalog exercise whose name matches, ignoring case and extra
+ * spaces, so the same exercise isn't added twice under slightly different
+ * spellings. `excludeId` skips the exercise being renamed.
+ */
+export function findExerciseByName(
+  exercises: readonly Exercise[],
+  name: string,
+  excludeId?: string,
+): Exercise | undefined {
+  const normalize = (value: string) =>
+    value.trim().replace(/\s+/g, " ").toLowerCase();
+  const target = normalize(name);
+  return exercises.find(
+    (exercise) =>
+      exercise.id !== excludeId && normalize(exercise.name) === target,
+  );
+}
+
+/** Exercises with no muscle group, or one no longer recognised, are "other". */
+export function exerciseCategory(exercise: Exercise): ExerciseCategory {
+  const group = exercise.primaryMuscleGroup;
+  return group && MUSCLE_GROUPS.includes(group) ? group : "other";
+}
+
 /**
  * The routine-specific prescription for an exercise. This is stored inline in
  * a routine and references an Exercise by id.

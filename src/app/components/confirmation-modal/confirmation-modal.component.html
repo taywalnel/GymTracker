@@ -39,8 +39,19 @@
           {{ confirmLabel }}
         </app-button>
       </div>
+      @if (secondaryLabel && tertiaryLabel) {
+        <div class="modal-actions__full">
+          <app-button
+            variant="secondary"
+            [fullWidth]="true"
+            (click)="triggerTertiary()"
+          >
+            {{ tertiaryLabel }}
+          </app-button>
+        </div>
+      }
       @if (secondaryLabel) {
-        <div class="modal-actions__cancel">
+        <div class="modal-actions__full">
           <app-button variant="secondary" [fullWidth]="true" (click)="cancel()">
             {{ cancelLabel }}
           </app-button>

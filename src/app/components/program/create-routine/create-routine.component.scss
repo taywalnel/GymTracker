@@ -10,10 +10,18 @@
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
 }
 
-.routine-form__hint {
+.exercise-section {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--list-gap);
+}
+
+.exercise-section__hint {
   margin: 0;
   color: var(--color-text-muted);
   font-size: var(--text-sm);
@@ -22,5 +30,4 @@
 .form-actions {
   display: flex;
   gap: 10px;
-  margin-top: auto;
 }

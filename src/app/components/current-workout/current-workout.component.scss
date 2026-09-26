@@ -5,11 +5,63 @@
   min-height: 0;
 }
 
-.workout-header__elapsed-time {
-  color: var(--color-text-muted);
+.workout-summary {
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-panel);
+}
+
+.workout-summary__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 8px 4px 7px;
+}
+
+.workout-summary__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  min-width: 0;
+}
+
+.workout-summary__value {
+  color: var(--color-text);
   font-family: var(--font-display);
-  font-size: var(--text-sm);
-  text-align: center;
+  font-size: var(--text-lg);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.workout-summary__label {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.workout-summary__value--empty {
+  color: var(--color-text-muted);
+}
+
+.workout-summary__stat--rest .workout-summary__value {
+  color: var(--color-accent);
+}
+
+.workout-summary__progress {
+  height: 3px;
+  background: var(--color-border);
+}
+
+.workout-summary__progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 240ms ease;
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
 }
 
 .page-content {
@@ -22,19 +74,82 @@
 .exercise-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.exercise-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.exercise-section__list {
-  display: flex;
-  flex-direction: column;
   gap: var(--list-gap);
+}
+
+.exercise-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+}
+
+.exercise-row--editing {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.exercise-row__handle {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  background: var(--color-panel-raised);
+  cursor: grab;
+  touch-action: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  // Keep the handle itself as the touch target rather than the SVG internals.
+  span {
+    display: grid;
+    place-items: center;
+    font-size: var(--text-lg);
+    pointer-events: none;
+  }
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.32);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.28;
+}
+
+.cdk-drag-animating,
+.exercise-list.cdk-drop-list-dragging .exercise-row:not(.cdk-drag-placeholder) {
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}
+
+.rep-delta {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.rep-delta--up {
+  color: var(--color-status-good);
+}
+
+.rep-delta--down {
+  color: var(--color-status-miss);
+}
+
+.workout-summary .rep-delta {
+  font-size: var(--text-lg);
 }
 
 .action-buttons {

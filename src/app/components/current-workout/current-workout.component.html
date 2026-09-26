@@ -3,80 +3,147 @@
     <app-loading-spinner />
   </div>
 } @else if (state) {
-  <app-page-header [title]="state.today.routine.name" />
+  <app-page-header
+    [title]="state.today.routine.name"
+    [showRightAction]="true"
+    [rightActionLabel]="isEditing ? 'Done' : 'Edit'"
+    (rightAction)="toggleEditing()"
+  />
 
   <div class="page-content">
-    <div class="scroll-area">
-      <div class="scroll-area__content exercise-list">
-        @if (completedExercises.length > 0) {
-          <section class="exercise-section">
-            <h2 class="section-label">Completed</h2>
-            <div class="exercise-section__list">
-              @for (exercise of completedExercises; track exercise.id) {
-                <app-card
-                  [title]="exercise.name"
-                  (click)="navigateToExercise(exercise.id)"
-                >
-                  <div class="status-dots" aria-label="Set progress">
-                    @for (set of exercise.setReps; track $index) {
-                      <span [class]="getSetDotClass(set)"></span>
-                    }
-                  </div>
-                </app-card>
-              }
-            </div>
-          </section>
+    <section class="workout-summary" aria-label="Workout summary">
+      <div class="workout-summary__stats">
+        @if (restSecondsLeft !== null) {
+          <div class="workout-summary__stat workout-summary__stat--rest">
+            <span class="workout-summary__value">{{ restSecondsLeft }}s</span>
+            <span class="workout-summary__label">Rest</span>
+          </div>
+        } @else {
+          <div class="workout-summary__stat">
+            <span class="workout-summary__value" aria-live="off">{{
+              elapsedTime
+            }}</span>
+            <span class="workout-summary__label">Elapsed</span>
+          </div>
         }
+        <div class="workout-summary__stat">
+          <span class="workout-summary__value"
+            >{{ completedExerciseCount }} / {{ totalExerciseCount }}</span
+          >
+          <span class="workout-summary__label">Exercises</span>
+        </div>
+        <div class="workout-summary__stat">
+          @if (totalRepDelta !== null) {
+            <span
+              class="workout-summary__value rep-delta"
+              [class.rep-delta--up]="totalRepDelta > 0"
+              [class.rep-delta--down]="totalRepDelta < 0"
+              [attr.aria-label]="repDeltaDescription(totalRepDelta)"
+              >{{ repDeltaLabel(totalRepDelta) }}</span
+            >
+          } @else {
+            <span
+              class="workout-summary__value workout-summary__value--empty"
+              aria-label="No comparison yet"
+              >–</span
+            >
+          }
+          <span class="workout-summary__label">Reps vs last</span>
+        </div>
+      </div>
+      <div
+        class="workout-summary__progress"
+        role="progressbar"
+        aria-label="Exercises completed"
+        [attr.aria-valuenow]="completedExerciseCount"
+        aria-valuemin="0"
+        [attr.aria-valuemax]="totalExerciseCount"
+      >
+        <span
+          class="workout-summary__progress-fill"
+          [style.width.%]="completionPercentage"
+        ></span>
+      </div>
+    </section>
 
-        @if (currentExercise || incompleteExercises.length > 0) {
-          <section class="exercise-section">
-            <h2 class="section-label">Incomplete</h2>
-            <div class="exercise-section__list">
-              @if (currentExercise) {
-                <app-card
-                  [title]="currentExercise.name"
-                  [highlighted]="true"
-                  (click)="navigateToExercise(currentExercise.id)"
+    <div class="scroll-area">
+      <div
+        class="scroll-area__content exercise-list"
+        cdkDropList
+        cdkDropListOrientation="vertical"
+        [cdkDropListDisabled]="!isEditing"
+        [cdkDropListSortPredicate]="canDropAt"
+        (cdkDropListDropped)="reorderExercises($event)"
+      >
+        @for (exercise of exercises; track exercise.id) {
+          <div
+            class="exercise-row"
+            [class.exercise-row--editing]="isEditing"
+            cdkDrag
+            cdkDragLockAxis="y"
+            [cdkDragDisabled]="!isEditing || exercise.isCompleted"
+          >
+            @if (isEditing) {
+              @if (exercise.isCompleted) {
+                <span class="exercise-row__spacer" aria-hidden="true"></span>
+              } @else {
+                <span
+                  class="exercise-row__handle"
+                  cdkDragHandle
+                  [attr.aria-label]="'Drag ' + exercise.name + ' to reorder'"
                 >
-                  <div class="status-dots" aria-label="Set progress">
-                    @for (set of currentExercise.setReps; track $index) {
-                      <span [class]="getSetDotClass(set)"></span>
-                    }
-                  </div>
-                </app-card>
+                  <span [innerHTML]="reorderIcon" aria-hidden="true"></span>
+                </span>
               }
-
-              @for (exercise of incompleteExercises; track exercise.id) {
-                <app-card
-                  [title]="exercise.name"
-                  (click)="navigateToExercise(exercise.id)"
+            }
+            <app-card
+              [title]="exercise.name"
+              [highlighted]="exercise.isInProgress"
+              (click)="navigateToExercise(exercise.id)"
+            >
+              @if (exercise.isCompleted && exercise.repDelta !== null) {
+                <span
+                  class="rep-delta"
+                  [class.rep-delta--up]="exercise.repDelta > 0"
+                  [class.rep-delta--down]="exercise.repDelta < 0"
+                  [attr.aria-label]="repDeltaDescription(exercise.repDelta)"
                 >
-                  <div class="status-dots" aria-label="Set progress">
-                    @for (set of exercise.setReps; track $index) {
-                      <span [class]="getSetDotClass(set)"></span>
-                    }
-                  </div>
-                </app-card>
+                  {{ repDeltaLabel(exercise.repDelta) }}
+                </span>
               }
-            </div>
-          </section>
+              <div class="status-dots" aria-label="Set progress">
+                @for (set of exercise.setReps; track $index) {
+                  <span [class]="getSetDotClass(set)"></span>
+                }
+              </div>
+            </app-card>
+            @if (isEditing) {
+              <app-button
+                variant="icon"
+                iconName="delete"
+                [danger]="true"
+                [stretch]="true"
+                [ariaLabel]="'Delete ' + exercise.name"
+                (click)="requestDeleteExercise(exercise.id)"
+              />
+            }
+          </div>
         }
       </div>
     </div>
 
-    <div class="workout-header__elapsed-time" aria-live="off">
-      Elapsed time: {{ elapsedTime }}
-    </div>
-    <app-button
-      class="add-exercise-button"
-      variant="secondary"
-      iconName="plus"
-      [fullWidth]="true"
-      [disabled]="isSaving"
-      (click)="addExercise()"
-    >
-      Add exercise
-    </app-button>
+    @if (isEditing) {
+      <app-button
+        class="add-exercise-button"
+        variant="secondary"
+        iconName="plus"
+        [fullWidth]="true"
+        [disabled]="isSaving"
+        (click)="addExercise()"
+      >
+        Add exercise
+      </app-button>
+    }
     <div class="action-buttons">
       <app-button
         variant="ghost"
@@ -106,6 +173,30 @@
       [danger]="true"
       (confirmed)="discardWorkout()"
       (cancelled)="cancelDiscard()"
+    />
+  }
+
+  @if (exerciseToDelete) {
+    <app-confirmation-modal
+      title="Delete exercise?"
+      [message]="deleteExerciseMessage"
+      confirmLabel="Delete"
+      [danger]="true"
+      (confirmed)="confirmDeleteExercise()"
+      (cancelled)="cancelDeleteExercise()"
+    />
+  }
+
+  @if (blockedSwitch) {
+    <app-confirmation-modal
+      [title]="'Finish ' + blockedSwitch.inProgress.name + ' first'"
+      [message]="blockedSwitchMessage"
+      confirmLabel="Resume"
+      secondaryLabel="Finish early"
+      cancelLabel="Cancel"
+      (confirmed)="goToInProgressExercise()"
+      (secondary)="finishEarlyAndSwitch()"
+      (cancelled)="cancelBlockedSwitch()"
     />
   }
 

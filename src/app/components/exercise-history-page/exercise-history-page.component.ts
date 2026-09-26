@@ -1,7 +1,16 @@
 import { Component, OnInit } from "@angular/core";
+import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import { forkJoin } from "rxjs";
-import { ExerciseLog } from "../../models/workout.models";
+import {
+  EXERCISE_CATEGORIES,
+  EXERCISE_CATEGORY_LABELS,
+  Exercise,
+  ExerciseCategory,
+  ExerciseLog,
+  exerciseCategory,
+  findExerciseByName,
+} from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
 import {
   ExerciseHistoryEntry,
@@ -13,6 +22,11 @@ import {
 } from "../page-header/page-header.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import { ButtonComponent } from "../button/button.component";
+import {
+  ChoiceListComponent,
+  ChoiceOption,
+} from "../choice-list/choice-list.component";
+import { InputComponent } from "../input/input.component";
 import { ConfirmationModalComponent } from "../confirmation-modal/confirmation-modal.component";
 import {
   WeightAndRepsComponent,
@@ -23,6 +37,9 @@ import { EmptyStateComponent } from "../empty-state/empty-state.component";
 @Component({
   selector: "app-exercise-history-page",
   imports: [
+    FormsModule,
+    ChoiceListComponent,
+    InputComponent,
     ExerciseProgressionComponent,
     PageHeaderComponent,
     LoadingSpinnerComponent,
@@ -42,6 +59,43 @@ export class ExerciseHistoryPageComponent implements OnInit {
   exerciseId: string | null = null;
   isDeleting = false;
   showDeleteConfirmation = false;
+
+  // Manage tab: the catalog entry, edited in place.
+  exercise: Exercise | null = null;
+  private allExercises: Exercise[] = [];
+  editName = "";
+  editCategory: ExerciseCategory = "other";
+  isSaving = false;
+  showSavedMessage = false;
+  readonly categoryOptions: ChoiceOption<ExerciseCategory>[] =
+    EXERCISE_CATEGORIES.map((value) => ({
+      value,
+      label: EXERCISE_CATEGORY_LABELS[value],
+    }));
+
+  get hasUnsavedChanges(): boolean {
+    return (
+      !!this.exercise &&
+      (this.editName.trim() !== this.exercise.name ||
+        this.editCategory !== exerciseCategory(this.exercise))
+    );
+  }
+
+  get nameError(): string | null {
+    if (!this.editName.trim()) return "Enter a name for the exercise.";
+    const duplicate = findExerciseByName(
+      this.allExercises,
+      this.editName,
+      this.exercise?.id,
+    );
+    return duplicate
+      ? `You already have an exercise called ${duplicate.name}.`
+      : null;
+  }
+
+  get canSave(): boolean {
+    return !this.nameError && this.hasUnsavedChanges && !this.isSaving;
+  }
 
   get historyTabs(): PageHeaderTab[] {
     return [
@@ -82,10 +136,14 @@ export class ExerciseHistoryPageComponent implements OnInit {
       this.historyEntries = entries
         .slice()
         .sort((left, right) => left.date.localeCompare(right.date));
+      this.allExercises = exercises;
+      this.exercise =
+        exercises.find((exercise) => exercise.id === exerciseId) ?? null;
       this.exerciseName =
-        exercises.find((exercise) => exercise.id === exerciseId)?.name ??
+        this.exercise?.name ??
         this.historyEntries[0]?.log.exerciseName ??
         this.humanizeExerciseId(exerciseId);
+      this.resetEditForm();
       this.isLoading = false;
     });
   }
@@ -109,9 +167,45 @@ export class ExerciseHistoryPageComponent implements OnInit {
     return id.replace("ex-", "").replace(/-/g, " ");
   }
 
-  editExercise(): void {
-    if (!this.exerciseId) return;
-    this.router.navigate(["/program/exercises/edit", this.exerciseId]);
+  onEditChange(): void {
+    this.showSavedMessage = false;
+  }
+
+  saveExercise(): void {
+    const name = this.editName.trim();
+    if (!this.exercise || !name || !this.canSave) return;
+
+    const exercise: Exercise = {
+      id: this.exercise.id,
+      name,
+      ...(this.editCategory !== "other"
+        ? { primaryMuscleGroup: this.editCategory }
+        : {}),
+    };
+    this.isSaving = true;
+    this.workoutService.saveExercise(exercise).subscribe({
+      next: () => {
+        this.exercise = exercise;
+        this.allExercises = this.allExercises.map((item) =>
+          item.id === exercise.id ? exercise : item,
+        );
+        this.exerciseName = exercise.name;
+        this.resetEditForm();
+        this.isSaving = false;
+        this.showSavedMessage = true;
+      },
+      error: () => {
+        this.isSaving = false;
+        alert("Error saving exercise");
+      },
+    });
+  }
+
+  private resetEditForm(): void {
+    this.editName = this.exercise?.name ?? "";
+    this.editCategory = this.exercise
+      ? exerciseCategory(this.exercise)
+      : "other";
   }
 
   deleteExercise(): void {

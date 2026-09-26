@@ -55,10 +55,13 @@ export class UnitPreferenceService {
     return this.unitSystemSignal() === "metric" ? 2.5 : 5;
   }
 
-  /** Formats a kg value for display, converting and rounding sensibly for the current unit. */
-  formatWeight(kg: number): string {
-    const value = this.fromKg(kg);
-    const rounded = Math.round(value * 10) / 10;
-    return rounded % 1 === 0 ? rounded.toString() : rounded.toFixed(1);
+  /**
+   * Formats a kg value for display, converting to the current unit and
+   * rounding to at most `decimals` places (trailing zeros are dropped).
+   */
+  formatWeight(kg: number, decimals = 1): string {
+    const factor = 10 ** decimals;
+    const rounded = Math.round(this.fromKg(kg) * factor) / factor;
+    return rounded.toString();
   }
 }

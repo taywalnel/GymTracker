@@ -70,8 +70,53 @@ export class WorkoutService {
         this.activeUserId = userId;
         this._clearDataCache();
         this.clearInProgressState();
+        this.clearRoutineDraft();
       }
     });
+  }
+
+  // Unsaved routine being built on the New Routine screen. It stays out of
+  // Firestore until created, and is persisted to sessionStorage so the add/edit
+  // exercise screens (and a reload) can read and update it.
+  private routineDraft: Routine | null = null;
+
+  getRoutineDraft(): Routine | null {
+    if (this.routineDraft) return this.routineDraft;
+    try {
+      const raw = sessionStorage.getItem("gym:routineDraft");
+      if (!raw) return null;
+      const { ownerUid, ...routine } = JSON.parse(raw) as Routine & {
+        ownerUid?: string;
+      };
+      if (ownerUid && ownerUid !== this.auth.currentUser?.uid) {
+        this.clearRoutineDraft();
+        return null;
+      }
+      this.routineDraft = routine;
+      return routine;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  saveRoutineDraft(routine: Routine | null): void {
+    this.routineDraft = routine;
+    try {
+      if (routine === null) {
+        sessionStorage.removeItem("gym:routineDraft");
+      } else {
+        sessionStorage.setItem(
+          "gym:routineDraft",
+          JSON.stringify({ ...routine, ownerUid: this.auth.currentUser?.uid }),
+        );
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
+  }
+
+  clearRoutineDraft(): void {
+    this.saveRoutineDraft(null);
   }
 
   // transient in-memory store for an in-progress session; persisted to sessionStorage

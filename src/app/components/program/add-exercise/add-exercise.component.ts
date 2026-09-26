@@ -2,22 +2,27 @@ import { Component, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
+  EXERCISE_CATEGORIES,
+  EXERCISE_CATEGORY_LABELS,
   Exercise,
-  MuscleGroup,
-  MUSCLE_GROUP_LABELS,
-  MUSCLE_GROUPS,
+  ExerciseCategory,
+  exerciseCategory,
+  findExerciseByName,
   ResolvedExercisePrescription,
   Routine,
 } from "../../../models/workout.models";
 import { UnitPreferenceService } from "../../../services/unit-preference.service";
 import { WorkoutService } from "../../../services/workout.service";
 import { ButtonComponent } from "../../button/button.component";
-import { ChoiceListComponent } from "../../choice-list/choice-list.component";
+import {
+  ChoiceListComponent,
+  ChoiceOption,
+} from "../../choice-list/choice-list.component";
+import { InputComponent } from "../../input/input.component";
 import { LoadingSpinnerComponent } from "../../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
 import { StepperComponent } from "../../stepper/stepper.component";
 import { UnitToggleComponent } from "../../unit-toggle/unit-toggle.component";
-import { EmptyStateComponent } from "../../empty-state/empty-state.component";
 
 @Component({
   selector: "app-add-exercise",
@@ -25,11 +30,11 @@ import { EmptyStateComponent } from "../../empty-state/empty-state.component";
     FormsModule,
     ButtonComponent,
     ChoiceListComponent,
+    InputComponent,
     LoadingSpinnerComponent,
     PageHeaderComponent,
     StepperComponent,
     UnitToggleComponent,
-    EmptyStateComponent,
   ],
   templateUrl: "./add-exercise.component.html",
   styleUrl: "./add-exercise.component.scss",
@@ -45,8 +50,13 @@ export class AddExerciseComponent implements OnInit {
   step = 1;
   saving = false;
   saveToRoutine = true;
-  selectedMuscleGroup: MuscleGroup | "unassigned" | null = null;
+  selectedMuscleGroup: ExerciseCategory | null = null;
   selectedExercise: Exercise | null = null;
+  // Inline form on step 2 for adding an exercise that isn't in the catalog yet.
+  showNewExerciseForm = false;
+  newExerciseName = "";
+  newExerciseError: string | null = null;
+  isSavingNewExercise = false;
 
   get pageTitle(): string {
     return "Add Exercise";
@@ -62,43 +72,37 @@ export class AddExerciseComponent implements OnInit {
     ];
   }
 
-  get muscleGroups(): { value: MuscleGroup | "unassigned"; label: string }[] {
-    const availableGroups = [
-      ...MUSCLE_GROUPS.map((value) => ({
-        value,
-        label: MUSCLE_GROUP_LABELS[value],
-      })),
-      { value: "unassigned" as const, label: "Unassigned" },
-    ];
-    const addableExerciseIds = new Set(
-      this.exercises
-        .filter(
-          (exercise) =>
-            !this.routine?.exercises.some(({ id }) => id === exercise.id),
-        )
-        .map(({ id }) => id),
-    );
-
-    return availableGroups.filter((group) =>
-      this.exercises.some(
-        (exercise) =>
-          addableExerciseIds.has(exercise.id) &&
-          (group.value === "unassigned"
-            ? !exercise.primaryMuscleGroup
-            : exercise.primaryMuscleGroup === group.value),
-      ),
-    );
+  // Every category is always offered so an empty catalog isn't a dead end;
+  // the count shows which ones already have exercises to pick from.
+  get muscleGroups(): ChoiceOption<ExerciseCategory>[] {
+    return EXERCISE_CATEGORIES.map((value) => {
+      const label = EXERCISE_CATEGORY_LABELS[value];
+      const count = this.addableExercises.filter(
+        (exercise) => exerciseCategory(exercise) === value,
+      ).length;
+      return { value, label: count ? `${label} · ${count}` : label };
+    });
   }
 
   get filteredExercises(): Exercise[] {
-    const existingIds = new Set(this.routine?.exercises.map(({ id }) => id));
-    return this.exercises.filter(
-      (exercise) =>
-        !existingIds.has(exercise.id) &&
-        (this.selectedMuscleGroup === "unassigned"
-          ? !exercise.primaryMuscleGroup
-          : exercise.primaryMuscleGroup === this.selectedMuscleGroup),
+    return this.addableExercises.filter(
+      (exercise) => exerciseCategory(exercise) === this.selectedMuscleGroup,
     );
+  }
+
+  get emptyGroupMessage(): string {
+    const group = this.selectedMuscleGroupLabel.toLowerCase();
+    const hasUsedExercises = this.exercises.some(
+      (exercise) => exerciseCategory(exercise) === this.selectedMuscleGroup,
+    );
+    return hasUsedExercises
+      ? `All your ${group} exercises are already in this routine. Add a new one below.`
+      : `No ${group} exercises yet. Add one below.`;
+  }
+
+  private get addableExercises(): Exercise[] {
+    const existingIds = new Set(this.routine?.exercises.map(({ id }) => id));
+    return this.exercises.filter((exercise) => !existingIds.has(exercise.id));
   }
 
   get invalidRestSeconds(): boolean {
@@ -110,7 +114,9 @@ export class AddExerciseComponent implements OnInit {
       case 1:
         return this.selectedMuscleGroup !== null;
       case 2:
-        return this.selectedExercise !== null;
+        return this.showNewExerciseForm
+          ? !!this.newExerciseName.trim()
+          : this.selectedExercise !== null;
       case 3:
         return (
           this.weightKg !== null &&
@@ -124,11 +130,9 @@ export class AddExerciseComponent implements OnInit {
   }
 
   get selectedMuscleGroupLabel(): string {
-    return this.selectedMuscleGroup === "unassigned"
-      ? "Unassigned"
-      : this.selectedMuscleGroup
-        ? MUSCLE_GROUP_LABELS[this.selectedMuscleGroup]
-        : "";
+    return this.selectedMuscleGroup
+      ? EXERCISE_CATEGORY_LABELS[this.selectedMuscleGroup]
+      : "";
   }
 
   get formattedWeight(): string {
@@ -147,8 +151,9 @@ export class AddExerciseComponent implements OnInit {
 
   private get returnDestination(): string {
     if (this.returnUrl) return this.returnUrl;
-    return this.workoutId
-      ? `/current-workout/${this.workoutId}`
+    if (this.workoutId) return `/current-workout/${this.workoutId}`;
+    return this.isDraft
+      ? "/program/workout/new"
       : `/program/workout/${this.routineId}`;
   }
 
@@ -157,6 +162,8 @@ export class AddExerciseComponent implements OnInit {
   private readonly replaceExerciseId: string | undefined;
   private routineId = "";
   private workoutId = "";
+  // True when adding to the unsaved routine on the New Routine screen.
+  private isDraft = false;
 
   constructor(
     private router: Router,
@@ -211,6 +218,13 @@ export class AddExerciseComponent implements OnInit {
       return;
     }
 
+    const draft = this.workoutService.getRoutineDraft();
+    if (draft?.id === this.routineId) {
+      this.isDraft = true;
+      this.initializeFromRoutine(draft);
+      return;
+    }
+
     const stateRoutine = this.routine;
     if (stateRoutine?.id === this.routineId) {
       this.initializeFromRoutine(stateRoutine);
@@ -253,19 +267,77 @@ export class AddExerciseComponent implements OnInit {
     this.weight = value;
   }
 
-  chooseMuscleGroup(group: MuscleGroup | "unassigned"): void {
+  chooseMuscleGroup(group: ExerciseCategory): void {
     this.selectedMuscleGroup = group;
     this.selectedExercise = null;
+    this.closeNewExerciseForm();
+    // Nothing to pick from, so go straight to adding one.
+    this.showNewExerciseForm = this.filteredExercises.length === 0;
     this.step = 2;
   }
 
   chooseExercise(exercise: Exercise): void {
     this.selectedExercise = exercise;
+    this.closeNewExerciseForm();
     this.step = 3;
+  }
+
+  openNewExerciseForm(): void {
+    this.selectedExercise = null;
+    this.showNewExerciseForm = true;
+  }
+
+  closeNewExerciseForm(): void {
+    this.showNewExerciseForm = false;
+    this.newExerciseName = "";
+    this.newExerciseError = null;
+  }
+
+  // Adds the typed exercise to the catalog and selects it. A name that
+  // matches an existing exercise selects that one instead of duplicating it.
+  createExercise(): void {
+    const name = this.newExerciseName.trim();
+    const category = this.selectedMuscleGroup;
+    if (!name || !category || this.isSavingNewExercise) return;
+
+    const match = findExerciseByName(this.exercises, name);
+    if (match) {
+      if (this.routine?.exercises.some(({ id }) => id === match.id)) {
+        this.newExerciseError = `${match.name} is already in this routine.`;
+        return;
+      }
+      this.selectedMuscleGroup = exerciseCategory(match);
+      this.chooseExercise(match);
+      return;
+    }
+
+    const exercise: Exercise = {
+      id: this.workoutService.generateExerciseId(),
+      name,
+      ...(category !== "other" ? { primaryMuscleGroup: category } : {}),
+    };
+    this.isSavingNewExercise = true;
+    this.workoutService.saveExercise(exercise).subscribe({
+      next: () => {
+        this.isSavingNewExercise = false;
+        this.exercises = [...this.exercises, exercise].sort((first, second) =>
+          first.name.localeCompare(second.name),
+        );
+        this.chooseExercise(exercise);
+      },
+      error: () => {
+        this.isSavingNewExercise = false;
+        this.newExerciseError = "Couldn't save the exercise. Try again.";
+      },
+    });
   }
 
   next(): void {
     if (!this.canContinue) {
+      return;
+    }
+    if (this.step === 2 && this.showNewExerciseForm) {
+      this.createExercise();
       return;
     }
     this.step += 1;
@@ -373,6 +445,12 @@ export class AddExerciseComponent implements OnInit {
       ...this.routine,
       exercises: [...this.routine.exercises, exercise],
     };
+    if (this.isDraft) {
+      this.workoutService.saveRoutineDraft(updatedRoutine);
+      this.router.navigateByUrl(this.returnDestination);
+      return;
+    }
+
     this.saving = true;
     this.workoutService.saveRoutine(updatedRoutine).subscribe({
       next: () => this.router.navigateByUrl(this.returnDestination),

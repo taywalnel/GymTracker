@@ -13,7 +13,38 @@
     placeholder="e.g., Push Day"
     [required]="true"
   ></app-input>
-  <p class="routine-form__hint">You'll add exercises on the next screen.</p>
+
+  <section class="exercise-section" aria-labelledby="exercises-heading">
+    <h2 id="exercises-heading" class="section-label">
+      Exercises
+      @if (draft.exercises.length) {
+        ({{ draft.exercises.length }})
+      }
+    </h2>
+    @if (draft.exercises.length === 0) {
+      <p class="exercise-section__hint">
+        Add exercises now, or create the routine and add them later.
+      </p>
+    }
+    <app-reorderable-card-list
+      [exercises]="draft.exercises"
+      [deletable]="true"
+      [disabled]="saving"
+      [fill]="true"
+      (reordered)="reorderExercises($event)"
+      (exerciseSelected)="editExercise($event)"
+      (exerciseDeleted)="requestDeleteExercise($event)"
+    />
+    <app-button
+      variant="secondary"
+      iconName="plus"
+      [fullWidth]="true"
+      [disabled]="saving"
+      (click)="addExercise()"
+    >
+      Add exercise
+    </app-button>
+  </section>
 
   <div class="form-actions">
     <app-button
@@ -36,3 +67,25 @@
     </app-button>
   </div>
 </form>
+
+@if (exerciseToDelete) {
+  <app-confirmation-modal
+    title="Delete exercise?"
+    [message]="'Remove ' + exerciseToDelete.name + ' from this routine?'"
+    confirmLabel="Delete"
+    [danger]="true"
+    (confirmed)="confirmDeleteExercise()"
+    (cancelled)="cancelDeleteExercise()"
+  />
+}
+
+@if (showDiscardConfirmation) {
+  <app-confirmation-modal
+    title="Discard new routine?"
+    message="The routine and any exercises you've added won't be saved."
+    confirmLabel="Discard"
+    [danger]="true"
+    (confirmed)="discard()"
+    (cancelled)="showDiscardConfirmation = false"
+  />
+}

@@ -17,6 +17,7 @@
             <div class="exercise-row">
               <app-editable-card
                 [title]="exercise.name"
+                [description]="exerciseDetails.get(exercise.id) ?? ''"
                 [showEdit]="false"
                 [showDelete]="false"
                 [showChevron]="true"

@@ -103,7 +103,13 @@ export class CurrentExercisePageComponent implements OnInit {
     const workingSets = this.state.workingSets.filter(
       (entry) => entry.exerciseId !== this.exercise!.id,
     );
-    workingSets.push({ exerciseId: this.exercise.id, sets });
+    // Only completed sets count as logged. Reps stepped on a set that hasn't
+    // been completed stay on this page, so they don't show as progress
+    // elsewhere or lock the exercise as in progress.
+    const loggedSets = sets.map((set, index) =>
+      this.completedSetIndices.has(index) ? set : { ...set, reps: 0 },
+    );
+    workingSets.push({ exerciseId: this.exercise.id, sets: loggedSets });
     this.saveState({ ...this.state, workingSets });
   }
 
@@ -156,6 +162,21 @@ export class CurrentExercisePageComponent implements OnInit {
         },
       },
     );
+  }
+
+  /** Some sets are logged but not all, so the exercise can be ended early. */
+  get canFinishEarly(): boolean {
+    return (
+      this.completedSetCount > 0 &&
+      this.completedSetCount < (this.exercise?.targetSets ?? 0)
+    );
+  }
+
+  // Marks the exercise complete with only the sets logged so far.
+  finishEarly(): void {
+    this.showExerciseActions = false;
+    this.restTimer.clear();
+    this.onMarkComplete();
   }
 
   swapExercise(): void {

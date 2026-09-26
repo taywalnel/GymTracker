@@ -52,14 +52,42 @@
             }
           </div>
         } @else {
-          <app-empty-state
-            title="No exercises available"
-            message="Every exercise in this muscle group is already in the routine."
+          <p class="step-hint">{{ emptyGroupMessage }}</p>
+        }
+
+        @if (showNewExerciseForm) {
+          <form class="new-exercise" (ngSubmit)="createExercise()">
+            <app-input
+              id="newExerciseName"
+              name="newExerciseName"
+              label="New exercise"
+              placeholder="e.g., Bench Press"
+              [(ngModel)]="newExerciseName"
+              (ngModelChange)="newExerciseError = null"
+              [disabled]="isSavingNewExercise"
+              [invalid]="!!newExerciseError"
+              [error]="newExerciseError"
+            />
+            @if (filteredExercises.length) {
+              <app-button
+                variant="ghost"
+                size="sm"
+                [disabled]="isSavingNewExercise"
+                (click)="closeNewExerciseForm()"
+              >
+                Cancel
+              </app-button>
+            }
+          </form>
+        } @else {
+          <app-button
+            variant="secondary"
+            iconName="plus"
+            [fullWidth]="true"
+            (click)="openNewExerciseForm()"
           >
-            <app-button variant="secondary" (click)="goToStep(1)">
-              Choose another group
-            </app-button>
-          </app-empty-state>
+            New exercise
+          </app-button>
         }
       } @else if (step === 3) {
         <div class="weight-container">
@@ -111,10 +139,6 @@
         </div>
       } @else {
         <div class="overview-list">
-          <button type="button" class="overview-item" (click)="goToStep(1)">
-            <span>Exercise type</span
-            ><strong>{{ selectedMuscleGroupLabel }}</strong>
-          </button>
           <button type="button" class="overview-item" (click)="goToStep(2)">
             <span>Exercise</span><strong>{{ selectedExercise?.name }}</strong>
           </button>
@@ -158,8 +182,11 @@
           variant="primary"
           [fullWidth]="true"
           [disabled]="!canContinue"
+          [loading]="isSavingNewExercise"
           (click)="next()"
-          >Next</app-button
+          >{{
+            step === 2 && showNewExerciseForm ? "Create exercise" : "Next"
+          }}</app-button
         >
       } @else {
         <app-button

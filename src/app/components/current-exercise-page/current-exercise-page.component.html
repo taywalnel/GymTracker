@@ -137,12 +137,18 @@
   @if (showExerciseActions) {
     <app-confirmation-modal
       title="Change exercise"
-      message="Update this exercise's targets or swap it for another exercise."
+      [message]="
+        canFinishEarly
+          ? 'Update this exercise\'s targets, swap it for another exercise, or finish it early with the sets you\'ve logged.'
+          : 'Update this exercise\'s targets or swap it for another exercise.'
+      "
       confirmLabel="Edit"
       secondaryLabel="Swap"
+      [tertiaryLabel]="canFinishEarly ? 'Finish early' : ''"
       cancelLabel="Cancel"
       (confirmed)="adjustRoutine()"
       (secondary)="swapExercise()"
+      (tertiary)="finishEarly()"
       (cancelled)="showExerciseActions = false"
     />
   }

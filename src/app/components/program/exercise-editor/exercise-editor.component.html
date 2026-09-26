@@ -1,5 +1,5 @@
 <app-page-header
-  [title]="isEditing ? 'Edit Exercise' : 'New Exercise'"
+  title="New Exercise"
   [showBack]="true"
   (back)="cancel()"
 ></app-page-header>
@@ -12,6 +12,8 @@
     name="exerciseName"
     placeholder="e.g., Barbell Row"
     [required]="true"
+    [invalid]="!!duplicateError"
+    [error]="duplicateError"
   ></app-input>
 
   <app-choice-list
@@ -38,7 +40,7 @@
       [loading]="saving"
       type="submit"
     >
-      {{ isEditing ? "Save changes" : "Save" }}
+      Save
     </app-button>
   </div>
 </form>
