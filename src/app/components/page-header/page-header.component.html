@@ -1,13 +1,16 @@
 @if (backLink || showBack || title || showRightAction) {
   <div class="page-header__heading">
-    @if (backLink) {
-      <button type="button" [routerLink]="backLink" class="back-link">
-        {{ backLabel }}
-      </button>
-    } @else if (showBack) {
-      <button type="button" class="back-link" (click)="back.emit()">
-        {{ backLabel }}
-      </button>
+    @if (backLink || showBack) {
+      <div class="page-header__back">
+        <app-button
+          variant="secondary"
+          size="sm"
+          iconName="chevron-left"
+          (click)="goBack()"
+        >
+          {{ backLabel }}
+        </app-button>
+      </div>
     }
 
     @if (title) {
@@ -15,9 +18,11 @@
     }
 
     @if (showRightAction) {
-      <button type="button" class="right-action" (click)="rightAction.emit()">
-        {{ rightActionLabel }}
-      </button>
+      <div class="page-header__right">
+        <app-button variant="secondary" size="sm" (click)="rightAction.emit()">
+          {{ rightActionLabel }}
+        </app-button>
+      </div>
     }
   </div>
 

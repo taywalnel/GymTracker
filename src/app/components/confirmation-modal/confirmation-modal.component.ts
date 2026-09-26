@@ -7,8 +7,16 @@ import { ButtonComponent } from "../button/button.component";
   imports: [ButtonComponent],
   templateUrl: "./confirmation-modal.component.html",
   styleUrl: "./confirmation-modal.component.scss",
+  host: {
+    "(document:keydown.escape)": "cancel()",
+  },
 })
 export class ConfirmationModalComponent {
+  private static nextId = 0;
+  private readonly id = ConfirmationModalComponent.nextId++;
+  readonly titleId = `confirmation-modal-title-${this.id}`;
+  readonly messageId = `confirmation-modal-message-${this.id}`;
+
   @Input({ required: true }) title = "Confirm action";
   @Input({ required: true }) message = "Are you sure you want to continue?";
   @Input() confirmLabel = "Confirm";

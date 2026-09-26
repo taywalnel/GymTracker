@@ -52,7 +52,6 @@ export interface Exercise {
   id: string;
   name: string;
   primaryMuscleGroup?: MuscleGroup;
-  secondaryMuscleGroups?: MuscleGroup[];
 }
 
 /**

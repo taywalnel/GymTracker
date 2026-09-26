@@ -40,6 +40,12 @@ export class AppComponent {
     // otherwise allow the routerLink to navigate normally
   }
 
+  // Signed-out screens have nowhere to navigate to, so they get no tab bar.
+  showTabBar(): boolean {
+    const path = this.router.url.split(/[?#]/, 1)[0];
+    return path !== "/login";
+  }
+
   isTodayRoute(): boolean {
     const path = this.router.url.split(/[?#]/, 1)[0];
     return path === "/" || path.startsWith("/current-workout/");

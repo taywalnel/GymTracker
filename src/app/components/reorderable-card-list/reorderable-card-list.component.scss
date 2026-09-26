@@ -1,0 +1,83 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+:host(.scroll-area) .reorderable-card-list__item {
+  flex-shrink: 0;
+}
+
+.reorderable-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--list-gap);
+  width: 100%;
+}
+
+.reorderable-card-list__item {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 8px;
+  align-items: stretch;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.reorderable-card-list__item--deletable {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+}
+
+.reorderable-card-list__handle {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  background: var(--color-panel-raised);
+  cursor: grab;
+  touch-action: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  // Keep the handle itself as the touch target rather than the SVG internals.
+  span {
+    display: grid;
+    place-items: center;
+    font-size: var(--text-lg);
+    pointer-events: none;
+  }
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.32);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.28;
+}
+
+.cdk-drag-animating {
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.reorderable-card-list.cdk-drop-list-dragging
+  .reorderable-card-list__item:not(.cdk-drag-placeholder) {
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reorderable-card-list__item,
+  .cdk-drag-animating,
+  .reorderable-card-list.cdk-drop-list-dragging
+    .reorderable-card-list__item:not(.cdk-drag-placeholder) {
+    transition: none;
+  }
+}

@@ -7,3 +7,7 @@ export const HISTORY_SVG = `<svg clip-rule="evenodd" fill="currentColor" fill-ru
 export const CHEVRON_LEFT_SVG = `<svg fill="currentColor" height="1em" viewBox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m15.41 7.41-1.42-1.41-6 6 6 6 1.42-1.41-4.59-4.59z"/></svg>`;
 
 export const CHEVRON_RIGHT_SVG = `<svg fill="currentColor" height="1em" viewBox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m8.59 16.59 1.41 1.41 6-6-6-6-1.41 1.41 4.59 4.59z"/></svg>`;
+
+export const REORDER_SVG = `<svg fill="currentColor" height="1em" viewBox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/></svg>`;
+
+export const PLUS_SVG = `<svg fill="none" height="1em" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14"/></svg>`;

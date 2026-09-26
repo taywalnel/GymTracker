@@ -1,0 +1,38 @@
+<app-page-header
+  title="New Routine"
+  [showBack]="true"
+  (back)="cancel()"
+></app-page-header>
+
+<form class="routine-form" (ngSubmit)="save()">
+  <app-input
+    id="routineName"
+    label="Routine name"
+    [(ngModel)]="name"
+    name="routineName"
+    placeholder="e.g., Push Day"
+    [required]="true"
+  ></app-input>
+  <p class="routine-form__hint">You'll add exercises on the next screen.</p>
+
+  <div class="form-actions">
+    <app-button
+      variant="secondary"
+      [fullWidth]="true"
+      [disabled]="saving"
+      type="button"
+      (click)="cancel()"
+    >
+      Cancel
+    </app-button>
+    <app-button
+      variant="primary"
+      [fullWidth]="true"
+      [disabled]="!canSave"
+      [loading]="saving"
+      type="submit"
+    >
+      Create routine
+    </app-button>
+  </div>
+</form>

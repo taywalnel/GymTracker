@@ -1,58 +1,16 @@
 :host {
+  flex: 1;
   height: 100%;
   display: flex;
   flex-direction: column;
-}
-
-.exercises-list-container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
-
-.empty-state {
-  flex: 1;
-  color: var(--color-text-muted);
-  font-family: var(--font-display);
-  text-align: center;
-}
-
-.loading-state {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-}
-
-.exercise-list {
-  position: relative;
-  flex: 1;
-}
-
-.exercise-list-scroll {
-  position: absolute;
-  width: 100%;
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  margin: 0;
-  overflow-y: auto;
+  min-height: 0;
 }
 
 .exercise-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--list-gap);
   margin-bottom: 24px;
-}
-
-.exercise-group-title {
-  margin: 0;
-  color: var(--color-text-muted);
-  font-family: var(--font-display);
-  font-size: 0.9rem;
-  text-transform: uppercase;
 }
 
 .exercise-row {

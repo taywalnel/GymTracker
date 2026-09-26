@@ -1,5 +1,5 @@
 import { ActivatedRoute, Router } from "@angular/router";
-import { of, throwError } from "rxjs";
+import { Subject, of, throwError } from "rxjs";
 import { Routine, WorkoutSession } from "../../../models/workout.models";
 import { WorkoutService } from "../../../services/workout.service";
 import { WorkoutDetailComponent } from "./workout-detail.component";
@@ -17,6 +17,14 @@ describe("WorkoutDetailComponent", () => {
         targetSets: 3,
         targetReps: 8,
         targetWeightKg: 60,
+      },
+      {
+        id: "exercise-2",
+        name: "Row",
+        order: 2,
+        targetSets: 3,
+        targetReps: 10,
+        targetWeightKg: 50,
       },
     ],
   };
@@ -58,12 +66,14 @@ describe("WorkoutDetailComponent", () => {
 
   let component: WorkoutDetailComponent;
   let deleteRoutine: jasmine.Spy;
+  let saveRoutine: jasmine.Spy;
   let navigate: jasmine.Spy;
 
   beforeEach(() => {
     deleteRoutine = jasmine
       .createSpy("deleteRoutine")
       .and.returnValue(of(true));
+    saveRoutine = jasmine.createSpy("saveRoutine").and.returnValue(of(routine));
     navigate = jasmine.createSpy("navigate");
     component = new WorkoutDetailComponent(
       {
@@ -74,6 +84,7 @@ describe("WorkoutDetailComponent", () => {
         getRoutineById: () => of(routine),
         getSessionHistory: () => of(sessions),
         deleteRoutine,
+        saveRoutine,
       } as unknown as WorkoutService,
     );
   });
@@ -89,15 +100,15 @@ describe("WorkoutDetailComponent", () => {
     expect(component.lastCompletedSession?.id).toBe("new-session");
   });
 
-  it("navigates to the routine editor from Manage", () => {
+  it("navigates to the selected exercise editor", () => {
     component.ngOnInit();
 
-    component.editRoutine();
+    component.editExercise("exercise-2");
 
-    expect(navigate).toHaveBeenCalledWith([
-      "/program/workout/edit",
-      "routine-1",
-    ]);
+    expect(navigate).toHaveBeenCalledWith(
+      ["/program/workout/edit", "routine-1", "exercise", "exercise-2"],
+      { state: { returnUrl: "/program/workout/routine-1" } },
+    );
   });
 
   it("returns to the routine list after deletion", () => {
@@ -119,5 +130,55 @@ describe("WorkoutDetailComponent", () => {
     expect(component.isDeleting).toBeFalse();
     expect(component.showDeleteConfirmation).toBeFalse();
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it("persists reordered exercises with sequential order values", () => {
+    component.ngOnInit();
+
+    component.reorderExercises([routine.exercises[1], routine.exercises[0]]);
+
+    expect(component.routine?.exercises.map((exercise) => exercise.id)).toEqual(
+      ["exercise-2", "exercise-1"],
+    );
+    expect(
+      component.routine?.exercises.map((exercise) => exercise.order),
+    ).toEqual([0, 1]);
+    expect(saveRoutine).toHaveBeenCalledWith(component.routine);
+    expect(component.isReordering).toBeFalse();
+  });
+
+  it("restores the prior order when saving a reorder fails", () => {
+    saveRoutine.and.returnValue(throwError(() => new Error("Failed")));
+    component.ngOnInit();
+
+    component.reorderExercises([routine.exercises[1], routine.exercises[0]]);
+
+    expect(component.routine?.exercises.map((exercise) => exercise.id)).toEqual(
+      ["exercise-1", "exercise-2"],
+    );
+    expect(component.isReordering).toBeFalse();
+  });
+
+  it("saves a reorder made while a previous save is in flight", () => {
+    const firstSave = new Subject<Routine>();
+    saveRoutine.and.returnValues(firstSave, of(routine));
+    component.ngOnInit();
+
+    component.reorderExercises([routine.exercises[1], routine.exercises[0]]);
+    component.reorderExercises([routine.exercises[0], routine.exercises[1]]);
+
+    expect(saveRoutine).toHaveBeenCalledTimes(1);
+    expect(component.isReordering).toBeTrue();
+
+    firstSave.next(routine);
+    firstSave.complete();
+
+    expect(saveRoutine).toHaveBeenCalledTimes(2);
+    expect(
+      saveRoutine.calls
+        .mostRecent()
+        .args[0].exercises.map((exercise: { id: string }) => exercise.id),
+    ).toEqual(["exercise-1", "exercise-2"]);
+    expect(component.isReordering).toBeFalse();
   });
 });

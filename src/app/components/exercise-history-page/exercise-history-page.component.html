@@ -35,14 +35,17 @@
         </app-button>
       </section>
     } @else if (completedEntries.length === 0) {
-      <p class="state-message">No completed sets yet.</p>
+      <app-empty-state
+        title="No sets logged yet"
+        message="Complete this exercise in a workout to see its history and progress."
+      />
     } @else if (activeTab === "Progression") {
       <app-exercise-progression [entries]="completedEntries" />
     } @else {
       <section class="history-section" aria-labelledby="history-title">
         <div class="history-list">
           @for (entry of historyDisplayEntries; track entry.date) {
-            <div class="history-entry">
+            <div class="card history-entry">
               <span class="date-header">{{ formatDate(entry.date) }}</span>
               <div class="set-list">
                 <app-weight-and-reps

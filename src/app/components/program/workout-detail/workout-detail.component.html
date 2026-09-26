@@ -14,91 +14,67 @@
   <p class="state-message">Routine not found.</p>
 } @else {
   <main class="workout-detail">
-    @if (activeTab === "Overview") {
-      <section class="stat-grid" aria-label="Routine summary">
-        <div class="stat-tile">
-          <strong>{{ routine.exercises.length }}</strong>
-          <span>Exercises</span>
-        </div>
-        <div class="stat-tile">
-          <strong>{{ totalSets }}</strong>
-          <span>Total sets</span>
-        </div>
-        <div class="stat-tile">
-          <strong>{{ sessions.length }}</strong>
-          <span>Completed</span>
-        </div>
-        <div class="stat-tile">
-          <strong>
-            @if (lastCompletedSession) {
-              {{ formatDaysAgo(lastCompletedSession.date) }}
-            } @else {
-              Never
-            }
-          </strong>
-          <span>Last done</span>
-        </div>
+    @if (activeTab === "Exercises") {
+      @if (routine.exercises.length === 0) {
+        <app-empty-state
+          title="No exercises yet"
+          message="Add the exercises you want to do in this routine."
+        >
+          <app-button variant="primary" iconName="plus" (click)="addExercise()">
+            Add exercise
+          </app-button>
+        </app-empty-state>
+      }
+      <section class="exercise-list" aria-label="Routine exercises">
+        <app-reorderable-card-list
+          [exercises]="routine.exercises"
+          [deletable]="true"
+          [fill]="true"
+          (reordered)="reorderExercises($event)"
+          (exerciseSelected)="editExercise($event)"
+          (exerciseDeleted)="requestDeleteExercise($event)"
+        />
       </section>
-
-      <section class="exercise-section" aria-labelledby="exercises-title">
-        <div class="exercise-section__header">
-          <h2 id="exercises-title">Exercises</h2>
-          <span>{{ routine.exercises.length }} planned</span>
-        </div>
-        <ul class="exercise-list">
-          @for (exercise of routine.exercises; track exercise.id) {
-            <li>
-              <a
-                class="exercise-item"
-                [routerLink]="['/history/exercises', exercise.id]"
-              >
-                <span class="exercise-item__order">{{ exercise.order }}</span>
-                <div class="exercise-item__content">
-                  <span class="exercise-item__name">{{ exercise.name }}</span>
-                  <span class="exercise-item__prescription">
-                    {{ exercise.targetSets }} sets ·
-                    {{ exercise.targetReps }} reps ·
-                    {{ exercise.targetWeightKg }} kg
-                  </span>
-                  <span class="exercise-item__rest">
-                    {{ exercise.restSeconds ?? 60 }}s rest between sets
-                  </span>
-                </div>
-                <span class="exercise-item__chevron" aria-hidden="true">›</span>
-              </a>
-            </li>
-          }
-        </ul>
-      </section>
+      <div class="exercise-actions">
+        <app-button
+          variant="ghost"
+          [fullWidth]="true"
+          [danger]="true"
+          [disabled]="isDeleting"
+          (click)="deleteRoutine()"
+        >
+          Delete routine
+        </app-button>
+        @if (routine.exercises.length > 0) {
+          <app-button
+            variant="secondary"
+            iconName="plus"
+            [fullWidth]="true"
+            (click)="addExercise()"
+          >
+            Add exercise
+          </app-button>
+        }
+      </div>
     } @else if (activeTab === "History") {
       @if (sessions.length === 0) {
-        <p class="state-message">No completed workouts yet.</p>
+        <app-empty-state
+          title="No completed workouts yet"
+          message="Finish this routine and each session will show up here."
+        />
       } @else {
         <section class="history-section" aria-label="Routine history">
           <ul class="history-list">
             @for (session of sessions; track session.id) {
               <li>
                 <a
-                  class="history-item"
+                  app-card
                   [routerLink]="['/history/session', session.id]"
-                  [attr.aria-label]="
-                    session.routineName +
-                    ', ' +
-                    (session.date | date: 'longDate')
-                  "
+                  [title]="(session.date | date: 'MMM d, y') ?? ''"
+                  [description]="formatDaysAgo(session.date)"
+                  [showChevron]="true"
                 >
-                  <div class="history-item__meta">
-                    <span class="history-item__date">{{
-                      session.date | date: "MMM d, y"
-                    }}</span>
-                    <span class="history-item__ago">
-                      {{ formatDaysAgo(session.date) }}
-                    </span>
-                  </div>
-                  <div
-                    class="history-item__dots"
-                    aria-label="Exercise progress"
-                  >
+                  <div class="status-dots" aria-label="Exercise progress">
                     @for (log of session.exerciseLogs; track log.exerciseId) {
                       <span
                         [class]="getExerciseDotClass(log)"
@@ -107,38 +83,12 @@
                       ></span>
                     }
                   </div>
-                  <span class="history-item__chevron" aria-hidden="true"
-                    >›</span
-                  >
                 </a>
               </li>
             }
           </ul>
         </section>
       }
-    } @else {
-      <section class="manage-section" aria-label="Routine management">
-        <p class="manage-section__hint">
-          Editing this routine only changes future workouts — past history stays
-          the same.
-        </p>
-        <app-button
-          variant="secondary"
-          [fullWidth]="true"
-          (click)="editRoutine()"
-        >
-          Edit routine
-        </app-button>
-        <app-button
-          variant="secondary"
-          [fullWidth]="true"
-          [danger]="true"
-          [disabled]="isDeleting"
-          (click)="deleteRoutine()"
-        >
-          Delete routine
-        </app-button>
-      </section>
     }
   </main>
 }
@@ -151,5 +101,16 @@
     [danger]="true"
     (confirmed)="confirmDelete()"
     (cancelled)="cancelDelete()"
+  />
+}
+
+@if (exerciseToDelete) {
+  <app-confirmation-modal
+    title="Delete exercise?"
+    [message]="'Remove ' + exerciseToDelete.name + ' from this routine?'"
+    confirmLabel="Delete"
+    [danger]="true"
+    (confirmed)="confirmDeleteExercise()"
+    (cancelled)="cancelDeleteExercise()"
   />
 }

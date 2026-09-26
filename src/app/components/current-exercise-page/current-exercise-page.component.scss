@@ -6,13 +6,6 @@
   gap: 16px;
 }
 
-.loading-state {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-}
-
 .action-buttons {
   display: flex;
   flex-shrink: 0;
@@ -55,7 +48,7 @@
   justify-content: center;
 }
 
-.exercise-card__target-summary .stepper__label {
+.exercise-card__target-summary .section-label {
   margin-bottom: 2px;
 }
 
@@ -82,9 +75,7 @@
   box-sizing: border-box;
   width: 100%;
   height: 80px;
-  padding: 12px 15px;
-  background: var(--color-panel-raised);
-  color: var(--color-text);
+  padding: 12px var(--card-padding);
 }
 
 .rest-timer__header {
@@ -100,14 +91,11 @@
   gap: 8px;
 }
 
-.rest-timer__countdown .stepper__label {
-  margin: 0;
-}
-
 .rest-timer__track {
   width: 100%;
   height: 6px;
   overflow: hidden;
+  border-radius: 999px;
   background: var(--color-border);
 }
 
@@ -120,7 +108,7 @@
 
 .rest-timer__time {
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: var(--text-xl);
   font-weight: 700;
   line-height: 1;
   color: var(--color-accent);
@@ -129,15 +117,10 @@
 .stepper-container {
   text-align: center;
   padding: 20px;
-  background: var(--color-panel-raised);
 }
 
-.stepper__label {
-  margin: 0 0 6px;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-text-muted);
+.section-label {
+  margin-bottom: 6px;
 }
 
 .row {

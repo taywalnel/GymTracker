@@ -3,12 +3,13 @@ import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { WorkoutService } from "../../../services/workout.service";
 import { Routine } from "../../../models/workout.models";
-import { ButtonComponent } from "../../button/button.component";
 import { RoutineCardComponent } from "../../routine-card/routine-card.component";
+import { ButtonComponent } from "../../button/button.component";
+import { EmptyStateComponent } from "../../empty-state/empty-state.component";
 
 @Component({
   selector: "app-workout-list",
-  imports: [ButtonComponent, RoutineCardComponent],
+  imports: [ButtonComponent, EmptyStateComponent, RoutineCardComponent],
   templateUrl: "./workout-list.component.html",
   styleUrl: "./workout-list.component.scss",
 })
@@ -35,11 +36,11 @@ export class WorkoutListComponent implements OnInit {
     });
   }
 
-  viewRoutine(routine: Routine): void {
-    this.router.navigate(["/program/workout", routine.id]);
+  createRoutine(): void {
+    this.router.navigate(["/program/workout/new"]);
   }
 
-  createRoutine(): void {
-    this.router.navigate(["/program/workout/edit"]);
+  viewRoutine(routine: Routine): void {
+    this.router.navigate(["/program/workout", routine.id]);
   }
 }

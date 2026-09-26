@@ -12,7 +12,7 @@
     <div class="section-content">
       @if (lastHistoryEntry) {
         <div class="section">
-          <p class="stepper__label">History</p>
+          <p class="section-label">History</p>
           <div class="exercise-card__history-row">
             <app-weight-and-reps
               [weight]="lastHistoryEntry.log.completedSets[0].weightKg"
@@ -21,7 +21,6 @@
             <app-button
               variant="icon"
               iconName="history"
-              height="40px"
               ariaLabel="View exercise history"
               (click)="viewExerciseHistory()"
             />
@@ -33,7 +32,7 @@
 
   <div class="section-content">
     <div class="section">
-      <p class="stepper__label">Target</p>
+      <p class="section-label">Target</p>
       <div class="section">
         <div class="exercise-card__progress-row">
           <app-weight-and-reps
@@ -45,7 +44,6 @@
           <app-button
             variant="icon"
             iconName="edit"
-            height="40px"
             ariaLabel="Edit exercise"
             (click)="showExerciseActions = true"
           />
@@ -54,14 +52,14 @@
     </div>
 
     <div class="exercise-card__target-summary">
-      <div class="stepper-container">
-        <p class="stepper__label">Reps</p>
+      <div class="card stepper-container">
+        <p class="section-label">Reps</p>
         <span class="exercise-card__target-value">{{
           exercise.targetReps
         }}</span>
       </div>
-      <div class="stepper-container">
-        <p class="stepper__label">Weight ({{ units.unitLabel() }})</p>
+      <div class="card stepper-container">
+        <p class="section-label">Weight ({{ units.unitLabel() }})</p>
         <span class="exercise-card__target-value">
           {{ formatWeight(exercise.targetWeightKg) }}
         </span>
@@ -72,8 +70,8 @@
   <div class="set-row">
     @if (restTimer.secondsLeft !== null) {
       <div>
-        <p class="stepper__label">Rest</p>
-        <div class="rest-timer" role="status" aria-live="polite">
+        <p class="section-label">Rest</p>
+        <div class="card rest-timer" role="status" aria-live="polite">
           <div class="rest-timer__header">
             <div class="rest-timer__countdown">
               <span class="rest-timer__time">{{ restTimer.secondsLeft }}s</span>
@@ -97,7 +95,7 @@
       </div>
     } @else {
       <div>
-        <p class="stepper__label">Completed</p>
+        <p class="section-label">Completed</p>
         <div class="row">
           <div class="row-item">
             <app-stepper
@@ -112,9 +110,10 @@
           <div class="row-item">
             <app-button
               variant="primary"
+              size="lg"
               [fullWidth]="true"
+              [stretch]="true"
               (click)="completeCurrentSet()"
-              [height]="'100%'"
             >
               Complete set
             </app-button>

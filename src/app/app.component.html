@@ -1,32 +1,46 @@
-<div class="app-shell">
+<div class="app-shell" [class.app-shell--no-tabs]="!showTabBar()">
   <main class="app-main">
     <router-outlet></router-outlet>
   </main>
 
-  <nav class="tab-bar">
-    <a
-      class="tab-bar__item"
-      routerLink="/"
-      [class.is-active]="isTodayRoute()"
-      (click)="onTodayTabClick($event)"
-    >
-      <span class="tab-bar__label">Workout</span>
-    </a>
-    <a class="tab-bar__item" routerLink="/program" routerLinkActive="is-active">
-      <span class="tab-bar__label">Program</span>
-    </a>
-    <a
-      class="tab-bar__item"
-      routerLink="/body-weight"
-      routerLinkActive="is-active"
-    >
-      <span class="tab-bar__label">Weight</span>
-    </a>
-    <a class="tab-bar__item" routerLink="/history" routerLinkActive="is-active">
-      <span class="tab-bar__label">History</span>
-    </a>
-    <a class="tab-bar__item" routerLink="/account" routerLinkActive="is-active">
-      <span class="tab-bar__label">Account</span>
-    </a>
-  </nav>
+  @if (showTabBar()) {
+    <nav class="tab-bar">
+      <a
+        class="tab-bar__item"
+        routerLink="/"
+        [class.is-active]="isTodayRoute()"
+        (click)="onTodayTabClick($event)"
+      >
+        <span class="tab-bar__label">Workout</span>
+      </a>
+      <a
+        class="tab-bar__item"
+        routerLink="/program"
+        routerLinkActive="is-active"
+      >
+        <span class="tab-bar__label">Program</span>
+      </a>
+      <a
+        class="tab-bar__item"
+        routerLink="/body-weight"
+        routerLinkActive="is-active"
+      >
+        <span class="tab-bar__label">Weight</span>
+      </a>
+      <a
+        class="tab-bar__item"
+        routerLink="/history"
+        routerLinkActive="is-active"
+      >
+        <span class="tab-bar__label">History</span>
+      </a>
+      <a
+        class="tab-bar__item"
+        routerLink="/account"
+        routerLinkActive="is-active"
+      >
+        <span class="tab-bar__label">Account</span>
+      </a>
+    </nav>
+  }
 </div>

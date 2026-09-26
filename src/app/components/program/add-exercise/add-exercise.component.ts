@@ -12,20 +12,24 @@ import {
 import { UnitPreferenceService } from "../../../services/unit-preference.service";
 import { WorkoutService } from "../../../services/workout.service";
 import { ButtonComponent } from "../../button/button.component";
+import { ChoiceListComponent } from "../../choice-list/choice-list.component";
 import { LoadingSpinnerComponent } from "../../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
 import { StepperComponent } from "../../stepper/stepper.component";
 import { UnitToggleComponent } from "../../unit-toggle/unit-toggle.component";
+import { EmptyStateComponent } from "../../empty-state/empty-state.component";
 
 @Component({
   selector: "app-add-exercise",
   imports: [
     FormsModule,
     ButtonComponent,
+    ChoiceListComponent,
     LoadingSpinnerComponent,
     PageHeaderComponent,
     StepperComponent,
     UnitToggleComponent,
+    EmptyStateComponent,
   ],
   templateUrl: "./add-exercise.component.html",
   styleUrl: "./add-exercise.component.scss",
@@ -145,11 +149,10 @@ export class AddExerciseComponent implements OnInit {
     if (this.returnUrl) return this.returnUrl;
     return this.workoutId
       ? `/current-workout/${this.workoutId}`
-      : `/program/workout/edit/${this.routineId}`;
+      : `/program/workout/${this.routineId}`;
   }
 
   private routine: Routine | undefined;
-  private readonly originalRoutine: Routine | undefined;
   private readonly returnUrl: string;
   private readonly replaceExerciseId: string | undefined;
   private routineId = "";
@@ -164,7 +167,6 @@ export class AddExerciseComponent implements OnInit {
     const state =
       this.router.getCurrentNavigation()?.extras.state ?? history.state;
     this.routine = state["routine"] as Routine | undefined;
-    this.originalRoutine = state["originalRoutine"] as Routine | undefined;
     this.returnUrl = (state["returnUrl"] as string | undefined) ?? "";
     this.replaceExerciseId = state["replaceExerciseId"] as string | undefined;
   }
@@ -343,7 +345,10 @@ export class AddExerciseComponent implements OnInit {
           progressionSuggestedExerciseIds,
         });
         const destination = this.isSwap
-          ? this.returnUrl.replace(`/${this.replaceExerciseId}`, `/${exercise.id}`)
+          ? this.returnUrl.replace(
+              `/${this.replaceExerciseId}`,
+              `/${exercise.id}`,
+            )
           : `/current-workout/${this.workoutId}`;
         this.router.navigateByUrl(destination);
       };
@@ -364,18 +369,21 @@ export class AddExerciseComponent implements OnInit {
       return;
     }
 
-    this.router.navigateByUrl(this.returnDestination, {
-      state: {
-        routine: this.routine,
-        originalRoutine: this.originalRoutine,
-        exercise,
+    const updatedRoutine: Routine = {
+      ...this.routine,
+      exercises: [...this.routine.exercises, exercise],
+    };
+    this.saving = true;
+    this.workoutService.saveRoutine(updatedRoutine).subscribe({
+      next: () => this.router.navigateByUrl(this.returnDestination),
+      error: () => {
+        this.saving = false;
+        alert("Error saving routine");
       },
     });
   }
 
   goBack(): void {
-    this.router.navigateByUrl(this.returnDestination, {
-      state: { routine: this.routine, originalRoutine: this.originalRoutine },
-    });
+    this.router.navigateByUrl(this.returnDestination);
   }
 }

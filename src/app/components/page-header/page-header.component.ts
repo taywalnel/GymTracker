@@ -1,5 +1,7 @@
-import { Component, EventEmitter, Input, Output } from "@angular/core";
-import { RouterLink } from "@angular/router";
+import { Component, EventEmitter, Input, Output, inject } from "@angular/core";
+import { Router } from "@angular/router";
+
+import { ButtonComponent } from "../button/button.component";
 
 export interface PageHeaderTab {
   label: string;
@@ -8,11 +10,13 @@ export interface PageHeaderTab {
 
 @Component({
   selector: "app-page-header",
-  imports: [RouterLink],
+  imports: [ButtonComponent],
   templateUrl: "./page-header.component.html",
   styleUrl: "./page-header.component.scss",
 })
 export class PageHeaderComponent {
+  private readonly router = inject(Router);
+
   @Input() title: string | null = null;
   @Input() backLink: string | null = null;
   @Input() backLabel = "Back";
@@ -26,6 +30,14 @@ export class PageHeaderComponent {
   @Output() selectedTab = new EventEmitter<string>();
 
   activeTab: string | null = null;
+
+  goBack(): void {
+    if (this.backLink) {
+      this.router.navigateByUrl(this.backLink);
+    } else {
+      this.back.emit();
+    }
+  }
 
   selectTab(tab: string): void {
     this.activeTab = tab;

@@ -12,29 +12,14 @@
     name="exerciseName"
     placeholder="e.g., Barbell Row"
     [required]="true"
-    [invalid]="validationAttempted && !name.trim()"
-    [error]="
-      validationAttempted && !name.trim() ? 'Enter an exercise name.' : null
-    "
   ></app-input>
 
-  <app-select
-    id="primaryMuscleGroup"
-    label="Primary muscle group"
-    [(ngModel)]="primaryMuscleGroup"
-    name="primaryMuscleGroup"
+  <app-choice-list
+    label="Muscle Group"
     [options]="muscleGroupOptions"
-    placeholder="Uncategorized"
-  ></app-select>
-
-  <app-checkbox-list
-    id="secondaryMuscleGroups"
-    label="Secondary muscle groups"
-    [(ngModel)]="secondaryMuscleGroups"
-    name="secondaryMuscleGroups"
-    [options]="muscleGroupOptions"
-    [disabledOptions]="primaryMuscleGroup ? [primaryMuscleGroup] : []"
-  ></app-checkbox-list>
+    [(value)]="primaryMuscleGroup"
+    [fill]="true"
+  ></app-choice-list>
 
   <div class="form-actions">
     <app-button
@@ -49,10 +34,11 @@
     <app-button
       variant="primary"
       [fullWidth]="true"
-      [disabled]="saving"
+      [disabled]="!canSave"
+      [loading]="saving"
       type="submit"
     >
-      {{ saving ? "Saving..." : isEditing ? "Save changes" : "Save" }}
+      {{ isEditing ? "Save changes" : "Save" }}
     </app-button>
   </div>
 </form>

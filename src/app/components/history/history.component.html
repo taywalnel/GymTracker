@@ -11,7 +11,10 @@
         <app-loading-spinner />
       </div>
     } @else {
-      <section class="month-overview" aria-labelledby="month-overview-title">
+      <section
+        class="card month-overview"
+        aria-labelledby="month-overview-title"
+      >
         <div class="month-overview__header">
           <h2 id="month-overview-title" class="month-overview__month">
             {{ overviewMonthLabel }}
@@ -67,42 +70,38 @@
       <app-loading-spinner />
     </div>
   } @else if (completedSessions.length === 0) {
-    <p class="state-message">No activities yet.</p>
+    <app-empty-state
+      title="No workouts yet"
+      message="Completed workouts will show up here."
+    >
+      <app-button variant="primary" (click)="startWorkout()">
+        Start a workout
+      </app-button>
+    </app-empty-state>
   } @else {
-    <div class="session-list-container">
-      <div class="session-list" aria-label="Workout activities">
+    <div class="scroll-area">
+      <div
+        class="scroll-area__content session-list"
+        aria-label="Workout activities"
+      >
         @for (session of completedSessions; track session.id) {
-          <div class="session-item">
-            <a
-              class="session-item__header"
-              [routerLink]="['/history/session', session.id]"
-              [attr.aria-label]="
-                session.routineName + ', ' + formatDate(session.date)
-              "
-            >
-              <div class="session-item__meta">
-                <span class="session-item__routine">{{
-                  session.routineName
-                }}</span>
-                <span class="session-item__date">{{
-                  formatDate(session.date)
-                }}</span>
-              </div>
-              <div
-                class="session-item__exercise-dots"
-                aria-label="Exercise progress"
-              >
-                @for (log of session.exerciseLogs; track log.exerciseId) {
-                  <span
-                    [class]="getExerciseDotClass(log)"
-                    [attr.aria-label]="log.exerciseName"
-                    role="img"
-                  ></span>
-                }
-              </div>
-              <span class="session-item__chevron" aria-hidden="true">›</span>
-            </a>
-          </div>
+          <a
+            app-card
+            [routerLink]="['/history/session', session.id]"
+            [title]="session.routineName"
+            [description]="formatDate(session.date)"
+            [showChevron]="true"
+          >
+            <div class="status-dots" aria-label="Exercise progress">
+              @for (log of session.exerciseLogs; track log.exerciseId) {
+                <span
+                  [class]="getExerciseDotClass(log)"
+                  [attr.aria-label]="log.exerciseName"
+                  role="img"
+                ></span>
+              }
+            </div>
+          </a>
         }
       </div>
     </div>

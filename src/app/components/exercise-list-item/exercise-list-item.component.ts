@@ -11,6 +11,7 @@ import {
   imports: [RouterLink, ButtonComponent, WeightAndRepsComponent],
   templateUrl: "./exercise-list-item.component.html",
   styleUrl: "./exercise-list-item.component.scss",
+  host: { class: "card" },
 })
 export class ExerciseListItemComponent {
   @Input() name = "";

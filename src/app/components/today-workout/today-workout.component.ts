@@ -6,6 +6,7 @@ import { ButtonComponent } from "../button/button.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
 import { RoutineCardComponent } from "../routine-card/routine-card.component";
+import { EmptyStateComponent } from "../empty-state/empty-state.component";
 
 @Component({
   selector: "app-today-workout",
@@ -14,6 +15,7 @@ import { RoutineCardComponent } from "../routine-card/routine-card.component";
     LoadingSpinnerComponent,
     PageHeaderComponent,
     RoutineCardComponent,
+    EmptyStateComponent,
   ],
   templateUrl: "./today-workout.component.html",
   styleUrl: "./today-workout.component.scss",
@@ -102,6 +104,10 @@ export class TodayWorkoutComponent implements OnInit {
     const saved = this.workoutService.getInProgressState();
     if (!saved) return;
     this.router.navigate(["/current-workout", saved.today.routine.id]);
+  }
+
+  createRoutine(): void {
+    this.router.navigate(["/program/workout/new"]);
   }
 
   discardSaved(): void {

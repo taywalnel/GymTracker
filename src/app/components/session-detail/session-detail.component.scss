@@ -9,40 +9,19 @@
   flex-shrink: 0;
 }
 
-.state-message {
-  color: var(--color-text-muted);
-  font-family: var(--font-display);
-  padding: 40px 0;
-  text-align: center;
-}
-
-.loading-state {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-}
-
-.state-message--left {
-  text-align: left;
-  padding: 12px 0;
-}
-
 .session-header__date {
   text-align: center;
   width: 100%;
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   padding: 10px 0;
   color: var(--color-text-muted);
 }
 
 .exercise-list {
-  list-style: none;
-  margin: 0;
   padding: 0 0 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--list-gap);
   flex: 1;
   min-height: 0;
   overflow-y: auto;

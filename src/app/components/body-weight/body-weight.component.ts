@@ -12,6 +12,8 @@ import {
   PageHeaderComponent,
   PageHeaderTab,
 } from "../page-header/page-header.component";
+import { RoutineCardComponent } from "../routine-card/routine-card.component";
+import { EmptyStateComponent } from "../empty-state/empty-state.component";
 
 type PeriodDays = 7 | 30 | 0;
 
@@ -38,6 +40,8 @@ interface ChartDateLabel {
     InputComponent,
     LoadingSpinnerComponent,
     PageHeaderComponent,
+    RoutineCardComponent,
+    EmptyStateComponent,
   ],
   templateUrl: "./body-weight.component.html",
   styleUrl: "./body-weight.component.scss",

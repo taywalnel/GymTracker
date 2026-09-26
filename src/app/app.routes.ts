@@ -6,7 +6,6 @@ import { ProgramHomeComponent } from "./components/program/program-home/program-
 import { WorkoutListComponent } from "./components/program/workout-list/workout-list.component";
 import { ExercisesListComponent } from "./components/program/exercises-list/exercises-list.component";
 import { ExerciseEditorComponent } from "./components/program/exercise-editor/exercise-editor.component";
-import { WorkoutEditorComponent } from "./components/program/workout-editor/workout-editor.component";
 import { AddExerciseComponent } from "./components/program/add-exercise/add-exercise.component";
 import { EditExerciseComponent } from "./components/program/edit-exercise/edit-exercise.component";
 import { AccountComponent } from "./components/account/account.component";
@@ -16,6 +15,7 @@ import { CurrentWorkoutComponent } from "./components/current-workout/current-wo
 import { ExerciseHistoryPageComponent } from "./components/exercise-history-page/exercise-history-page.component";
 import { BodyWeightComponent } from "./components/body-weight/body-weight.component";
 import { WorkoutDetailComponent } from "./components/program/workout-detail/workout-detail.component";
+import { CreateRoutineComponent } from "./components/program/create-routine/create-routine.component";
 import { authGuard } from "./guards/auth.guard";
 
 export const routes: Routes = [
@@ -105,12 +105,6 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: "program/workout/edit",
-    component: WorkoutEditorComponent,
-    title: "Create Routine — Gym Tracker",
-    canActivate: [authGuard],
-  },
-  {
     path: "program/workout/edit/:id/add-exercise",
     component: AddExerciseComponent,
     title: "Add Exercise — Gym Tracker",
@@ -123,9 +117,9 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: "program/workout/edit/:id",
-    component: WorkoutEditorComponent,
-    title: "Edit Routine — Gym Tracker",
+    path: "program/workout/new",
+    component: CreateRoutineComponent,
+    title: "New Routine — Gym Tracker",
     canActivate: [authGuard],
   },
   {

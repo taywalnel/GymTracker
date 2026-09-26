@@ -9,35 +9,38 @@ import {
 } from "../../../models/workout.models";
 import { WorkoutService } from "../../../services/workout.service";
 import { ButtonComponent } from "../../button/button.component";
-import { CheckboxListComponent } from "../../checkbox-list/checkbox-list.component";
+import {
+  ChoiceListComponent,
+  ChoiceOption,
+} from "../../choice-list/choice-list.component";
 import { InputComponent } from "../../input/input.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
-import { SelectComponent } from "../../select/select.component";
 
 @Component({
   selector: "app-exercise-editor",
   imports: [
     FormsModule,
     ButtonComponent,
-    CheckboxListComponent,
+    ChoiceListComponent,
     InputComponent,
     PageHeaderComponent,
-    SelectComponent,
   ],
   templateUrl: "./exercise-editor.component.html",
   styleUrl: "./exercise-editor.component.scss",
 })
 export class ExerciseEditorComponent implements OnInit {
   name = "";
-  primaryMuscleGroup: MuscleGroup | "" = "";
-  secondaryMuscleGroups: MuscleGroup[] = [];
-  readonly muscleGroupOptions = MUSCLE_GROUPS.map((value) => ({
-    value,
-    label: MUSCLE_GROUP_LABELS[value],
-  }));
+  // "other" means the exercise has no primary muscle group.
+  primaryMuscleGroup: MuscleGroup | "other" | null = null;
+  readonly muscleGroupOptions: ChoiceOption<MuscleGroup | "other">[] = [
+    ...MUSCLE_GROUPS.map((value) => ({
+      value,
+      label: MUSCLE_GROUP_LABELS[value],
+    })),
+    { value: "other", label: "Other" },
+  ];
   exerciseId: string | null = null;
   saving = false;
-  validationAttempted = false;
 
   constructor(
     private workoutService: WorkoutService,
@@ -57,10 +60,7 @@ export class ExerciseEditorComponent implements OnInit {
           return;
         }
         this.name = exercise.name;
-        this.primaryMuscleGroup = exercise.primaryMuscleGroup ?? "";
-        this.secondaryMuscleGroups = [
-          ...(exercise.secondaryMuscleGroups ?? []),
-        ];
+        this.primaryMuscleGroup = exercise.primaryMuscleGroup ?? "other";
       },
     });
   }
@@ -69,26 +69,19 @@ export class ExerciseEditorComponent implements OnInit {
     return this.exerciseId !== null;
   }
 
+  get canSave(): boolean {
+    return !!this.name.trim() && this.primaryMuscleGroup !== null;
+  }
+
   save(): void {
-    this.validationAttempted = true;
     const name = this.name.trim();
-    if (!name || this.saving) return;
+    const primaryMuscleGroup = this.primaryMuscleGroup;
+    if (!name || !primaryMuscleGroup || this.saving) return;
 
     const exercise: Exercise = {
       id: this.exerciseId ?? this.workoutService.generateExerciseId(),
       name,
-      ...(this.primaryMuscleGroup
-        ? { primaryMuscleGroup: this.primaryMuscleGroup }
-        : {}),
-      ...(this.secondaryMuscleGroups.filter(
-        (group) => group !== this.primaryMuscleGroup,
-      ).length > 0
-        ? {
-            secondaryMuscleGroups: this.secondaryMuscleGroups.filter(
-              (group) => group !== this.primaryMuscleGroup,
-            ),
-          }
-        : {}),
+      ...(primaryMuscleGroup !== "other" ? { primaryMuscleGroup } : {}),
     };
     this.saving = true;
     this.workoutService.saveExercise(exercise).subscribe({

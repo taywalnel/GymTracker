@@ -1,0 +1,23 @@
+<div class="form-group" role="group" [attr.aria-label]="label || null">
+  @if (label) {
+    <p class="form-label">{{ label }}</p>
+  }
+  <div [class.scroll-area]="fill">
+    <div
+      class="choice-list"
+      [class.scroll-area__content]="fill"
+      [style.--choice-columns]="columns"
+    >
+      @for (option of options; track option.value) {
+        <app-button
+          type="button"
+          variant="secondary"
+          [fullWidth]="true"
+          [selected]="value === option.value"
+          (click)="choose(option.value)"
+          >{{ option.label }}</app-button
+        >
+      }
+    </div>
+  </div>
+</div>

@@ -6,66 +6,57 @@
   <app-page-header [title]="state.today.routine.name" />
 
   <div class="page-content">
-    <div class="exercise-list-container">
-      <div class="exercise-list">
-        @if (currentExercise) {
+    <div class="scroll-area">
+      <div class="scroll-area__content exercise-list">
+        @if (completedExercises.length > 0) {
           <section class="exercise-section">
-            <h2 class="exercise-section__title">Current</h2>
+            <h2 class="section-label">Completed</h2>
             <div class="exercise-section__list">
-              <div
-                class="exercise-card is-current"
-                (click)="navigateToExercise(currentExercise.id)"
-              >
-                <span class="exercise-card__name">{{
-                  currentExercise.name
-                }}</span>
-                <div class="set-dots-container" aria-label="Set progress">
-                  @for (set of currentExercise.setReps; track $index) {
-                    <span [class]="getSetDotClass(set)"></span>
-                  }
-                </div>
-              </div>
-            </div>
-          </section>
-        }
-
-        @if (incompleteExercises.length > 0) {
-          <section class="exercise-section">
-            <h2 class="exercise-section__title">Incomplete</h2>
-            <div class="exercise-section__list">
-              @for (exercise of incompleteExercises; track exercise.id) {
-                <div
-                  class="exercise-card"
+              @for (exercise of completedExercises; track exercise.id) {
+                <app-card
+                  [title]="exercise.name"
                   (click)="navigateToExercise(exercise.id)"
                 >
-                  <span class="exercise-card__name">{{ exercise.name }}</span>
-                  <div class="set-dots-container" aria-label="Set progress">
+                  <div class="status-dots" aria-label="Set progress">
                     @for (set of exercise.setReps; track $index) {
                       <span [class]="getSetDotClass(set)"></span>
                     }
                   </div>
-                </div>
+                </app-card>
               }
             </div>
           </section>
         }
 
-        @if (completedExercises.length > 0) {
+        @if (currentExercise || incompleteExercises.length > 0) {
           <section class="exercise-section">
-            <h2 class="exercise-section__title">Completed</h2>
+            <h2 class="section-label">Incomplete</h2>
             <div class="exercise-section__list">
-              @for (exercise of completedExercises; track exercise.id) {
-                <div
-                  class="exercise-card"
+              @if (currentExercise) {
+                <app-card
+                  [title]="currentExercise.name"
+                  [highlighted]="true"
+                  (click)="navigateToExercise(currentExercise.id)"
+                >
+                  <div class="status-dots" aria-label="Set progress">
+                    @for (set of currentExercise.setReps; track $index) {
+                      <span [class]="getSetDotClass(set)"></span>
+                    }
+                  </div>
+                </app-card>
+              }
+
+              @for (exercise of incompleteExercises; track exercise.id) {
+                <app-card
+                  [title]="exercise.name"
                   (click)="navigateToExercise(exercise.id)"
                 >
-                  <span class="exercise-card__name">{{ exercise.name }}</span>
-                  <div class="set-dots-container" aria-label="Set progress">
+                  <div class="status-dots" aria-label="Set progress">
                     @for (set of exercise.setReps; track $index) {
                       <span [class]="getSetDotClass(set)"></span>
                     }
                   </div>
-                </div>
+                </app-card>
               }
             </div>
           </section>
@@ -79,8 +70,8 @@
     <app-button
       class="add-exercise-button"
       variant="secondary"
+      iconName="plus"
       [fullWidth]="true"
-      [height]="'40px'"
       [disabled]="isSaving"
       (click)="addExercise()"
     >
@@ -88,9 +79,9 @@
     </app-button>
     <div class="action-buttons">
       <app-button
-        variant="secondary"
+        variant="ghost"
         [fullWidth]="true"
-        [height]="'40px'"
+        [danger]="true"
         [disabled]="isSaving"
         (click)="openDiscardConfirmation()"
       >
@@ -99,11 +90,10 @@
       <app-button
         variant="primary"
         [fullWidth]="true"
-        [height]="'40px'"
-        [disabled]="isSaving"
+        [loading]="isSaving"
         (click)="finishWorkout()"
       >
-        {{ isSaving ? "Saving…" : "Complete" }}
+        Complete
       </app-button>
     </div>
   </div>

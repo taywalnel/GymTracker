@@ -7,10 +7,11 @@ import {
 } from "@angular/forms";
 
 import { AuthService } from "../../services/auth.service";
+import { ButtonComponent } from "../button/button.component";
 
 @Component({
   selector: "app-login",
-  imports: [ReactiveFormsModule],
+  imports: [ButtonComponent, ReactiveFormsModule],
   templateUrl: "./login.component.html",
   styleUrl: "./login.component.scss",
 })

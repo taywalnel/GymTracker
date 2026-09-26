@@ -6,21 +6,22 @@
   display: flex;
   overflow: hidden;
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   height: 100%;
 }
 
 .unit-toggle__option {
   flex: 1;
   min-width: 64px;
-  min-height: 48px;
+  min-height: var(--control-height);
   height: 100%;
   padding: 0 1.25rem;
   border: none;
-  background: var(--color-bg);
+  background: var(--control-bg);
   color: var(--color-text-muted);
   cursor: pointer;
   font-family: var(--font-display);
-  font-size: 1rem;
+  font-size: var(--text-md);
   letter-spacing: 0.05em;
   text-transform: uppercase;
   -webkit-tap-highlight-color: transparent;
@@ -40,6 +41,6 @@
 
 .unit-toggle__option.is-active {
   background: var(--color-accent);
-  color: #000;
+  color: var(--color-accent-contrast);
   font-weight: 700;
 }

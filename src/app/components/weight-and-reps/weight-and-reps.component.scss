@@ -18,7 +18,7 @@
 .weight-container {
   display: grid;
   place-items: center;
-  font-size: 1.2rem;
+  font-size: var(--text-lg);
   height: 40px;
 }
 
@@ -26,16 +26,17 @@
   .set-container,
   .weight-container {
     height: 30px;
-    font-size: 1rem;
+    font-size: var(--text-md);
   }
 }
 
 .weight-container {
-  border: 2px solid #a3c92266;
+  border: 2px solid color-mix(in srgb, var(--color-accent) 40%, transparent);
+  border-radius: var(--radius-sm);
   min-width: 75px;
   padding: 0 8px;
-  background-color: #2c3038;
-  color: white;
+  background-color: var(--color-border);
+  color: var(--color-text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -52,7 +53,7 @@
   background-color: var(--color-border);
   color: var(--color-text);
   border: 0;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   padding: 0;
 }
 
@@ -66,18 +67,18 @@
 }
 
 .set-container.success {
-  background-color: var(--color-accent);
-  color: black;
+  background-color: var(--color-status-good);
+  color: var(--color-accent-contrast);
 }
 
 .set-container.warn {
-  background-color: var(--color-warn);
-  color: black;
+  background-color: var(--color-status-close);
+  color: var(--color-accent-contrast);
 }
 
 .set-container.danger {
-  background-color: var(--color-danger);
-  color: black;
+  background-color: var(--color-status-miss);
+  color: var(--color-accent-contrast);
 }
 
 .active-indicator {
@@ -87,6 +88,6 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: white;
+  background-color: var(--color-text);
   transition: transform 220ms ease-out;
 }

@@ -28,15 +28,13 @@
     @if (showEntryForm) {
       <div class="modal-backdrop" (click)="cancelEntry()">
         <section
-          class="entry-modal"
+          class="modal"
           role="dialog"
           aria-modal="true"
           aria-labelledby="entry-title"
           (click)="$event.stopPropagation()"
         >
-          <div class="section-heading">
-            <h2 id="entry-title">Add weight</h2>
-          </div>
+          <h2 id="entry-title">Add weight</h2>
 
           <app-date-input
             id="body-weight-date"
@@ -61,7 +59,7 @@
             error="Enter a body weight greater than zero."
           />
 
-          <div class="entry-actions">
+          <div class="modal__actions">
             <app-button
               variant="secondary"
               [fullWidth]="true"
@@ -71,11 +69,12 @@
               Cancel
             </app-button>
             <app-button
+              variant="primary"
               [fullWidth]="true"
-              [disabled]="isSaving"
+              [loading]="isSaving"
               (click)="saveEntry()"
             >
-              {{ isSaving ? "Saving..." : "Save" }}
+              Save
             </app-button>
           </div>
         </section>
@@ -84,15 +83,20 @@
 
     @if (activeTab === "Overview") {
       @if (entries.length === 0 && !showEntryForm) {
-        <section class="empty-panel">
-          <h3>Track your trend</h3>
-          <p>
-            Add your first body-weight entry to see your progress over time.
-          </p>
-          <app-button (click)="openNewEntry()">Add first weigh-in</app-button>
-        </section>
+        <app-empty-state
+          title="Track your trend"
+          message="Add your first body-weight entry to see your progress over time."
+        >
+          <app-button
+            variant="primary"
+            iconName="plus"
+            (click)="openNewEntry()"
+          >
+            Add first weigh-in
+          </app-button>
+        </app-empty-state>
       } @else if (entries.length > 0) {
-        <section class="summary-panel" aria-label="Body weight summary">
+        <section class="card summary-panel" aria-label="Body weight summary">
           <div class="summary-latest-row">
             <div class="summary-latest">
               <span>Latest</span>
@@ -105,7 +109,11 @@
             </div>
             @if (!showEntryForm) {
               <div class="weight-actions">
-                <app-button (click)="openNewEntry()" variant="secondary">
+                <app-button
+                  variant="secondary"
+                  iconName="plus"
+                  (click)="openNewEntry()"
+                >
                   Add weight
                 </app-button>
               </div>
@@ -114,7 +122,7 @@
         </section>
 
         @if (chartPoints.length > 0) {
-          <section class="chart-panel" aria-labelledby="chart-title">
+          <section class="card chart-panel" aria-label="Body weight trend">
             <div
               class="chart"
               role="img"
@@ -188,57 +196,63 @@
 
     @if (activeTab === "History") {
       @if (historyEntries.length === 0) {
-        <p class="state-message">No weigh-ins yet.</p>
+        <app-empty-state
+          title="No weigh-ins yet"
+          message="Your body-weight entries will be listed here."
+        >
+          <app-button
+            variant="primary"
+            iconName="plus"
+            (click)="openNewEntry()"
+          >
+            Add weigh-in
+          </app-button>
+        </app-empty-state>
       } @else {
-        <div class="history-list-container">
-          <div class="history-list" aria-label="Body weight history">
+        <div class="scroll-area">
+          <div
+            class="scroll-area__content history-list"
+            aria-label="Body weight history"
+          >
             @for (
               entry of historyEntries;
               track entry.date;
               let index = $index
             ) {
-              <div class="history-item">
-                <div class="history-item__header">
-                  <div class="history-item__meta">
-                    <span class="history-item__weight">
-                      {{ formatValue(entry.weightKg) }}
+              <app-card
+                [title]="formatValue(entry.weightKg)"
+                [description]="formatDate(entry.date)"
+                [interactive]="false"
+              >
+                <div class="history-item__trailing">
+                  @if (historyChangeKg(entry, index) !== null) {
+                    <span
+                      class="history-item__change"
+                      [class.is-negative]="historyChangeKg(entry, index)! < 0"
+                      [class.is-positive]="historyChangeKg(entry, index)! >= 0"
+                    >
+                      {{ formatChange(historyChangeKg(entry, index)!) }}
                     </span>
-                    <span class="history-item__date">
-                      {{ formatDate(entry.date) }}
-                    </span>
-                  </div>
-                  <div class="right-content">
-                    @if (historyChangeKg(entry, index) !== null) {
-                      <span
-                        class="history-item__change"
-                        [class.is-negative]="historyChangeKg(entry, index)! < 0"
-                        [class.is-positive]="
-                          historyChangeKg(entry, index)! >= 0
-                        "
-                      >
-                        {{ formatChange(historyChangeKg(entry, index)!) }}
-                      </span>
-                    }
-                    <div class="history-item__actions">
-                      <app-button
-                        variant="icon"
-                        iconName="edit"
-                        size="sm"
-                        [ariaLabel]="'Edit ' + formatDate(entry.date)"
-                        (click)="editEntry(entry)"
-                      />
-                      <app-button
-                        variant="icon"
-                        iconName="delete"
-                        size="sm"
-                        [danger]="true"
-                        [ariaLabel]="'Delete ' + formatDate(entry.date)"
-                        (click)="deleteEntry(entry)"
-                      />
-                    </div>
+                  }
+                  <div class="history-item__actions">
+                    <app-button
+                      variant="icon"
+                      iconName="edit"
+                      size="sm"
+                      [ariaLabel]="'Edit ' + formatDate(entry.date)"
+                      (click)="editEntry(entry)"
+                    />
+                    <app-button
+                      variant="icon"
+                      iconName="delete"
+                      size="sm"
+                      [danger]="true"
+                      [ariaLabel]="'Delete ' + formatDate(entry.date)"
+                      (click)="deleteEntry(entry)"
+                    />
                   </div>
                 </div>
-              </div>
+              </app-card>
             }
           </div>
         </div>

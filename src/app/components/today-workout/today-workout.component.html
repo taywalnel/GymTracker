@@ -3,20 +3,22 @@
     <app-loading-spinner />
   </div>
 } @else if (noRoutines) {
-  <div class="state-message">
-    <p>
-      No routines yet. Head to the <strong>Workouts</strong> tab to create your
-      first routine.
-    </p>
-  </div>
+  <app-empty-state
+    title="No routines yet"
+    message="Create a routine to start tracking your workouts."
+  >
+    <app-button variant="primary" iconName="plus" (click)="createRoutine()">
+      Create routine
+    </app-button>
+  </app-empty-state>
 } @else {
   <div class="picker-wrapper">
     <app-page-header title="Choose a Workout"></app-page-header>
 
     @if (savedState) {
-      <div class="resume-card">
+      <div class="card card--highlight resume-card">
         <div class="resume-card__body">
-          <div class="resume-card__meta">Resume workout</div>
+          <div class="eyebrow">In progress</div>
           <div class="resume-card__title">
             {{ savedState.today.routine.name }}
           </div>
@@ -25,14 +27,14 @@
           <app-button variant="primary" (click)="resumeSaved()"
             >Resume</app-button
           >
-          <button class="resume-card__discard" (click)="discardSaved()">
-            Discard
-          </button>
+          <app-button variant="ghost" [danger]="true" (click)="discardSaved()"
+            >Discard</app-button
+          >
         </div>
       </div>
     }
 
-    <ul class="routine-list">
+    <div class="routine-list">
       @if (featuredRoutine && !savedState) {
         <app-card
           [title]="featuredRoutine.name"
@@ -48,7 +50,7 @@
       }
 
       @if (otherRoutines.length > 0) {
-        <li class="picker-subhead">Or select another workout</li>
+        <h2 class="section-label picker-subhead">Or choose another workout</h2>
         @for (routine of otherRoutines; track routine.id) {
           <app-card
             [title]="routine.name"
@@ -61,6 +63,6 @@
           ></app-card>
         }
       }
-    </ul>
+    </div>
   </div>
 }

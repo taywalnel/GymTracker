@@ -1,6 +1,5 @@
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
-import { forkJoin } from "rxjs";
 import {
   Exercise,
   MUSCLE_GROUP_LABELS,
@@ -10,10 +9,11 @@ import {
 import { WorkoutService } from "../../../services/workout.service";
 import { ButtonComponent } from "../../button/button.component";
 import { EditableCardComponent } from "../../editable-card/editable-card.component";
+import { EmptyStateComponent } from "../../empty-state/empty-state.component";
 
 @Component({
   selector: "app-exercises-list",
-  imports: [ButtonComponent, EditableCardComponent],
+  imports: [ButtonComponent, EditableCardComponent, EmptyStateComponent],
   templateUrl: "./exercises-list.component.html",
   styleUrl: "./exercises-list.component.scss",
 })
@@ -24,7 +24,6 @@ export class ExercisesListComponent implements OnInit {
     label: string;
     exercises: Exercise[];
   }[] = [];
-  exerciseUsageCounts: Record<string, number> = {};
   loading = false;
 
   constructor(
@@ -38,14 +37,10 @@ export class ExercisesListComponent implements OnInit {
 
   loadExercises(): void {
     this.loading = true;
-    forkJoin({
-      exercises: this.workoutService.getAllExercises(),
-      usageCounts: this.workoutService.getExerciseUsageCounts(),
-    }).subscribe({
-      next: ({ exercises, usageCounts }) => {
+    this.workoutService.getAllExercises().subscribe({
+      next: (exercises) => {
         this.exercises = [...exercises];
         this.exerciseGroups = this.buildGroups(this.exercises);
-        this.exerciseUsageCounts = usageCounts;
         this.loading = false;
       },
     });
@@ -85,12 +80,5 @@ export class ExercisesListComponent implements OnInit {
 
   viewExercise(exercise: Exercise): void {
     this.router.navigate(["/history/exercises", exercise.id]);
-  }
-
-  exerciseUsageDescription(exercise: Exercise): string {
-    const count = this.exerciseUsageCounts[exercise.id] ?? 0;
-    if (count === 0) return "Not yet performed";
-    if (count === 1) return "Performed once";
-    return `Performed ${count} times`;
   }
 }

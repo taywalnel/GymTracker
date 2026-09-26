@@ -7,27 +7,33 @@
 
   @if (activeTab === "Account" && auth.currentUser(); as user) {
     <section class="account-section">
-      <div class="account-row">
-        <span class="account-row__label">Signed in as</span>
-        <span class="account-row__value">{{
-          user.displayName || user.email
-        }}</span>
+      <div class="card account-card">
+        <div class="account-row">
+          <span class="account-row__label">Signed in as</span>
+          <span class="account-row__value">{{
+            user.displayName || user.email
+          }}</span>
+        </div>
       </div>
-    </section>
-
-    <section class="account-section">
-      <app-button variant="secondary" (click)="auth.logout()"
-        >Sign out</app-button
+      <app-button
+        variant="secondary"
+        [danger]="true"
+        [fullWidth]="true"
+        (click)="auth.logout()"
       >
+        Sign out
+      </app-button>
     </section>
   }
 
   @if (activeTab === "Settings") {
-    <section class="account-section">
-      <h3 class="account-section__heading">Units</h3>
-      <div class="account-row">
-        <span class="account-row__label">Weight unit</span>
-        <app-unit-toggle />
+    <section class="account-section" aria-labelledby="units-heading">
+      <h3 id="units-heading" class="section-label">Units</h3>
+      <div class="card account-card">
+        <div class="account-row">
+          <span class="account-row__label">Weight unit</span>
+          <app-unit-toggle />
+        </div>
       </div>
     </section>
   }

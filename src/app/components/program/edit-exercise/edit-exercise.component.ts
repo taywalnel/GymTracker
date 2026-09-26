@@ -54,7 +54,6 @@ export class EditExerciseComponent implements OnInit {
   }
 
   private routine: Routine | undefined;
-  private readonly originalRoutine: Routine | undefined;
   existingExercise: ResolvedExercisePrescription | undefined;
   private readonly returnUrl: string;
   private routineId = "";
@@ -69,7 +68,6 @@ export class EditExerciseComponent implements OnInit {
     const state =
       this.router.getCurrentNavigation()?.extras.state ?? history.state;
     this.routine = state["routine"] as Routine | undefined;
-    this.originalRoutine = state["originalRoutine"] as Routine | undefined;
     this.returnUrl = (state["returnUrl"] as string | undefined) ?? "";
   }
 
@@ -122,9 +120,7 @@ export class EditExerciseComponent implements OnInit {
       (exercise) => exercise.id === this.routeExerciseId,
     );
     if (!this.existingExercise) {
-      this.router.navigateByUrl(
-        this.returnUrl || `/program/workout/edit/${this.routineId}`,
-      );
+      this.router.navigateByUrl(this.returnDestination);
       return;
     }
 
@@ -180,6 +176,22 @@ export class EditExerciseComponent implements OnInit {
       order: this.existingExercise?.order ?? 0,
     };
 
+    if (!this.isActiveWorkoutAdjustment && this.routine) {
+      const updatedRoutine: Routine = {
+        ...this.routine,
+        exercises: this.routine.exercises.map((routineExercise) =>
+          routineExercise.id === this.existingExercise?.id
+            ? exercise
+            : routineExercise,
+        ),
+      };
+      this.workoutService.saveRoutine(updatedRoutine).subscribe({
+        next: () => this.router.navigateByUrl(this.returnDestination),
+        error: () => alert("Error saving routine"),
+      });
+      return;
+    }
+
     if (this.isActiveWorkoutAdjustment && this.routine) {
       const updatedRoutine: Routine = {
         ...this.routine,
@@ -232,40 +244,18 @@ export class EditExerciseComponent implements OnInit {
         },
         error: () => alert("Error saving routine"),
       });
-      return;
     }
-
-    this.router.navigateByUrl(this.returnUrl, {
-      state: {
-        routine: this.routine,
-        originalRoutine: this.originalRoutine,
-        exercise,
-        replaceExerciseId: this.existingExercise?.id,
-      },
-    });
-  }
-
-  delete(): void {
-    if (!this.existingExercise) {
-      return;
-    }
-
-    this.router.navigateByUrl(this.returnUrl, {
-      state: {
-        routine: this.routine,
-        originalRoutine: this.originalRoutine,
-        removeExerciseId: this.existingExercise.id,
-      },
-    });
   }
 
   goBack(): void {
-    this.router.navigateByUrl(this.returnUrl, {
-      state: { routine: this.routine, originalRoutine: this.originalRoutine },
-    });
+    this.router.navigateByUrl(this.returnDestination);
   }
 
   private get isActiveWorkoutAdjustment(): boolean {
     return this.returnUrl.startsWith("/current-workout/");
+  }
+
+  private get returnDestination(): string {
+    return this.returnUrl || `/program/workout/${this.routineId}`;
   }
 }

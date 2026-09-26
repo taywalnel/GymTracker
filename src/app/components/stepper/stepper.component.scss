@@ -8,8 +8,9 @@
   align-items: stretch;
   height: 50px;
   overflow: hidden;
-  background: var(--color-bg);
+  background: var(--control-bg);
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
 }
 
 .stepper__btn {
@@ -19,7 +20,7 @@
   border: none;
   background: var(--color-panel-raised);
   color: var(--color-text);
-  font-size: 1.5rem;
+  font-size: var(--text-xl);
   font-weight: 400;
   line-height: 1;
   -webkit-tap-highlight-color: transparent;
@@ -30,7 +31,7 @@
 
 .stepper__btn:active:not(:disabled) {
   background: var(--color-accent);
-  color: var(--color-bg);
+  color: var(--color-accent-contrast);
 }
 
 .stepper__btn:disabled {
@@ -64,7 +65,7 @@
   color: inherit;
   text-align: center;
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: var(--text-lg);
   font-weight: 600;
   line-height: 1.1;
 }
@@ -74,7 +75,7 @@
 }
 
 .stepper__unit {
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-text-muted);

@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { forkJoin } from "rxjs";
 import {
   ExerciseLog,
+  ResolvedExercisePrescription,
   Routine,
   WorkoutSession,
 } from "../../../models/workout.models";
@@ -15,6 +16,9 @@ import {
   PageHeaderComponent,
   PageHeaderTab,
 } from "../../page-header/page-header.component";
+import { ReorderableCardListComponent } from "../../reorderable-card-list/reorderable-card-list.component";
+import { RoutineCardComponent } from "../../routine-card/routine-card.component";
+import { EmptyStateComponent } from "../../empty-state/empty-state.component";
 
 @Component({
   selector: "app-workout-detail",
@@ -24,38 +28,35 @@ import {
     DatePipe,
     LoadingSpinnerComponent,
     PageHeaderComponent,
+    ReorderableCardListComponent,
     RouterLink,
+    RoutineCardComponent,
+    EmptyStateComponent,
   ],
   templateUrl: "./workout-detail.component.html",
   styleUrl: "./workout-detail.component.scss",
 })
 export class WorkoutDetailComponent implements OnInit {
-  activeTab = "Overview";
+  activeTab = "Exercises";
   routine: Routine | null = null;
   sessions: WorkoutSession[] = [];
   isLoading = true;
   isDeleting = false;
+  isReordering = false;
   showDeleteConfirmation = false;
+  exerciseToDelete: ResolvedExercisePrescription | null = null;
+  private savedRoutine: Routine | null = null;
+  private pendingRoutine: Routine | null = null;
 
   get detailTabs(): PageHeaderTab[] {
     return [
-      { label: "Overview" },
-      { label: "Manage" },
+      { label: "Exercises", count: this.routine?.exercises.length ?? 0 },
       { label: "History", count: this.sessions.length },
     ];
   }
 
   get lastCompletedSession(): WorkoutSession | null {
     return this.sessions[0] ?? null;
-  }
-
-  get totalSets(): number {
-    return (
-      this.routine?.exercises.reduce(
-        (total, exercise) => total + exercise.targetSets,
-        0,
-      ) ?? 0
-    );
   }
 
   constructor(
@@ -77,6 +78,7 @@ export class WorkoutDetailComponent implements OnInit {
     }).subscribe({
       next: ({ routine, sessions }) => {
         this.routine = routine;
+        this.savedRoutine = routine;
         this.sessions = sessions
           .filter(
             (session) => session.routineId === routineId && !session.inProgress,
@@ -88,11 +90,6 @@ export class WorkoutDetailComponent implements OnInit {
         this.isLoading = false;
       },
     });
-  }
-
-  editRoutine(): void {
-    if (!this.routine) return;
-    this.router.navigate(["/program/workout/edit", this.routine.id]);
   }
 
   deleteRoutine(): void {
@@ -120,6 +117,88 @@ export class WorkoutDetailComponent implements OnInit {
     this.router.navigate(["/program"]);
   }
 
+  addExercise(): void {
+    if (!this.routine) return;
+    this.router.navigate(
+      ["/program/workout/edit", this.routine.id, "add-exercise"],
+      { state: { returnUrl: `/program/workout/${this.routine.id}` } },
+    );
+  }
+
+  editExercise(exerciseId: string): void {
+    if (!this.routine) return;
+    this.router.navigate(
+      ["/program/workout/edit", this.routine.id, "exercise", exerciseId],
+      { state: { returnUrl: `/program/workout/${this.routine.id}` } },
+    );
+  }
+
+  reorderExercises(exercises: ResolvedExercisePrescription[]): void {
+    this.updateExercises(exercises);
+  }
+
+  requestDeleteExercise(exerciseId: string): void {
+    this.exerciseToDelete =
+      this.routine?.exercises.find((exercise) => exercise.id === exerciseId) ??
+      null;
+  }
+
+  cancelDeleteExercise(): void {
+    this.exerciseToDelete = null;
+  }
+
+  confirmDeleteExercise(): void {
+    if (!this.routine || !this.exerciseToDelete) return;
+
+    const exerciseId = this.exerciseToDelete.id;
+    this.exerciseToDelete = null;
+    this.updateExercises(
+      this.routine.exercises.filter((exercise) => exercise.id !== exerciseId),
+    );
+  }
+
+  private updateExercises(exercises: ResolvedExercisePrescription[]): void {
+    if (!this.routine) return;
+
+    this.routine = {
+      ...this.routine,
+      exercises: exercises.map((exercise, index) => ({
+        ...exercise,
+        order: index,
+      })),
+    };
+    this.pendingRoutine = this.routine;
+
+    if (!this.isReordering) this.savePendingRoutine();
+  }
+
+  // Saves run one at a time so a slower earlier write can't overwrite a newer
+  // list. Changes made mid-save collapse into a single follow-up save.
+  private savePendingRoutine(): void {
+    const routine = this.pendingRoutine;
+    this.pendingRoutine = null;
+    if (!routine) {
+      this.isReordering = false;
+      return;
+    }
+
+    this.isReordering = true;
+    this.workoutService.saveRoutine(routine).subscribe({
+      next: () => {
+        this.savedRoutine = routine;
+        this.savePendingRoutine();
+      },
+      error: () => {
+        if (this.pendingRoutine) {
+          this.savePendingRoutine();
+          return;
+        }
+        this.routine = this.savedRoutine;
+        this.isReordering = false;
+      },
+    });
+  }
+
   formatDaysAgo(dateStr: string): string {
     const [year, month, day] = dateStr.slice(0, 10).split("-").map(Number);
     const sessionDay = Date.UTC(year, month - 1, day);
@@ -136,15 +215,15 @@ export class WorkoutDetailComponent implements OnInit {
   }
 
   getExerciseDotClass(log: ExerciseLog): string {
-    if (log.targetReps === undefined) return "history-dot";
-    if (!log.completedSets.length) return "history-dot danger";
+    if (log.targetReps === undefined) return "status-dot";
+    if (!log.completedSets.length) return "status-dot danger";
 
     const averageReps =
       log.completedSets.reduce((total, set) => total + set.reps, 0) /
       log.completedSets.length;
 
-    if (averageReps >= log.targetReps) return "history-dot success";
-    if (log.targetReps - averageReps <= 2) return "history-dot warn";
-    return "history-dot danger";
+    if (averageReps >= log.targetReps) return "status-dot success";
+    if (log.targetReps - averageReps <= 2) return "status-dot warn";
+    return "status-dot danger";
   }
 }

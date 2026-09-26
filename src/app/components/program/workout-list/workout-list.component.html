@@ -1,12 +1,17 @@
 @if (!loading && routines.length === 0) {
-  <div class="empty-state">
-    <p>No routines yet. Create your first routine to get started.</p>
-  </div>
+  <app-empty-state
+    title="No routines yet"
+    message="A routine is a set of exercises you repeat, like Push Day."
+  >
+    <app-button variant="primary" iconName="plus" (click)="createRoutine()">
+      Create routine
+    </app-button>
+  </app-empty-state>
 }
 
 @if (!loading && routines.length > 0) {
-  <div class="routine-list">
-    <div class="routine-list-scroll">
+  <div class="scroll-area">
+    <div class="scroll-area__content routine-list">
       @for (routine of routines; track routine.id) {
         <app-card
           [title]="routine.name"
@@ -15,20 +20,21 @@
             ' exercise' +
             (routine.exercises.length !== 1 ? 's' : '')
           "
+          [showChevron]="true"
           (click)="viewRoutine(routine)"
         ></app-card>
       }
     </div>
   </div>
-}
 
-<div class="workout-list-actions">
-  <app-button
-    variant="secondary"
-    [fullWidth]="true"
-    [height]="'40px'"
-    (click)="createRoutine()"
-  >
-    New Routine
-  </app-button>
-</div>
+  <div class="routine-list-actions">
+    <app-button
+      variant="secondary"
+      iconName="plus"
+      [fullWidth]="true"
+      (click)="createRoutine()"
+    >
+      New routine
+    </app-button>
+  </div>
+}

@@ -1,31 +1,42 @@
-<div class="exercise-list">
-  <div class="exercise-list-scroll">
-    @for (group of exerciseGroups; track group.key) {
-      <section class="exercise-group">
-        <h2 class="exercise-group-title">{{ group.label }}</h2>
-        @for (exercise of group.exercises; track exercise.id) {
-          <div class="exercise-row">
-            <app-editable-card
-              [title]="exercise.name"
-              [description]="exerciseUsageDescription(exercise)"
-              [showEdit]="false"
-              [showDelete]="false"
-              (cardClick)="viewExercise(exercise)"
-            ></app-editable-card>
-          </div>
-        }
-      </section>
-    }
-  </div>
-</div>
-
-<div class="exercise-list-actions">
-  <app-button
-    variant="secondary"
-    [fullWidth]="true"
-    [height]="'40px'"
-    (click)="createExercise()"
+@if (!loading && exerciseGroups.length === 0) {
+  <app-empty-state
+    title="No exercises yet"
+    message="Add the exercises you train, then use them in your routines."
   >
-    New exercise
-  </app-button>
-</div>
+    <app-button variant="primary" iconName="plus" (click)="createExercise()">
+      New exercise
+    </app-button>
+  </app-empty-state>
+} @else {
+  <div class="scroll-area">
+    <div class="scroll-area__content">
+      @for (group of exerciseGroups; track group.key) {
+        <section class="exercise-group">
+          <h2 class="section-label">{{ group.label }}</h2>
+          @for (exercise of group.exercises; track exercise.id) {
+            <div class="exercise-row">
+              <app-editable-card
+                [title]="exercise.name"
+                [showEdit]="false"
+                [showDelete]="false"
+                [showChevron]="true"
+                (cardClick)="viewExercise(exercise)"
+              ></app-editable-card>
+            </div>
+          }
+        </section>
+      }
+    </div>
+  </div>
+
+  <div class="exercise-list-actions">
+    <app-button
+      variant="secondary"
+      iconName="plus"
+      [fullWidth]="true"
+      (click)="createExercise()"
+    >
+      New exercise
+    </app-button>
+  </div>
+}

@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from "@angular/core";
 
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { WorkoutSession, ExerciseLog } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
@@ -11,6 +11,8 @@ import {
   PageHeaderTab,
 } from "../page-header/page-header.component";
 import { ButtonComponent } from "../button/button.component";
+import { RoutineCardComponent } from "../routine-card/routine-card.component";
+import { EmptyStateComponent } from "../empty-state/empty-state.component";
 
 interface ExerciseHistoryEntry {
   date: string;
@@ -25,6 +27,8 @@ interface ExerciseHistoryEntry {
     CalendarComponent,
     LoadingSpinnerComponent,
     PageHeaderComponent,
+    RoutineCardComponent,
+    EmptyStateComponent,
   ],
   templateUrl: "./history.component.html",
   styleUrl: "./history.component.scss",
@@ -65,6 +69,7 @@ export class HistoryComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private workoutService: WorkoutService,
     public units: UnitPreferenceService,
   ) {}
@@ -235,16 +240,20 @@ export class HistoryComponent implements OnInit {
     });
   }
 
+  startWorkout(): void {
+    this.router.navigate(["/"]);
+  }
+
   getExerciseDotClass(log: ExerciseLog): string {
-    if (log.targetReps === undefined) return "session-dot";
-    if (!log.completedSets.length) return "session-dot danger";
+    if (log.targetReps === undefined) return "status-dot";
+    if (!log.completedSets.length) return "status-dot danger";
 
     const averageReps =
       log.completedSets.reduce((total, set) => total + set.reps, 0) /
       log.completedSets.length;
 
-    if (averageReps >= log.targetReps) return "session-dot success";
-    if (log.targetReps - averageReps <= 2) return "session-dot warn";
-    return "session-dot danger";
+    if (averageReps >= log.targetReps) return "status-dot success";
+    if (log.targetReps - averageReps <= 2) return "status-dot warn";
+    return "status-dot danger";
   }
 }

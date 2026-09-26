@@ -1,6 +1,7 @@
 <app-card
   [title]="title"
   [description]="description"
+  [showChevron]="showChevron"
   (click)="cardClick.emit()"
 ></app-card>
 @if (showEdit || showDelete) {
@@ -9,7 +10,7 @@
       <app-button
         variant="icon"
         iconName="edit"
-        [height]="'100%'"
+        [stretch]="true"
         ariaLabel="Edit {{ title }}"
         (click)="edit.emit()"
       />
@@ -18,7 +19,7 @@
       <app-button
         variant="icon"
         iconName="delete"
-        [height]="'100%'"
+        [stretch]="true"
         [danger]="true"
         ariaLabel="Delete {{ title }}"
         (click)="delete.emit()"

@@ -14,16 +14,15 @@ import { RestTimerService } from "../../services/rest-timer.service";
 import { ButtonComponent } from "../button/button.component";
 import { ConfirmationModalComponent } from "../confirmation-modal/confirmation-modal.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
-import { NavDotItem } from "../nav-dots/nav-dots.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
 import { WeightAndRepsSet } from "../weight-and-reps/weight-and-reps.component";
+import { RoutineCardComponent } from "../routine-card/routine-card.component";
 
 interface CurrentExerciseDisplay {
   id: string;
   name: string;
   targetWeightKg: number;
   setReps: WeightAndRepsSet[];
-  setNavItems: NavDotItem[];
 }
 
 @Component({
@@ -33,6 +32,7 @@ interface CurrentExerciseDisplay {
     ConfirmationModalComponent,
     LoadingSpinnerComponent,
     PageHeaderComponent,
+    RoutineCardComponent,
   ],
   templateUrl: "./current-workout.component.html",
   styleUrl: "./current-workout.component.scss",
@@ -126,24 +126,6 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
               achievedAmount: isComplete ? set!.reps : undefined,
             };
           }),
-          setNavItems: Array.from(
-            { length: exercise.targetSets },
-            (_, index) => {
-              const set = sets[index];
-              const isComplete = (set?.reps ?? 0) > 0;
-              const setNumber = index + 1;
-              return {
-                id: setNumber,
-                isActive: false,
-                isComplete,
-                isShort: isComplete && set!.reps < exercise.targetReps,
-                label: isComplete ? set!.reps : exercise.targetReps,
-                ariaLabel: isComplete
-                  ? `Set ${setNumber}: ${set!.reps} reps`
-                  : `Set ${setNumber}: ${exercise.targetReps} reps planned`,
-              };
-            },
-          ),
         };
       });
     this.isLoading = false;
@@ -263,9 +245,9 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
   }
 
   getSetDotClass(set: WeightAndRepsSet): string {
-    if (set.achievedAmount === undefined) return "set-dot";
-    if (set.achievedAmount >= set.targetAmount) return "set-dot success";
-    if (set.achievedAmount + 2 >= set.targetAmount) return "set-dot warn";
-    return "set-dot danger";
+    if (set.achievedAmount === undefined) return "status-dot";
+    if (set.achievedAmount >= set.targetAmount) return "status-dot success";
+    if (set.achievedAmount + 2 >= set.targetAmount) return "status-dot warn";
+    return "status-dot danger";
   }
 }

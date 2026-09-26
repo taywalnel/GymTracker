@@ -6,6 +6,10 @@
   padding-bottom: calc(64px + env(safe-area-inset-bottom));
 }
 
+.app-shell--no-tabs {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 .app-header {
   display: flex;
   align-items: center;
@@ -33,12 +37,12 @@
 }
 
 .app-header__mark {
-  font-size: 1.1rem;
+  font-size: var(--text-lg);
   color: var(--color-accent);
 }
 
 .app-header__title {
-  font-size: 0.95rem;
+  font-size: var(--text-md);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -54,7 +58,7 @@
   padding: 6px 14px;
   min-height: 36px;
   font-family: var(--font-display);
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
@@ -116,14 +120,14 @@
 }
 
 .tab-bar__icon {
-  font-size: 1.3rem;
+  font-size: var(--text-lg);
   line-height: 1;
   filter: grayscale(1) opacity(0.7);
 }
 
 .tab-bar__label {
   font-family: var(--font-display);
-  font-size: 0.8rem;
+  font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }

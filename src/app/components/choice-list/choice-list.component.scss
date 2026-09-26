@@ -1,0 +1,25 @@
+:host {
+  display: block;
+}
+
+:host(.fill) {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+
+  .form-group {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .choice-list {
+    align-content: start;
+  }
+}
+
+.choice-list {
+  display: grid;
+  grid-template-columns: repeat(var(--choice-columns, 2), minmax(0, 1fr));
+  gap: var(--list-gap);
+}

@@ -14,6 +14,7 @@ export class EditableCardComponent {
   @Input({ required: false }) description = "";
   @Input() showEdit = true;
   @Input() showDelete = true;
+  @Input() showChevron = false;
   @Output() edit = new EventEmitter<void>();
   @Output() delete = new EventEmitter<void>();
   @Output() cardClick = new EventEmitter<void>();

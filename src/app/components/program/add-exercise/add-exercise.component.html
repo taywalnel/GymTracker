@@ -9,10 +9,10 @@
     <app-loading-spinner></app-loading-spinner>
   </div>
 } @else if (loadError) {
-  <div class="loading-state">Unable to load exercises.</div>
+  <p class="state-message">Unable to load exercises.</p>
 } @else {
   <div class="content-container">
-    <div class="wizard-body">
+    <div class="card wizard-body">
       <div class="progress-indicator">
         <p class="eyebrow">Step {{ step }} of 4</p>
         <div
@@ -32,18 +32,11 @@
       <h2>{{ stepTitle }}</h2>
 
       @if (step === 1) {
-        <div class="choice-list choice-list--groups">
-          @for (group of muscleGroups; track group.value) {
-            <app-button
-              type="button"
-              variant="secondary"
-              [fullWidth]="true"
-              [selected]="selectedMuscleGroup === group.value"
-              (click)="chooseMuscleGroup(group.value)"
-              >{{ group.label }}</app-button
-            >
-          }
-        </div>
+        <app-choice-list
+          [options]="muscleGroups"
+          [value]="selectedMuscleGroup"
+          (valueChange)="chooseMuscleGroup($event)"
+        ></app-choice-list>
       } @else if (step === 2) {
         @if (filteredExercises.length) {
           <div class="choice-list">
@@ -59,7 +52,14 @@
             }
           </div>
         } @else {
-          <p class="empty-state">No available exercises in this category.</p>
+          <app-empty-state
+            title="No exercises available"
+            message="Every exercise in this muscle group is already in the routine."
+          >
+            <app-button variant="secondary" (click)="goToStep(1)">
+              Choose another group
+            </app-button>
+          </app-empty-state>
         }
       } @else if (step === 3) {
         <div class="weight-container">
@@ -111,23 +111,23 @@
         </div>
       } @else {
         <div class="overview-list">
-          <button type="button" (click)="goToStep(1)">
+          <button type="button" class="overview-item" (click)="goToStep(1)">
             <span>Exercise type</span
             ><strong>{{ selectedMuscleGroupLabel }}</strong>
           </button>
-          <button type="button" (click)="goToStep(2)">
+          <button type="button" class="overview-item" (click)="goToStep(2)">
             <span>Exercise</span><strong>{{ selectedExercise?.name }}</strong>
           </button>
-          <button type="button" (click)="goToStep(3)">
+          <button type="button" class="overview-item" (click)="goToStep(3)">
             <span>Load</span><strong>{{ formattedWeight }}</strong>
           </button>
-          <button type="button" (click)="goToStep(3)">
+          <button type="button" class="overview-item" (click)="goToStep(3)">
             <span>Sets</span><strong>{{ sets }}</strong>
           </button>
-          <button type="button" (click)="goToStep(3)">
+          <button type="button" class="overview-item" (click)="goToStep(3)">
             <span>Reps</span><strong>{{ reps }}</strong>
           </button>
-          <button type="button" (click)="goToStep(3)">
+          <button type="button" class="overview-item" (click)="goToStep(3)">
             <span>Recovery</span><strong>{{ restSeconds }} seconds</strong>
           </button>
         </div>
@@ -166,9 +166,9 @@
           type="button"
           variant="primary"
           [fullWidth]="true"
-          [disabled]="saving"
+          [loading]="saving"
           (click)="save()"
-          >{{ saving ? "Saving..." : "Save" }}</app-button
+          >Save</app-button
         >
       }
     </div>

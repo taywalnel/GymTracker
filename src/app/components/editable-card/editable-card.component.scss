@@ -1,8 +1,10 @@
 :host {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
 }
 
 .buttons-wrapper {
   display: flex;
+  gap: 8px;
 }

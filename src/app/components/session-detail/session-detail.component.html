@@ -7,7 +7,7 @@
     backLink="/history"
     backLabel="All history"
   ></app-page-header>
-  <p class="state-message state-message--left">Session not found.</p>
+  <p class="state-message">Session not found.</p>
 } @else {
   <div class="detail-fixed">
     <app-page-header
@@ -19,7 +19,7 @@
     <div class="session-header__date">{{ formatDate(session.date) }}</div>
   </div>
 
-  <ul class="exercise-list">
+  <div class="exercise-list">
     @for (ex of exercises; track ex.log.exerciseId) {
       <app-exercise-list-item
         [name]="ex.log.exerciseName"
@@ -28,5 +28,5 @@
         [sets]="ex.sets"
       />
     }
-  </ul>
+  </div>
 }

@@ -18,6 +18,7 @@ import {
   WeightAndRepsComponent,
   WeightAndRepsSet,
 } from "../weight-and-reps/weight-and-reps.component";
+import { EmptyStateComponent } from "../empty-state/empty-state.component";
 
 @Component({
   selector: "app-exercise-history-page",
@@ -28,6 +29,7 @@ import {
     WeightAndRepsComponent,
     ButtonComponent,
     ConfirmationModalComponent,
+    EmptyStateComponent,
   ],
   templateUrl: "./exercise-history-page.component.html",
   styleUrl: "./exercise-history-page.component.scss",

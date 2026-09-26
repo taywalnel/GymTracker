@@ -1,0 +1,51 @@
+<div
+  class="reorderable-card-list"
+  [class.scroll-area__content]="fill"
+  cdkDropList
+  cdkDropListOrientation="vertical"
+  [cdkDropListData]="exercises"
+  (cdkDropListDropped)="drop($event)"
+>
+  @for (exercise of exercises; track exercise.id) {
+    <div
+      class="reorderable-card-list__item"
+      [class.reorderable-card-list__item--deletable]="deletable"
+      cdkDrag
+      cdkDragLockAxis="y"
+      [cdkDragDisabled]="disabled"
+      [attr.aria-label]="'Drag ' + exercise.name + ' to reorder'"
+    >
+      <span
+        class="reorderable-card-list__handle"
+        cdkDragHandle
+        aria-hidden="true"
+      >
+        <span [innerHTML]="reorderIcon" aria-hidden="true"></span>
+      </span>
+      <app-card
+        [title]="exercise.name"
+        [description]="
+          exercise.targetSets +
+          ' sets · ' +
+          exercise.targetReps +
+          ' reps · ' +
+          exercise.targetWeightKg +
+          ' kg'
+        "
+        [showChevron]="true"
+        (click)="selectExercise(exercise.id)"
+      />
+      @if (deletable) {
+        <app-button
+          variant="icon"
+          iconName="delete"
+          [danger]="true"
+          [stretch]="true"
+          [disabled]="disabled"
+          [ariaLabel]="'Delete ' + exercise.name"
+          (click)="deleteExercise(exercise.id)"
+        />
+      }
+    </div>
+  }
+</div>

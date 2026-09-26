@@ -3,8 +3,6 @@
 }
 
 .calendar {
-  background: var(--color-panel);
-  border: 1px solid var(--color-border);
   padding: 10px;
 }
 
@@ -17,7 +15,7 @@
 
 .calendar__month-label {
   font-family: var(--font-display);
-  font-size: 0.95rem;
+  font-size: var(--text-md);
   letter-spacing: 0.02em;
 }
 
@@ -29,7 +27,7 @@
 
 .calendar__dow {
   text-align: center;
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--color-text-muted);
@@ -45,6 +43,7 @@
   justify-content: center;
   position: relative;
   gap: 2px;
+  border-radius: var(--radius-sm);
 }
 
 .calendar__cell.out-of-month .calendar__day-num {
@@ -61,16 +60,16 @@
 }
 
 .calendar__cell.has-workout {
-  background: rgba(198, 241, 53, 0.12);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
 .calendar__cell.has-workout.is-today {
-  background: rgba(198, 241, 53, 0.22);
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
 }
 
 .calendar__day-num {
   font-family: var(--font-display);
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   color: var(--color-text-muted);
   line-height: 1;
 }
