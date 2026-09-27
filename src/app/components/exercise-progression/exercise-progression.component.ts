@@ -3,6 +3,10 @@ import { ExerciseLog } from "../../models/workout.models";
 import { formatLocalDate } from "../../utils/dates";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import {
+  estimatedOneRepMax,
+  sessionVolume,
+} from "../../utils/personal-records";
+import {
   WeightAndRepsComponent,
   WeightAndRepsSet,
 } from "../weight-and-reps/weight-and-reps.component";
@@ -25,6 +29,23 @@ interface ChartDomain {
   max: number;
 }
 
+/** What the trend chart plots for each session. */
+export type ProgressMetric = "oneRepMax" | "topWeight" | "volume";
+
+interface MetricOption {
+  value: ProgressMetric;
+  label: string;
+  title: string;
+}
+
+const METRIC_STORAGE_KEY = "gym:progressMetric";
+
+const METRIC_OPTIONS: MetricOption[] = [
+  { value: "oneRepMax", label: "Est. 1RM", title: "Estimated 1-rep max" },
+  { value: "topWeight", label: "Top set", title: "Heaviest set" },
+  { value: "volume", label: "Volume", title: "Session volume" },
+];
+
 @Component({
   selector: "app-exercise-progression",
   imports: [WeightAndRepsComponent],
@@ -34,10 +55,27 @@ interface ChartDomain {
 export class ExerciseProgressionComponent {
   @Input() entries: ExerciseHistoryEntry[] = [];
 
+  readonly metricOptions = METRIC_OPTIONS;
+  /** Remembered per device, so the chart opens on the last metric viewed. */
+  metric: ProgressMetric = readStoredMetric();
+
   constructor(public units: UnitPreferenceService) {}
 
+  get metricTitle(): string {
+    return METRIC_OPTIONS.find((option) => option.value === this.metric)!.title;
+  }
+
+  selectMetric(metric: ProgressMetric): void {
+    this.metric = metric;
+    try {
+      localStorage.setItem(METRIC_STORAGE_KEY, metric);
+    } catch (e) {
+      // ignore storage errors
+    }
+  }
+
   get chartPoints(): ProgressPoint[] {
-    const values = this.entries.map((entry) => this.sessionVolume(entry.log));
+    const values = this.entries.map((entry) => this.metricValue(entry.log));
     const { min, max } = this.chartDomain(values);
 
     return this.entries.map((entry, index) => {
@@ -64,7 +102,7 @@ export class ExerciseProgressionComponent {
 
   get chartAxisLabels(): number[] {
     const { min, max } = this.chartDomain(
-      this.entries.map((entry) => this.sessionVolume(entry.log)),
+      this.entries.map((entry) => this.metricValue(entry.log)),
     );
     return Array.from(
       { length: 4 },
@@ -86,12 +124,7 @@ export class ExerciseProgressionComponent {
   get estimatedOneRepMaxKg(): number {
     return this.entries.reduce(
       (best, entry) =>
-        Math.max(
-          best,
-          ...entry.log.completedSets.map(
-            (set) => set.weightKg * (1 + set.reps / 30),
-          ),
-        ),
+        Math.max(best, ...entry.log.completedSets.map(estimatedOneRepMax)),
       0,
     );
   }
@@ -99,14 +132,18 @@ export class ExerciseProgressionComponent {
   get bestSessionVolumeEntry(): ExerciseHistoryEntry | undefined {
     return this.entries
       .filter((entry) => entry.log.completedSets.length > 0)
-      .reduce<
-        ExerciseHistoryEntry | undefined
-      >((best, entry) => (!best || this.sessionVolume(entry.log) > this.sessionVolume(best.log) ? entry : best), undefined);
+      .reduce<ExerciseHistoryEntry | undefined>(
+        (best, entry) =>
+          !best || sessionVolume(entry.log) > sessionVolume(best.log)
+            ? entry
+            : best,
+        undefined,
+      );
   }
 
   get bestSessionVolumeKg(): number {
     return this.bestSessionVolumeEntry
-      ? this.sessionVolume(this.bestSessionVolumeEntry.log)
+      ? sessionVolume(this.bestSessionVolumeEntry.log)
       : 0;
   }
 
@@ -128,11 +165,15 @@ export class ExerciseProgressionComponent {
     });
   }
 
-  private sessionVolume(log: ExerciseLog): number {
-    return log.completedSets.reduce(
-      (total, set) => total + set.weightKg * set.reps,
-      0,
-    );
+  private metricValue(log: ExerciseLog): number {
+    switch (this.metric) {
+      case "oneRepMax":
+        return Math.max(0, ...log.completedSets.map(estimatedOneRepMax));
+      case "topWeight":
+        return Math.max(0, ...log.completedSets.map((set) => set.weightKg));
+      case "volume":
+        return sessionVolume(log);
+    }
   }
 
   private chartDomain(values: number[]): ChartDomain {
@@ -154,5 +195,17 @@ export class ExerciseProgressionComponent {
       month: "short",
       day: "numeric",
     });
+  }
+}
+
+function readStoredMetric(): ProgressMetric {
+  try {
+    const stored = localStorage.getItem(METRIC_STORAGE_KEY);
+    return (
+      METRIC_OPTIONS.find((option) => option.value === stored)?.value ??
+      "oneRepMax"
+    );
+  } catch (e) {
+    return "oneRepMax";
   }
 }

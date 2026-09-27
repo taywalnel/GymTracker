@@ -19,16 +19,34 @@
     </section>
   }
 
-  <section class="card progress-panel" aria-labelledby="volume-title">
+  <section class="card progress-panel" aria-labelledby="trend-title">
     <div class="progress-panel__header">
       <div>
-        <span class="eyebrow" id="volume-title">Volume trend</span>
+        <span class="eyebrow" id="trend-title">{{ metricTitle }}</span>
         <h3>Session by session</h3>
       </div>
       <span class="progress-panel__count">{{ entries.length }} sessions</span>
     </div>
 
-    <div class="chart" role="img" aria-label="Session volume over time">
+    <div class="metric-toggle" role="group" aria-label="Chart metric">
+      @for (option of metricOptions; track option.value) {
+        <button
+          type="button"
+          class="metric-toggle__option"
+          [class.is-active]="metric === option.value"
+          [attr.aria-pressed]="metric === option.value"
+          (click)="selectMetric(option.value)"
+        >
+          {{ option.label }}
+        </button>
+      }
+    </div>
+
+    <div
+      class="chart"
+      role="img"
+      [attr.aria-label]="metricTitle + ' over time'"
+    >
       <div class="chart__axis" aria-hidden="true">
         @for (label of chartAxisLabels; track $index) {
           <span>{{ formatValue(label) }}</span>
