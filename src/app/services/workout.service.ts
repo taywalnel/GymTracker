@@ -5,7 +5,6 @@ import {
   collection,
   doc,
   getDoc,
-  getDocs,
   setDoc,
   deleteDoc,
   query,
@@ -25,6 +24,7 @@ import {
   compareSessionsNewestFirst,
 } from "../models/workout.models";
 import { queueWrite } from "../utils/firestore-writes";
+import { getDocsPreferringServer } from "../utils/firestore-reads";
 
 const IN_PROGRESS_KEY = "gym:inProgressState";
 
@@ -433,8 +433,22 @@ export class WorkoutService {
     }
     if (this.routinesLoad) return this.routinesLoad;
 
+    const uid = this.uid;
     const load = Promise.all([
-      getDocs(query(this.routinesCol(), orderBy("rotationOrder"))),
+      getDocsPreferringServer(
+        query(this.routinesCol(), orderBy("rotationOrder")),
+        (snap) =>
+          this._applyLateResult(uid, () =>
+            this.routinesSignal.set(
+              snap.docs.map((item) =>
+                this._resolveRoutine(
+                  item.data() as StoredRoutine,
+                  this.exercisesSignal(),
+                ),
+              ),
+            ),
+          ),
+      ),
       this._loadExercises(),
     ]).then(([snap, exercises]) => {
       const routines = snap.docs.map((item) =>
@@ -458,7 +472,14 @@ export class WorkoutService {
     }
     if (this.exercisesLoad) return this.exercisesLoad;
 
-    const load = getDocs(this.exercisesCol()).then((snap) => {
+    const uid = this.uid;
+    const load = getDocsPreferringServer(this.exercisesCol(), (snap) =>
+      this._applyLateResult(uid, () =>
+        this.exercisesSignal.set(
+          snap.docs.map((item) => item.data() as Exercise),
+        ),
+      ),
+    ).then((snap) => {
       const exercises = snap.docs.map((item) => item.data() as Exercise);
       this.exercisesSignal.set(exercises);
       this.exercisesLoaded = true;
@@ -478,8 +499,17 @@ export class WorkoutService {
     }
     if (this.sessionsLoad) return this.sessionsLoad;
 
-    const load = getDocs(
+    const uid = this.uid;
+    const load = getDocsPreferringServer(
       query(this.sessionsCol(), orderBy("date", "desc")),
+      (snap) =>
+        this._applyLateResult(uid, () =>
+          this.sessionsSignal.set(
+            snap.docs
+              .map((item) => item.data() as WorkoutSession)
+              .sort(compareSessionsNewestFirst),
+          ),
+        ),
     ).then((snap) => {
       const sessions = snap.docs
         .map((item) => item.data() as WorkoutSession)
@@ -494,6 +524,17 @@ export class WorkoutService {
       () => this._clearSessionLoad(load),
     );
     return load;
+  }
+
+  // A server result that arrived after the cached copy was shown (see
+  // getDocsPreferringServer). Skipped if a different user has signed in since.
+  private _applyLateResult(uid: string, apply: () => void): void {
+    if (this.auth.currentUser?.uid !== uid) return;
+    try {
+      apply();
+    } catch (e) {
+      // keep the cached copy
+    }
   }
 
   private _loadRoutinesAndSessions(): Promise<[Routine[], WorkoutSession[]]> {

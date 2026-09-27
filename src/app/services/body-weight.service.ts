@@ -4,7 +4,6 @@ import {
   collection,
   deleteDoc,
   doc,
-  getDocs,
   query,
   orderBy,
   setDoc,
@@ -13,6 +12,7 @@ import { Auth, user } from "@angular/fire/auth";
 import { Observable, defer, from, of } from "rxjs";
 import { BodyWeightEntry } from "../models/body-weight.models";
 import { queueWrite } from "../utils/firestore-writes";
+import { getDocsPreferringServer } from "../utils/firestore-reads";
 
 @Injectable({ providedIn: "root" })
 export class BodyWeightService {
@@ -80,8 +80,17 @@ export class BodyWeightService {
     if (this.loaded) return Promise.resolve(this.entriesSignal());
     if (this.loading) return this.loading;
 
-    const load = getDocs(
+    const uid = this.uid;
+    const load = getDocsPreferringServer(
       query(this.entriesCollection(), orderBy("date", "desc")),
+      // A late server result replaces the cached copy, unless another user
+      // has signed in since.
+      (snapshot) => {
+        if (this.auth.currentUser?.uid !== uid) return;
+        this.entriesSignal.set(
+          snapshot.docs.map((item) => item.data() as BodyWeightEntry),
+        );
+      },
     ).then((snapshot) => {
       const entries = snapshot.docs.map(
         (item) => item.data() as BodyWeightEntry,
