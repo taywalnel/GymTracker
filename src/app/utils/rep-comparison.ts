@@ -6,7 +6,7 @@ import {
 } from "../models/workout.models";
 
 // Weights entered in lb are stored as converted kg, so allow for rounding.
-const WEIGHT_TOLERANCE_KG = 0.01;
+export const WEIGHT_TOLERANCE_KG = 0.01;
 
 export function totalReps(sets: readonly CompletedSet[]): number {
   return sets.reduce((total, set) => total + set.reps, 0);
