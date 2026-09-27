@@ -1,8 +1,15 @@
+import { TestBed } from "@angular/core/testing";
+import { provideRouter } from "@angular/router";
 import { PageHeaderComponent } from "./page-header.component";
 
 describe("PageHeaderComponent tabs", () => {
+  function createComponent(): PageHeaderComponent {
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    return TestBed.runInInjectionContext(() => new PageHeaderComponent());
+  }
+
   it("selects the first tab by default", () => {
-    const component = new PageHeaderComponent();
+    const component = createComponent();
     component.tabs = ["Overview", "History"];
 
     expect(component.isTabSelected("Overview")).toBeTrue();
@@ -10,7 +17,7 @@ describe("PageHeaderComponent tabs", () => {
   });
 
   it("updates the selected tab and emits it", () => {
-    const component = new PageHeaderComponent();
+    const component = createComponent();
     const selectedTab = jasmine.createSpy("selectedTab");
     component.selectedTab.subscribe(selectedTab);
     component.tabs = ["Overview", "History"];

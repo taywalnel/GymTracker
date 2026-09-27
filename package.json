@@ -32,7 +32,14 @@
     "@angular/build": "^20.3.32",
     "@angular/cli": "^20.3.32",
     "@angular/compiler-cli": "^20.3.26",
+    "@types/jasmine": "~5.1",
     "firebase-admin": "^14.2.0",
+    "jasmine-core": "~5.1",
+    "karma": "~6.4",
+    "karma-chrome-launcher": "~3.2",
+    "karma-coverage": "~2.2",
+    "karma-jasmine": "~5.1",
+    "karma-jasmine-html-reporter": "~2.1",
     "tsx": "^4.23.1",
     "typescript": "~5.9.3"
   }

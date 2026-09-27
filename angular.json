@@ -56,6 +56,15 @@
             "development": { "buildTarget": "gym-tracker:build:development" }
           },
           "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:karma",
+          "options": {
+            "polyfills": ["zone.js", "zone.js/testing"],
+            "tsConfig": "tsconfig.spec.json",
+            "inlineStyleLanguage": "scss",
+            "styles": ["src/styles.scss"]
+          }
         }
       }
     }
