@@ -53,9 +53,9 @@ describe("rep comparison", () => {
       [session("last", sets([10, 8, 7]))],
       benchPress,
     );
-    expect(totalReps(sets([10, 9, 7])) - totalReps(previous!.completedSets)).toBe(
-      1,
-    );
+    expect(
+      totalReps(sets([10, 9, 7])) - totalReps(previous!.completedSets),
+    ).toBe(1);
   });
 
   it("uses the newest matching log", () => {
@@ -68,7 +68,10 @@ describe("rep comparison", () => {
 
   it("skips logs at a different weight", () => {
     const log = findComparableLog(
-      [session("heavier", sets([10, 8, 7], 32.5)), session("same", sets([9, 9, 9]))],
+      [
+        session("heavier", sets([10, 8, 7], 32.5)),
+        session("same", sets([9, 9, 9])),
+      ],
       benchPress,
     );
     expect(totalReps(log!.completedSets)).toBe(27);

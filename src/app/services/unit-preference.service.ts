@@ -2,6 +2,7 @@ import { Injectable, signal, computed } from "@angular/core";
 import { UnitSystem } from "../models/workout.models";
 
 const KG_TO_LB = 2.20462;
+const STORAGE_KEY = "gym:unitSystem";
 
 /**
  * Single source of truth for the person's metric/imperial display preference.
@@ -11,11 +12,13 @@ const KG_TO_LB = 2.20462;
  * for screen, and converting a person's lb input back to kg before it's saved.
  *
  * Default is metric, since the source data (the person's own notes) was
- * recorded in kg.
+ * recorded in kg. The choice is kept in localStorage so it survives a reload.
  */
 @Injectable({ providedIn: "root" })
 export class UnitPreferenceService {
-  private readonly unitSystemSignal = signal<UnitSystem>("metric");
+  private readonly unitSystemSignal = signal<UnitSystem>(
+    readStoredUnitSystem(),
+  );
 
   readonly unitSystem = this.unitSystemSignal.asReadonly();
   readonly unitLabel = computed(() =>
@@ -25,10 +28,15 @@ export class UnitPreferenceService {
 
   setUnitSystem(system: UnitSystem): void {
     this.unitSystemSignal.set(system);
+    try {
+      localStorage.setItem(STORAGE_KEY, system);
+    } catch (e) {
+      // ignore storage errors
+    }
   }
 
   toggle(): void {
-    this.unitSystemSignal.set(
+    this.setUnitSystem(
       this.unitSystemSignal() === "metric" ? "imperial" : "metric",
     );
   }
@@ -63,5 +71,15 @@ export class UnitPreferenceService {
     const factor = 10 ** decimals;
     const rounded = Math.round(this.fromKg(kg) * factor) / factor;
     return rounded.toString();
+  }
+}
+
+function readStoredUnitSystem(): UnitSystem {
+  try {
+    return localStorage.getItem(STORAGE_KEY) === "imperial"
+      ? "imperial"
+      : "metric";
+  } catch (e) {
+    return "metric";
   }
 }

@@ -1,5 +1,6 @@
 import { Component, Input } from "@angular/core";
 import { ExerciseLog } from "../../models/workout.models";
+import { formatLocalDate } from "../../utils/dates";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import {
   WeightAndRepsComponent,
@@ -120,7 +121,7 @@ export class ExerciseProgressionComponent {
   }
 
   formatDate(date: string): string {
-    return new Date(date).toLocaleDateString(undefined, {
+    return formatLocalDate(date, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -149,7 +150,7 @@ export class ExerciseProgressionComponent {
   }
 
   private shortDate(date: string): string {
-    return new Date(date).toLocaleDateString(undefined, {
+    return formatLocalDate(date, {
       month: "short",
       day: "numeric",
     });

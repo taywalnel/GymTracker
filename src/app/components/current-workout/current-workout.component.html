@@ -11,31 +11,31 @@
   />
 
   <div class="page-content">
-    <section class="workout-summary" aria-label="Workout summary">
-      <div class="workout-summary__stats">
+    <section class="stat-strip" aria-label="Workout summary">
+      <div class="stat-strip__stats">
         @if (restSecondsLeft !== null) {
-          <div class="workout-summary__stat workout-summary__stat--rest">
-            <span class="workout-summary__value">{{ restSecondsLeft }}s</span>
-            <span class="workout-summary__label">Rest</span>
+          <div class="stat-strip__stat stat-strip__stat--accent">
+            <span class="stat-strip__value">{{ restSecondsLeft }}s</span>
+            <span class="stat-strip__label">Rest</span>
           </div>
         } @else {
-          <div class="workout-summary__stat">
-            <span class="workout-summary__value" aria-live="off">{{
+          <div class="stat-strip__stat">
+            <span class="stat-strip__value" aria-live="off">{{
               elapsedTime
             }}</span>
-            <span class="workout-summary__label">Elapsed</span>
+            <span class="stat-strip__label">Elapsed</span>
           </div>
         }
-        <div class="workout-summary__stat">
-          <span class="workout-summary__value"
+        <div class="stat-strip__stat">
+          <span class="stat-strip__value"
             >{{ completedExerciseCount }} / {{ totalExerciseCount }}</span
           >
-          <span class="workout-summary__label">Exercises</span>
+          <span class="stat-strip__label">Exercises</span>
         </div>
-        <div class="workout-summary__stat">
+        <div class="stat-strip__stat">
           @if (totalRepDelta !== null) {
             <span
-              class="workout-summary__value rep-delta"
+              class="stat-strip__value rep-delta"
               [class.rep-delta--up]="totalRepDelta > 0"
               [class.rep-delta--down]="totalRepDelta < 0"
               [attr.aria-label]="repDeltaDescription(totalRepDelta)"
@@ -43,16 +43,16 @@
             >
           } @else {
             <span
-              class="workout-summary__value workout-summary__value--empty"
+              class="stat-strip__value stat-strip__value--empty"
               aria-label="No comparison yet"
               >–</span
             >
           }
-          <span class="workout-summary__label">Reps vs last</span>
+          <span class="stat-strip__label">Reps vs last</span>
         </div>
       </div>
       <div
-        class="workout-summary__progress"
+        class="stat-strip__progress"
         role="progressbar"
         aria-label="Exercises completed"
         [attr.aria-valuenow]="completedExerciseCount"
@@ -60,7 +60,7 @@
         [attr.aria-valuemax]="totalExerciseCount"
       >
         <span
-          class="workout-summary__progress-fill"
+          class="stat-strip__progress-fill"
           [style.width.%]="completionPercentage"
         ></span>
       </div>

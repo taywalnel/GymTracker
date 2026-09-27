@@ -43,6 +43,12 @@
   color: var(--color-text);
 }
 
+.resume-card__stale {
+  margin-top: 4px;
+  font-size: var(--text-sm);
+  color: var(--color-warning);
+}
+
 .resume-card__actions {
   display: flex;
   gap: 8px;

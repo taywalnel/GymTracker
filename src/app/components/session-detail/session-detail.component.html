@@ -14,19 +14,157 @@
       [title]="session.routineName"
       backLink="/history"
       backLabel="All history"
-    >
-    </app-page-header>
-    <div class="session-header__date">{{ formatDate(session.date) }}</div>
+      [showRightAction]="true"
+      rightActionLabel="Edit"
+      (rightAction)="openEdit()"
+    />
+
+    <section class="stat-strip session-summary" aria-label="Session summary">
+      <p class="session-summary__date">{{ formatDate(session.date) }}</p>
+      <div class="stat-strip__stats">
+        <div class="stat-strip__stat">
+          @if (durationLabel) {
+            <span class="stat-strip__value">{{ durationLabel }}</span>
+          } @else {
+            <span
+              class="stat-strip__value stat-strip__value--empty"
+              aria-label="Not recorded"
+              >–</span
+            >
+          }
+          <span class="stat-strip__label">Duration</span>
+        </div>
+        <div class="stat-strip__stat">
+          <span class="stat-strip__value"
+            >{{ exercises.length }} / {{ session.exerciseLogs.length }}</span
+          >
+          <span class="stat-strip__label">Exercises</span>
+        </div>
+        <div class="stat-strip__stat">
+          @if (totalRepDelta !== null) {
+            <span
+              class="stat-strip__value rep-delta"
+              [class.rep-delta--up]="totalRepDelta > 0"
+              [class.rep-delta--down]="totalRepDelta < 0"
+              [attr.aria-label]="repDeltaDescription(totalRepDelta)"
+              >{{ repDeltaLabel(totalRepDelta) }}</span
+            >
+          } @else {
+            <span
+              class="stat-strip__value stat-strip__value--empty"
+              aria-label="No comparison"
+              >–</span
+            >
+          }
+          <span class="stat-strip__label">Reps vs last</span>
+        </div>
+      </div>
+    </section>
   </div>
 
   <div class="exercise-list">
     @for (ex of exercises; track ex.log.exerciseId) {
-      <app-exercise-list-item
-        [name]="ex.log.exerciseName"
-        [nameLink]="['/history', ex.log.exerciseId]"
-        [weight]="ex.weight"
-        [sets]="ex.sets"
-      />
+      <article class="card session-exercise">
+        <div class="session-exercise__top">
+          <span class="session-exercise__name">{{ ex.log.exerciseName }}</span>
+          @if (ex.repDelta !== null) {
+            <span
+              class="rep-delta"
+              [class.rep-delta--up]="ex.repDelta > 0"
+              [class.rep-delta--down]="ex.repDelta < 0"
+              [attr.aria-label]="repDeltaDescription(ex.repDelta)"
+            >
+              {{ repDeltaLabel(ex.repDelta) }}
+            </span>
+          }
+        </div>
+        @if (ex.target) {
+          <span class="session-exercise__target">{{ ex.target }}</span>
+        }
+        <app-weight-and-reps [weight]="ex.weightKg" [sets]="ex.sets" />
+      </article>
+    }
+
+    @if (skipped.length > 0) {
+      <h2 class="section-label session-skipped__label">Skipped</h2>
+      @for (log of skipped; track log.exerciseId) {
+        <app-card
+          class="session-skipped"
+          [title]="log.exerciseName"
+          [interactive]="false"
+        />
+      }
     }
   </div>
+
+  @if (showEditForm) {
+    <div class="modal-backdrop" (click)="closeEdit()">
+      <section
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-session-title"
+        (click)="$event.stopPropagation()"
+      >
+        <h2 id="edit-session-title">Edit session</h2>
+
+        <app-date-input
+          id="session-date"
+          label="Date"
+          [max]="maxDate"
+          [(ngModel)]="editDate"
+          [disabled]="isSaving"
+          [invalid]="editAttempted && editDateError !== null"
+          [error]="editDateError"
+        />
+
+        <div class="modal__actions">
+          <app-button
+            variant="secondary"
+            [fullWidth]="true"
+            [disabled]="isSaving"
+            (click)="closeEdit()"
+          >
+            Cancel
+          </app-button>
+          <app-button
+            variant="primary"
+            [fullWidth]="true"
+            [loading]="isSaving"
+            (click)="saveEdit()"
+          >
+            Save
+          </app-button>
+        </div>
+
+        <app-button
+          class="edit-session__delete"
+          variant="ghost"
+          [danger]="true"
+          [fullWidth]="true"
+          [disabled]="isSaving"
+          (click)="requestDelete()"
+        >
+          Delete session
+        </app-button>
+      </section>
+    </div>
+  }
+
+  @if (showDeleteConfirmation) {
+    <app-confirmation-modal
+      title="Delete session?"
+      [message]="
+        'Delete ' +
+        session.routineName +
+        ' on ' +
+        formatDate(session.date) +
+        '? This can\'t be undone.'
+      "
+      confirmLabel="Delete"
+      [danger]="true"
+      (confirmed)="confirmDelete()"
+      (cancelled)="cancelDelete()"
+    />
+  }
 }

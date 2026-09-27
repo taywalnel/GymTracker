@@ -1,7 +1,12 @@
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
 import { Routine } from "../../models/workout.models";
-import { WorkoutService } from "../../services/workout.service";
+import {
+  STALE_WORKOUT_MS,
+  WorkoutService,
+} from "../../services/workout.service";
+import { RestTimerService } from "../../services/rest-timer.service";
+import { formatDaysAgo, localDateFromTimestamp } from "../../utils/dates";
 import { ButtonComponent } from "../button/button.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
@@ -47,8 +52,21 @@ export class TodayWorkoutComponent implements OnInit {
   todayDateLabel = "";
   savedState = this.workoutService.getInProgressState();
 
+  /** "Started 1 day ago" for a workout left open long enough to be forgotten. */
+  get staleLabel(): string | null {
+    if (!this.savedState) return null;
+    if (Date.now() - this.savedState.startedAt < STALE_WORKOUT_MS) return null;
+    const daysAgo = formatDaysAgo(
+      localDateFromTimestamp(this.savedState.startedAt),
+    );
+    return daysAgo === "Today"
+      ? "Started over 12 hours ago"
+      : `Started ${daysAgo.toLowerCase()}`;
+  }
+
   constructor(
     private workoutService: WorkoutService,
+    private restTimer: RestTimerService,
     private router: Router,
   ) {}
 
@@ -111,6 +129,7 @@ export class TodayWorkoutComponent implements OnInit {
   }
 
   discardSaved(): void {
+    this.restTimer.clear();
     this.workoutService.clearInProgressState();
     this.savedState = null;
   }

@@ -41,3 +41,15 @@ export function findComparableLog(
   }
   return null;
 }
+
+/** "+1", "-2" or "0". */
+export function formatRepDelta(delta: number): string {
+  return delta > 0 ? `+${delta}` : `${delta}`;
+}
+
+/** Screen-reader text for a rep change, e.g. "2 reps fewer than last time". */
+export function describeRepDelta(delta: number): string {
+  if (delta === 0) return "Same total reps as last time";
+  const count = Math.abs(delta);
+  return `${count} ${count === 1 ? "rep" : "reps"} ${delta > 0 ? "more" : "fewer"} than last time`;
+}

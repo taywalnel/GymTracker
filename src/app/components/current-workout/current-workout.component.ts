@@ -28,8 +28,14 @@ import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.comp
 import { PageHeaderComponent } from "../page-header/page-header.component";
 import { WeightAndRepsSet } from "../weight-and-reps/weight-and-reps.component";
 import { RoutineCardComponent } from "../routine-card/routine-card.component";
-import { findComparableLog, totalReps } from "../../utils/rep-comparison";
+import {
+  describeRepDelta,
+  findComparableLog,
+  formatRepDelta,
+  totalReps,
+} from "../../utils/rep-comparison";
 import { REORDER_SVG } from "../../constants/svg.constants";
+import { localDateFromTimestamp } from "../../utils/dates";
 
 const dragConfig: DragDropConfig = {
   dragStartThreshold: 0,
@@ -181,6 +187,7 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
         exerciseId: exercise.id,
         exerciseName: exercise.name,
         targetReps: exercise.targetReps,
+        targetSets: exercise.targetSets,
         completedSets: (workingSets.get(exercise.id) ?? []).filter(
           (set) => set.reps > 0,
         ),
@@ -190,7 +197,14 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
       id: this.workoutService.generateSessionId(),
       routineId: this.state.today.routine.id,
       routineName: this.state.today.routine.name,
-      date: new Date().toISOString().slice(0, 10),
+      // Dated by when it started, so a workout finished after midnight or
+      // resumed the next day lands on the day it was done.
+      date: localDateFromTimestamp(this.state.startedAt),
+      durationSeconds: Math.max(
+        0,
+        Math.round((Date.now() - this.state.startedAt) / 1000),
+      ),
+      completedAt: new Date().toISOString(),
       exerciseLogs,
       inProgress: false,
     };
@@ -373,15 +387,8 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
     });
   }
 
-  repDeltaLabel(delta: number): string {
-    return delta > 0 ? `+${delta}` : `${delta}`;
-  }
-
-  repDeltaDescription(delta: number): string {
-    if (delta === 0) return "Same total reps as last time";
-    const count = Math.abs(delta);
-    return `${count} ${count === 1 ? "rep" : "reps"} ${delta > 0 ? "more" : "fewer"} than last time`;
-  }
+  readonly repDeltaLabel = formatRepDelta;
+  readonly repDeltaDescription = describeRepDelta;
 
   private setsFor(exerciseId: string): CompletedSet[] {
     return (

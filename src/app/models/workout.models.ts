@@ -144,6 +144,8 @@ export interface ExerciseLog {
   exerciseName: string;
   /** The planned rep target at the time of the session, used to colour-code dots in history. */
   targetReps?: number;
+  /** The planned number of sets; absent on older logs. */
+  targetSets?: number;
   completedSets: CompletedSet[];
 }
 
@@ -161,6 +163,21 @@ export interface WorkoutSession {
   inProgress: boolean;
   /** True when the session belongs to the active workout rotation. */
   active?: boolean;
+  /** How long the workout took; absent on older sessions. */
+  durationSeconds?: number;
+  /** ISO timestamp of when the workout was finished, to order sessions on the same date. */
+  completedAt?: string;
+}
+
+/** Newest first by date, then by finish time for sessions on the same date. */
+export function compareSessionsNewestFirst(
+  left: WorkoutSession,
+  right: WorkoutSession,
+): number {
+  return (
+    right.date.localeCompare(left.date) ||
+    (right.completedAt ?? "").localeCompare(left.completedAt ?? "")
+  );
 }
 
 /**

@@ -1,16 +1,35 @@
-import { ApplicationConfig } from "@angular/core";
+import { ApplicationConfig, isDevMode } from "@angular/core";
 import { provideRouter } from "@angular/router";
 import { routes } from "./app.routes";
-import { provideFirebaseApp, initializeApp } from "@angular/fire/app";
-import { provideFirestore, getFirestore } from "@angular/fire/firestore";
+import { provideFirebaseApp, initializeApp, getApp } from "@angular/fire/app";
+import {
+  provideFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "@angular/fire/firestore";
 import { provideAuth, getAuth } from "@angular/fire/auth";
+import { provideServiceWorker } from "@angular/service-worker";
 import { environment } from "../environments/environment";
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideFirebaseApp(() => initializeApp(environment.firebase)),
-    provideFirestore(() => getFirestore()),
+    // Cache data in IndexedDB so the app reads and writes offline; queued
+    // writes sync when the connection returns.
+    provideFirestore(() =>
+      initializeFirestore(getApp(), {
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager(),
+        }),
+      }),
+    ),
     provideAuth(() => getAuth()),
+    // Caches the app itself so it opens with no connection. Production only.
+    provideServiceWorker("ngsw-worker.js", {
+      enabled: !isDevMode(),
+      registrationStrategy: "registerWhenStable:30000",
+    }),
   ],
 };

@@ -5,65 +5,6 @@
   min-height: 0;
 }
 
-.workout-summary {
-  flex-shrink: 0;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  background: var(--color-panel);
-}
-
-.workout-summary__stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  padding: 8px 4px 7px;
-}
-
-.workout-summary__stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  min-width: 0;
-}
-
-.workout-summary__value {
-  color: var(--color-text);
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-variant-numeric: tabular-nums;
-  line-height: 1.2;
-}
-
-.workout-summary__label {
-  color: var(--color-text-muted);
-  font-size: var(--text-xs);
-}
-
-.workout-summary__value--empty {
-  color: var(--color-text-muted);
-}
-
-.workout-summary__stat--rest .workout-summary__value {
-  color: var(--color-accent);
-}
-
-.workout-summary__progress {
-  height: 3px;
-  background: var(--color-border);
-}
-
-.workout-summary__progress-fill {
-  display: block;
-  height: 100%;
-  background: var(--color-accent);
-  transition: width 240ms ease;
-
-  @media (prefers-reduced-motion: reduce) {
-    transition: none;
-  }
-}
-
 .page-content {
   flex: 1;
   display: flex;
@@ -130,26 +71,6 @@
   @media (prefers-reduced-motion: reduce) {
     transition: none;
   }
-}
-
-.rep-delta {
-  flex-shrink: 0;
-  color: var(--color-text-muted);
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
-  font-variant-numeric: tabular-nums;
-}
-
-.rep-delta--up {
-  color: var(--color-status-good);
-}
-
-.rep-delta--down {
-  color: var(--color-status-miss);
-}
-
-.workout-summary .rep-delta {
-  font-size: var(--text-lg);
 }
 
 .action-buttons {

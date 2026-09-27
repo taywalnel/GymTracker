@@ -33,6 +33,7 @@ import {
   WeightAndRepsSet,
 } from "../weight-and-reps/weight-and-reps.component";
 import { EmptyStateComponent } from "../empty-state/empty-state.component";
+import { formatLocalDate } from "../../utils/dates";
 
 @Component({
   selector: "app-exercise-history-page",
@@ -149,11 +150,11 @@ export class ExerciseHistoryPageComponent implements OnInit {
   }
 
   formatDate(date: string): string {
-    return new Date(date).toLocaleDateString("en-GB", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
+    return formatLocalDate(
+      date,
+      { month: "long", day: "numeric", year: "numeric" },
+      "en-GB",
+    );
   }
 
   toWeightAndRepsSets(log: ExerciseLog): WeightAndRepsSet[] {

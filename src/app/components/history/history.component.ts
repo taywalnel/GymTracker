@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild } from "@angular/core";
 
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { WorkoutSession, ExerciseLog } from "../../models/workout.models";
+import { formatLocalDate, parseLocalDate } from "../../utils/dates";
 import { WorkoutService } from "../../services/workout.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { CalendarComponent } from "../calendar/calendar.component";
@@ -171,7 +172,7 @@ export class HistoryComponent implements OnInit {
     let previousDay: Date | null = null;
 
     for (const dateStr of sortedDays) {
-      const date = this.parseLocalDate(dateStr);
+      const date = parseLocalDate(dateStr);
       if (previousDay && date.getTime() - previousDay.getTime() === 86400000) {
         current += 1;
       } else {
@@ -182,11 +183,6 @@ export class HistoryComponent implements OnInit {
     }
 
     return longest;
-  }
-
-  private parseLocalDate(dateStr: string): Date {
-    const [year, month, day] = dateStr.split("-").map(Number);
-    return new Date(year, month - 1, day);
   }
 
   private setExerciseHistory(
@@ -233,7 +229,7 @@ export class HistoryComponent implements OnInit {
   }
 
   formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString(undefined, {
+    return formatLocalDate(dateStr, {
       weekday: "short",
       month: "short",
       day: "numeric",

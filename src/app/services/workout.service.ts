@@ -1,5 +1,5 @@
 import { Injectable, signal } from "@angular/core";
-import { Observable, from, map } from "rxjs";
+import { Observable, defer, from, map, of } from "rxjs";
 import {
   Firestore,
   collection,
@@ -22,7 +22,14 @@ import {
   TodayWorkout,
   ExerciseLog,
   CompletedSet,
+  compareSessionsNewestFirst,
 } from "../models/workout.models";
+import { queueWrite } from "../utils/firestore-writes";
+
+const IN_PROGRESS_KEY = "gym:inProgressState";
+
+/** A workout started this long ago was probably left open by mistake. */
+export const STALE_WORKOUT_MS = 12 * 60 * 60 * 1000;
 
 /** Serializable snapshot of an in-progress Today session for restore after navigation. */
 export interface InProgressState {
@@ -119,14 +126,16 @@ export class WorkoutService {
     this.saveRoutineDraft(null);
   }
 
-  // transient in-memory store for an in-progress session; persisted to sessionStorage
+  // In-memory copy of the in-progress session, persisted to localStorage so it
+  // survives the tab closing or iOS killing the home-screen app mid-workout.
   private inProgressState: InProgressState | null = null;
 
   saveInProgressState(state: InProgressState | null): void {
     this.inProgressState = state;
     try {
       if (state === null) {
-        sessionStorage.removeItem("gym:inProgressState");
+        localStorage.removeItem(IN_PROGRESS_KEY);
+        sessionStorage.removeItem(IN_PROGRESS_KEY);
       } else {
         // Convert any Maps (notably TodayWorkout.lastPerformance) into serializable form.
         // Use a shallow-clone to avoid relying on structuredClone availability.
@@ -145,10 +154,7 @@ export class WorkoutService {
         } catch (e) {
           // ignore
         }
-        sessionStorage.setItem(
-          "gym:inProgressState",
-          JSON.stringify(serializable),
-        );
+        localStorage.setItem(IN_PROGRESS_KEY, JSON.stringify(serializable));
       }
     } catch (e) {
       // ignore storage errors
@@ -158,7 +164,7 @@ export class WorkoutService {
   getInProgressState(): InProgressState | null {
     if (this.inProgressState) return this.inProgressState;
     try {
-      const raw = sessionStorage.getItem("gym:inProgressState");
+      const raw = this._readInProgressStorage();
       if (!raw) return null;
       const parsed = JSON.parse(raw) as any;
       if (parsed.ownerUid && parsed.ownerUid !== this.auth.currentUser?.uid) {
@@ -187,6 +193,19 @@ export class WorkoutService {
 
   clearInProgressState(): void {
     this.saveInProgressState(null);
+  }
+
+  // In-progress state used to live in sessionStorage; move it across once so a
+  // workout running during the upgrade isn't lost.
+  private _readInProgressStorage(): string | null {
+    const raw = localStorage.getItem(IN_PROGRESS_KEY);
+    if (raw) return raw;
+    const legacy = sessionStorage.getItem(IN_PROGRESS_KEY);
+    if (legacy) {
+      localStorage.setItem(IN_PROGRESS_KEY, legacy);
+      sessionStorage.removeItem(IN_PROGRESS_KEY);
+    }
+    return legacy;
   }
 
   private get uid(): string {
@@ -355,13 +374,24 @@ export class WorkoutService {
 
   // ---- writes -----------------------------------------------------------
 
+  // Writes don't wait for the server (see queueWrite), so they complete
+  // immediately, offline included.
   saveSession(session: WorkoutSession): Observable<WorkoutSession> {
-    return from(
-      setDoc(doc(this.sessionsCol(), session.id), session).then(() => {
-        this._upsertSession(session);
-        return session;
-      }),
-    );
+    return defer(() => {
+      queueWrite(setDoc(doc(this.sessionsCol(), session.id), session));
+      this._upsertSession(session);
+      return of(session);
+    });
+  }
+
+  deleteSession(sessionId: string): Observable<void> {
+    return defer(() => {
+      queueWrite(deleteDoc(doc(this.sessionsCol(), sessionId)));
+      this.sessionsSignal.set(
+        this.sessionsSignal().filter((session) => session.id !== sessionId),
+      );
+      return of(undefined);
+    });
   }
 
   saveRoutine(routine: Routine): Observable<Routine> {
@@ -451,7 +481,9 @@ export class WorkoutService {
     const load = getDocs(
       query(this.sessionsCol(), orderBy("date", "desc")),
     ).then((snap) => {
-      const sessions = snap.docs.map((item) => item.data() as WorkoutSession);
+      const sessions = snap.docs
+        .map((item) => item.data() as WorkoutSession)
+        .sort(compareSessionsNewestFirst);
       this.sessionsSignal.set(sessions);
       this.sessionsLoaded = true;
       return sessions;
@@ -517,7 +549,7 @@ export class WorkoutService {
       }
       batch.set(doc(this.routinesCol(), r.id), this._storeRoutine(r));
     }
-    await batch.commit();
+    queueWrite(batch.commit());
     this.routinesSignal.set([...current]);
     this.routinesLoaded = true;
     this._setExercisesFromRoutines(current);
@@ -533,7 +565,7 @@ export class WorkoutService {
       current.push(exercise);
     }
 
-    await setDoc(doc(this.exercisesCol(), exercise.id), exercise);
+    queueWrite(setDoc(doc(this.exercisesCol(), exercise.id), exercise));
     this.exercisesSignal.set(current);
     this.exercisesLoaded = true;
     return exercise;
@@ -552,7 +584,7 @@ export class WorkoutService {
     for (const r of remaining) {
       batch.set(doc(this.routinesCol(), r.id), this._storeRoutine(r));
     }
-    await batch.commit();
+    queueWrite(batch.commit());
     this.routinesSignal.set([...remaining]);
     this.routinesLoaded = true;
     return true;
@@ -575,7 +607,7 @@ export class WorkoutService {
         this._storeRoutine(routine),
       );
     }
-    await batch.commit();
+    queueWrite(batch.commit());
 
     this.exercisesSignal.set(exercises);
     this.exercisesLoaded = true;
@@ -589,7 +621,7 @@ export class WorkoutService {
       (item) => item.id !== session.id,
     );
     sessions.push(session);
-    sessions.sort((left, right) => right.date.localeCompare(left.date));
+    sessions.sort(compareSessionsNewestFirst);
     this.sessionsSignal.set(sessions);
   }
 
@@ -680,7 +712,7 @@ export class WorkoutService {
 
     const completed = sessions
       .filter((s) => !s.inProgress)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .sort(compareSessionsNewestFirst);
 
     if (completed.length === 0) {
       return routines.find((r) => r.rotationOrder === 0) ?? routines[0];

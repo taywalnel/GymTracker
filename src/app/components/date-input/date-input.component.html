@@ -7,6 +7,7 @@
     type="date"
     [value]="value"
     [disabled]="disabled"
+    [attr.max]="max"
     [attr.aria-invalid]="invalid ? 'true' : null"
     [attr.aria-describedby]="error && invalid ? errorId : null"
     class="form-input"

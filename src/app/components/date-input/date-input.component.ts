@@ -23,6 +23,8 @@ export class DateInputComponent implements ControlValueAccessor {
   @Input() invalid = false;
   @Input() error: string | null = null;
   @Input() disabled = false;
+  /** Latest selectable date (YYYY-MM-DD). */
+  @Input() max: string | null = null;
 
   value = "";
 

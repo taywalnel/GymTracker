@@ -10,8 +10,9 @@ import {
   setDoc,
 } from "@angular/fire/firestore";
 import { Auth, user } from "@angular/fire/auth";
-import { Observable, from } from "rxjs";
+import { Observable, defer, from, of } from "rxjs";
 import { BodyWeightEntry } from "../models/body-weight.models";
+import { queueWrite } from "../utils/firestore-writes";
 
 @Injectable({ providedIn: "root" })
 export class BodyWeightService {
@@ -45,24 +46,24 @@ export class BodyWeightService {
     return from(this.loadEntries());
   }
 
+  // Writes don't wait for the server (see queueWrite), so they complete
+  // immediately, offline included.
   saveEntry(entry: BodyWeightEntry): Observable<BodyWeightEntry> {
-    return from(
-      setDoc(doc(this.entriesCollection(), entry.id), entry).then(() => {
-        this.upsertEntry(entry);
-        return entry;
-      }),
-    );
+    return defer(() => {
+      queueWrite(setDoc(doc(this.entriesCollection(), entry.id), entry));
+      this.upsertEntry(entry);
+      return of(entry);
+    });
   }
 
   deleteEntry(date: string): Observable<boolean> {
-    return from(
-      deleteDoc(doc(this.entriesCollection(), date)).then(() => {
-        this.entriesSignal.set(
-          this.entriesSignal().filter((entry) => entry.date !== date),
-        );
-        return true;
-      }),
-    );
+    return defer(() => {
+      queueWrite(deleteDoc(doc(this.entriesCollection(), date)));
+      this.entriesSignal.set(
+        this.entriesSignal().filter((entry) => entry.date !== date),
+      );
+      return of(true);
+    });
   }
 
   private get uid(): string {

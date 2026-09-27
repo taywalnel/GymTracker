@@ -3,6 +3,25 @@
     <router-outlet></router-outlet>
   </main>
 
+  @if (showUpdatePrompt()) {
+    <div class="update-banner" role="status">
+      <span>A new version is available</span>
+      <button
+        type="button"
+        class="update-banner__action"
+        (click)="reloadForUpdate()"
+      >
+        Reload
+      </button>
+    </div>
+  }
+
+  @if (isOffline()) {
+    <p class="offline-banner" role="status">
+      Offline — changes will sync when you reconnect
+    </p>
+  }
+
   @if (showTabBar()) {
     <nav class="tab-bar">
       <a

@@ -7,14 +7,15 @@
 
 .detail-fixed {
   flex-shrink: 0;
+  padding-bottom: 10px;
 }
 
-.session-header__date {
-  text-align: center;
-  width: 100%;
-  font-size: var(--text-sm);
-  padding: 10px 0;
+.session-summary__date {
+  margin: 0;
+  padding: 8px 12px 0;
   color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
 }
 
 .exercise-list {
@@ -25,4 +26,44 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+}
+
+.session-exercise {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.session-exercise__top {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.session-exercise__name {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  line-height: 1.18;
+}
+
+.session-exercise__target {
+  margin-top: -6px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.session-skipped__label {
+  margin-top: 6px;
+}
+
+.session-skipped {
+  opacity: 0.6;
+}
+
+.edit-session__delete {
+  display: block;
+  margin-top: 12px;
 }

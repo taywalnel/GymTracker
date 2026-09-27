@@ -22,6 +22,9 @@
           <div class="resume-card__title">
             {{ savedState.today.routine.name }}
           </div>
+          @if (staleLabel) {
+            <div class="resume-card__stale">{{ staleLabel }}</div>
+          }
         </div>
         <div class="resume-card__actions">
           <app-button variant="primary" (click)="resumeSaved()"
