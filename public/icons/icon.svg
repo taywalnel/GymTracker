@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Master app icon. Run `npm run generate:icons` after editing.
+       Full-bleed square with no transparency: iOS rounds the corners itself.
+       The dumbbell stays within a 360px radius of the centre, inside the
+       maskable safe zone (410px). -->
+  <rect width="1024" height="1024" fill="#16181c" />
+  <g fill="#c6f135" transform="translate(512 512) rotate(-45) scale(1.1)">
+    <rect x="-156" y="-28" width="312" height="56" rx="12" />
+    <rect x="150" y="-160" width="72" height="320" rx="22" />
+    <rect x="-222" y="-160" width="72" height="320" rx="22" />
+    <rect x="234" y="-115" width="56" height="230" rx="20" />
+    <rect x="-290" y="-115" width="56" height="230" rx="20" />
+    <rect x="280" y="-32" width="40" height="64" rx="12" />
+    <rect x="-320" y="-32" width="40" height="64" rx="12" />
+  </g>
+</svg>

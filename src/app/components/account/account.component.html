@@ -7,6 +7,18 @@
 
   @if (activeTab === "Account" && auth.currentUser(); as user) {
     <section class="account-section">
+      @if (showInstallHint) {
+        <div class="card install-hint" role="note">
+          <p class="install-hint__title">Install on your iPhone</p>
+          <p class="install-hint__text">
+            Tap Share, then “Add to Home Screen” to open Gym Tracker full screen
+            and use it offline.
+          </p>
+          <app-button variant="ghost" size="sm" (click)="dismissInstallHint()">
+            Dismiss
+          </app-button>
+        </div>
+      }
       <div class="card account-card">
         <div class="account-row">
           <span class="account-row__label">Signed in as</span>
