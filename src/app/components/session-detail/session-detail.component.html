@@ -12,7 +12,7 @@
   <div class="detail-fixed">
     <app-page-header
       [title]="session.routineName"
-      backLink="/history"
+      [backLink]="justCompleted ? null : '/history'"
       backLabel="All history"
       [showRightAction]="true"
       rightActionLabel="Edit"
@@ -20,7 +20,14 @@
     />
 
     <section class="stat-strip session-summary" aria-label="Session summary">
-      <p class="session-summary__date">{{ formatDate(session.date) }}</p>
+      <p class="session-summary__date">
+        @if (justCompleted) {
+          <span class="eyebrow session-summary__complete"
+            >Workout complete</span
+          >
+        }
+        {{ formatDate(session.date) }}
+      </p>
       <div class="stat-strip__stats">
         <div class="stat-strip__stat">
           @if (durationLabel) {
@@ -63,10 +70,39 @@
   </div>
 
   <div class="exercise-list">
+    @if (justCompleted && records.length > 0) {
+      <section class="card session-records" aria-labelledby="records-title">
+        <h3 class="eyebrow" id="records-title">New personal records</h3>
+        @for (exercise of records; track exercise.exerciseId) {
+          <div class="session-records__exercise">
+            <span class="session-records__name">{{
+              exercise.exerciseName
+            }}</span>
+            @for (record of exercise.records; track record.kind) {
+              <div class="session-records__row">
+                <span class="session-records__label">{{
+                  recordLabel(record)
+                }}</span>
+                <strong class="session-records__value">{{
+                  recordValue(record)
+                }}</strong>
+                <span class="session-records__previous"
+                  >was {{ recordPrevious(record) }}</span
+                >
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+
     @for (ex of exercises; track ex.log.exerciseId) {
       <article class="card session-exercise">
         <div class="session-exercise__top">
           <span class="session-exercise__name">{{ ex.log.exerciseName }}</span>
+          @if (ex.isRecord) {
+            <span class="pr-badge" aria-label="Personal record">PR</span>
+          }
           @if (ex.repDelta !== null) {
             <span
               class="rep-delta"
@@ -96,6 +132,14 @@
       }
     }
   </div>
+
+  @if (justCompleted) {
+    <div class="summary-actions">
+      <app-button variant="primary" [fullWidth]="true" (click)="done()">
+        Done
+      </app-button>
+    </div>
+  }
 
   @if (showEditForm) {
     <div class="modal-backdrop" (click)="closeEdit()">

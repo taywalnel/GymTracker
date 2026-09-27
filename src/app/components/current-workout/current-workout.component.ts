@@ -212,7 +212,9 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
     this.workoutService.saveSession(session).subscribe({
       next: (saved) => {
         this.workoutService.clearInProgressState();
-        this.router.navigate(["/history/session", saved.id]);
+        this.router.navigate(["/history/session", saved.id], {
+          state: { justCompleted: true },
+        });
       },
       error: () => {
         this.isSaving = false;

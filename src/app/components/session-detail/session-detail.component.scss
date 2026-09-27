@@ -67,3 +67,70 @@
   display: block;
   margin-top: 12px;
 }
+
+.session-summary__complete {
+  margin-bottom: 2px;
+}
+
+.session-records {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-color: var(--color-accent);
+}
+
+.session-records .eyebrow {
+  margin: 0;
+}
+
+.session-records__exercise {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.session-records__name {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+}
+
+.session-records__row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: var(--text-sm);
+}
+
+.session-records__label {
+  flex: 1;
+  color: var(--color-text-muted);
+}
+
+.session-records__value {
+  color: var(--color-accent);
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.session-records__previous {
+  min-width: 72px;
+  color: var(--color-text-muted);
+  text-align: right;
+}
+
+.pr-badge {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.summary-actions {
+  flex-shrink: 0;
+  padding: 12px 0;
+}

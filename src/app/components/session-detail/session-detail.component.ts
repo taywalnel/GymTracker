@@ -7,6 +7,11 @@ import { WorkoutService } from "../../services/workout.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { formatLocalDate, todayLocalDate } from "../../utils/dates";
 import {
+  ExerciseRecords,
+  PersonalRecord,
+  findSessionRecords,
+} from "../../utils/personal-records";
+import {
   describeRepDelta,
   findComparableLog,
   formatRepDelta,
@@ -31,7 +36,16 @@ interface ExerciseDisplay {
   target: string | null;
   /** Total reps vs the matching session before this one; null when there's no match. */
   repDelta: number | null;
+  /** Set a personal record in this session. */
+  isRecord: boolean;
 }
+
+const RECORD_LABELS: Record<PersonalRecord["kind"], string> = {
+  heaviestWeight: "Heaviest weight",
+  estimatedOneRepMax: "Est. 1-rep max",
+  repsAtWeight: "Most reps",
+  sessionVolume: "Volume",
+};
 
 @Component({
   selector: "app-session-detail",
@@ -53,6 +67,10 @@ export class SessionDetailComponent implements OnInit {
   exercises: ExerciseDisplay[] = [];
   /** Exercises in the routine with no logged sets. */
   skipped: ExerciseLog[] = [];
+  /** Personal records set in this session, per exercise. */
+  records: ExerciseRecords[] = [];
+  /** Arrived straight from finishing the workout: show it as a summary. */
+  justCompleted = false;
   isLoading = true;
 
   showEditForm = false;
@@ -72,6 +90,7 @@ export class SessionDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const sessionId = this.route.snapshot.paramMap.get("sessionId") ?? "";
+    this.justCompleted = history.state?.justCompleted === true;
     this.workoutService.getSessionHistory().subscribe((sessions) => {
       this.setSession(
         sessions.find((session) => session.id === sessionId) ?? null,
@@ -106,6 +125,36 @@ export class SessionDetailComponent implements OnInit {
       month: "short",
       year: "numeric",
     });
+  }
+
+  recordLabel(record: PersonalRecord): string {
+    return record.kind === "repsAtWeight"
+      ? `${RECORD_LABELS.repsAtWeight} at ${this.formatWeight(record.weightKg ?? 0)}`
+      : RECORD_LABELS[record.kind];
+  }
+
+  /** The new best, e.g. "62.5 kg" or "11 reps". */
+  recordValue(record: PersonalRecord): string {
+    return this.formatRecordAmount(record, record.value);
+  }
+
+  recordPrevious(record: PersonalRecord): string {
+    return this.formatRecordAmount(record, record.previous);
+  }
+
+  /** Leaves the summary; replacing it so Back doesn't return to it. */
+  done(): void {
+    this.router.navigateByUrl("/", { replaceUrl: true });
+  }
+
+  private formatRecordAmount(record: PersonalRecord, amount: number): string {
+    return record.kind === "repsAtWeight"
+      ? `${amount} ${amount === 1 ? "rep" : "reps"}`
+      : this.formatWeight(amount);
+  }
+
+  private formatWeight(kg: number): string {
+    return `${this.units.formatWeight(kg)} ${this.units.unitLabel()}`;
   }
 
   readonly repDeltaLabel = formatRepDelta;
@@ -187,7 +236,11 @@ export class SessionDetailComponent implements OnInit {
     this.session = session;
     this.exercises = [];
     this.skipped = [];
+    this.records = [];
     if (!session) return;
+
+    this.records = findSessionRecords(session, sessionsNewestFirst);
+    const recordIds = new Set(this.records.map((item) => item.exerciseId));
 
     // Only sessions before this one count as "last time".
     const index = sessionsNewestFirst.findIndex(
@@ -200,14 +253,17 @@ export class SessionDetailComponent implements OnInit {
         this.skipped.push(log);
         continue;
       }
-      this.exercises.push(this.toExerciseDisplay(log, earlier));
+      this.exercises.push({
+        ...this.toExerciseDisplay(log, earlier),
+        isRecord: recordIds.has(log.exerciseId),
+      });
     }
   }
 
   private toExerciseDisplay(
     log: ExerciseLog,
     earlierSessions: readonly WorkoutSession[],
-  ): ExerciseDisplay {
+  ): Omit<ExerciseDisplay, "isRecord"> {
     const weightKg = log.completedSets[0].weightKg;
     const targetSets = log.targetSets ?? log.completedSets.length;
     const previousLog =
