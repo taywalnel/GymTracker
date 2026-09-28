@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { BodyWeightEntry } from "../../models/body-weight.models";
 import { BodyWeightService } from "../../services/body-weight.service";
@@ -17,21 +17,69 @@ import { EmptyStateComponent } from "../empty-state/empty-state.component";
 
 type PeriodDays = 7 | 30 | 0;
 
+type Trend = "increased" | "decreased" | "unchanged";
+
+interface SeriesEntry {
+  date: string;
+  time: number;
+  weightKg: number;
+  trend: Trend;
+}
+
 interface ChartPoint {
   date: string;
   weightKg: number;
-  trend: "increased" | "decreased" | "unchanged";
+  trend: Trend;
   x: number;
   weightY: number;
+  opacity: number;
 }
 
 interface ChartMonthMarker {
   label: string;
+  time: number;
   x: number;
   showLabel: boolean;
 }
 
+/** The visible window of the chart: a time range and a weight range. */
+interface ChartDomain {
+  startTime: number;
+  endTime: number;
+  min: number;
+  max: number;
+}
+
+interface ChartView {
+  points: ChartPoint[];
+  linePoints: string;
+  axisLabels: number[];
+  monthMarkers: ChartMonthMarker[];
+}
+
 const MAX_MONTH_LABELS = 6;
+const HALF_DAY_MS = 12 * 60 * 60 * 1000;
+// Keep in sync with --chart-duration in the stylesheet.
+const CHART_TRANSITION_MS = 550;
+// Points fade out over this distance (in plot %) once they leave the plot.
+const EDGE_FADE = 4;
+
+const EMPTY_CHART_VIEW: ChartView = {
+  points: [],
+  linePoints: "",
+  axisLabels: [],
+  monthMarkers: [],
+};
+
+function lerp(from: number, to: number, progress: number): number {
+  return from + (to - from) * progress;
+}
+
+function easeInOutCubic(progress: number): number {
+  return progress < 0.5
+    ? 4 * progress ** 3
+    : 1 - (-2 * progress + 2) ** 3 / 2;
+}
 
 @Component({
   selector: "app-body-weight",
@@ -49,8 +97,14 @@ const MAX_MONTH_LABELS = 6;
   templateUrl: "./body-weight.component.html",
   styleUrl: "./body-weight.component.scss",
 })
-export class BodyWeightComponent implements OnInit {
+export class BodyWeightComponent implements OnInit, OnDestroy {
   entries: BodyWeightEntry[] = [];
+  chartView: ChartView = EMPTY_CHART_VIEW;
+  /** True while the chart plays its entrance animation after mounting. */
+  chartRevealing = true;
+  private series: SeriesEntry[] = [];
+  private displayDomain: ChartDomain | null = null;
+  private animationFrame = 0;
   isLoading = true;
   isSaving = false;
   showEntryForm = false;
@@ -85,11 +139,17 @@ export class BodyWeightComponent implements OnInit {
       next: (entries) => {
         this.entries = entries;
         this.isLoading = false;
+        // Later emissions (e.g. a server sync) glide to the new data.
+        this.updateChart(this.displayDomain !== null);
       },
       error: () => {
         this.isLoading = false;
       },
     });
+  }
+
+  ngOnDestroy(): void {
+    cancelAnimationFrame(this.animationFrame);
   }
 
   get filteredEntries(): BodyWeightEntry[] {
@@ -98,73 +158,13 @@ export class BodyWeightComponent implements OnInit {
       .sort((left, right) => left.date.localeCompare(right.date));
   }
 
-  get chartPoints(): ChartPoint[] {
-    const entries = this.filteredEntries;
-    const values = entries.map((entry) => entry.weightKg);
-    const { min, max } = this.chartDomain(values);
-    const { startTime, endTime } = this.chartTimeDomain();
-    const range = endTime - startTime;
-
-    return entries.map((entry, index) => {
-      const previousWeightKg = entries[index - 1]?.weightKg;
-      return {
-        date: entry.date,
-        weightKg: entry.weightKg,
-        trend:
-          previousWeightKg === undefined || entry.weightKg === previousWeightKg
-            ? "unchanged"
-            : entry.weightKg > previousWeightKg
-              ? "increased"
-              : "decreased",
-        x:
-          range === 0
-            ? 50
-            : ((this.parseDate(entry.date).getTime() - startTime) / range) *
-              100,
-        weightY: this.chartY(entry.weightKg, min, max),
-      };
-    });
+  get hasChartData(): boolean {
+    return this.filteredEntries.length > 0;
   }
 
-  /** A marker at the 1st of each month in the visible range. */
-  get chartMonthMarkers(): ChartMonthMarker[] {
-    const { startTime, endTime } = this.chartTimeDomain();
-    const range = endTime - startTime;
-    if (range === 0) return [];
-
-    const start = new Date(startTime);
-    const cursor = new Date(
-      start.getFullYear(),
-      start.getMonth() + (start.getDate() === 1 ? 0 : 1),
-      1,
-    );
-    const monthStarts: Date[] = [];
-    while (cursor.getTime() <= endTime) {
-      monthStarts.push(new Date(cursor));
-      cursor.setMonth(cursor.getMonth() + 1);
-    }
-
-    // Long ranges keep every line but thin the labels so they don't overlap.
-    const labelEvery = Math.ceil(monthStarts.length / MAX_MONTH_LABELS);
-    return monthStarts.map((date, index) => ({
-      label: date.toLocaleString("en-US", { month: "short" }),
-      x: ((date.getTime() - startTime) / range) * 100,
-      showLabel: index % labelEvery === 0,
-    }));
-  }
-
-  get chartWeightPoints(): string {
-    return this.chartPoints
-      .map((point) => `${point.x},${point.weightY}`)
-      .join(" ");
-  }
-
-  get chartAxisLabels(): number[] {
-    const values = this.chartPoints.map((point) => point.weightKg);
-    const { min, max } = this.chartDomain(values);
-    return Array.from(
-      { length: 4 },
-      (_, index) => max - ((max - min) * index) / 3,
+  get selectedPeriodIndex(): number {
+    return this.periodOptions.findIndex(
+      (option) => option.value === this.selectedPeriod,
     );
   }
 
@@ -192,13 +192,23 @@ export class BodyWeightComponent implements OnInit {
   }
 
   selectPeriod(period: PeriodDays): void {
+    if (period === this.selectedPeriod) return;
     this.selectedPeriod = period;
+    this.updateChart(true);
   }
 
   selectTab(tab: string): void {
     if (this.bodyWeightTabs.some((item) => item.label === tab)) {
+      // The chart is rebuilt when Overview is shown again, so replay its entrance.
+      if (tab === "Overview" && this.activeTab !== tab) {
+        this.chartRevealing = true;
+      }
       this.activeTab = tab;
     }
+  }
+
+  onChartRevealEnd(event: AnimationEvent): void {
+    if (event.target === event.currentTarget) this.chartRevealing = false;
   }
 
   openNewEntry(): void {
@@ -238,6 +248,7 @@ export class BodyWeightComponent implements OnInit {
     this.bodyWeightService.saveEntry(entry).subscribe({
       next: (saved) => {
         this.entries = this.bodyWeightService.entriesSignal();
+        this.updateChart(true);
         this.isSaving = false;
         this.showEntryForm = false;
         this.editingDate = saved.date;
@@ -264,6 +275,7 @@ export class BodyWeightComponent implements OnInit {
     this.bodyWeightService.deleteEntry(entry.date).subscribe({
       next: () => {
         this.entries = this.bodyWeightService.entriesSignal();
+        this.updateChart(true);
         this.isSaving = false;
         this.showEntryForm = false;
         this.pendingDeleteEntry = null;
@@ -302,6 +314,144 @@ export class BodyWeightComponent implements OnInit {
     return entryDate >= start && entryDate <= today;
   }
 
+  /**
+   * Rebuilds the chart for the current entries and period. When animating,
+   * the visible window (time and weight range) glides from where it is to the
+   * new one, and every point is redrawn from it each frame, so the line pans
+   * and zooms rather than jumping.
+   */
+  private updateChart(animate: boolean): void {
+    this.series = this.buildSeries();
+    const target = this.targetDomain();
+    const from = this.displayDomain;
+    cancelAnimationFrame(this.animationFrame);
+
+    if (!animate || !from || this.prefersReducedMotion()) {
+      this.setDisplayDomain(target);
+      return;
+    }
+
+    const startedAt = performance.now();
+    const step = (now: number) => {
+      const progress = Math.min((now - startedAt) / CHART_TRANSITION_MS, 1);
+      const eased = easeInOutCubic(progress);
+      this.setDisplayDomain({
+        startTime: lerp(from.startTime, target.startTime, eased),
+        endTime: lerp(from.endTime, target.endTime, eased),
+        min: lerp(from.min, target.min, eased),
+        max: lerp(from.max, target.max, eased),
+      });
+      if (progress < 1) this.animationFrame = requestAnimationFrame(step);
+    };
+    this.animationFrame = requestAnimationFrame(step);
+  }
+
+  private setDisplayDomain(domain: ChartDomain): void {
+    this.displayDomain = domain;
+    this.chartView = this.buildChartView(domain);
+  }
+
+  /** All entries oldest first, each trend relative to the previous weigh-in. */
+  private buildSeries(): SeriesEntry[] {
+    const sorted = this.entries
+      .slice()
+      .sort((left, right) => left.date.localeCompare(right.date));
+
+    return sorted.map((entry, index) => {
+      const previousWeightKg = sorted[index - 1]?.weightKg;
+      return {
+        date: entry.date,
+        time: this.parseDate(entry.date).getTime(),
+        weightKg: entry.weightKg,
+        trend:
+          previousWeightKg === undefined || entry.weightKg === previousWeightKg
+            ? "unchanged"
+            : entry.weightKg > previousWeightKg
+              ? "increased"
+              : "decreased",
+      };
+    });
+  }
+
+  private buildChartView(domain: ChartDomain): ChartView {
+    const range = domain.endTime - domain.startTime;
+    const positioned = this.series.map((entry): ChartPoint => {
+      const x =
+        range === 0 ? 50 : ((entry.time - domain.startTime) / range) * 100;
+      const weightY = this.chartY(entry.weightKg, domain.min, domain.max);
+      const overshoot = Math.max(0, -x, x - 100, -weightY, weightY - 100);
+      return {
+        date: entry.date,
+        weightKg: entry.weightKg,
+        trend: entry.trend,
+        x,
+        weightY,
+        opacity: Math.max(0, 1 - overshoot / EDGE_FADE),
+      };
+    });
+
+    // The line runs through the visible points plus one neighbour either
+    // side, so it continues off the edges toward earlier/later weigh-ins.
+    const firstVisible = positioned.findIndex((point) => point.x >= 0);
+    const lineStart = Math.max(0, firstVisible - 1);
+    const lineEnd = positioned.filter((point) => point.x <= 100).length + 1;
+
+    return {
+      points: positioned.filter((point) => point.opacity > 0),
+      linePoints: positioned
+        .slice(lineStart, lineEnd)
+        .map((point) => `${point.x},${point.weightY}`)
+        .join(" "),
+      axisLabels: Array.from(
+        { length: 4 },
+        (_, index) => domain.max - ((domain.max - domain.min) * index) / 3,
+      ),
+      monthMarkers: this.monthMarkers(domain),
+    };
+  }
+
+  /** A marker at the 1st of each month in the visible range. */
+  private monthMarkers(domain: ChartDomain): ChartMonthMarker[] {
+    const { startTime, endTime } = domain;
+    const range = endTime - startTime;
+    if (range <= 0) return [];
+
+    // Mid-animation the window can start part-way through a day.
+    const start = new Date(startTime);
+    const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+    if (cursor.getTime() < startTime) cursor.setMonth(cursor.getMonth() + 1);
+    const monthStarts: Date[] = [];
+    while (cursor.getTime() <= endTime) {
+      monthStarts.push(new Date(cursor));
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+
+    // Long ranges keep every line but thin the labels so they don't overlap.
+    // Thinning is anchored to the calendar (not the first visible month) so
+    // labels don't flicker as the window slides.
+    const labelEvery = Math.ceil(monthStarts.length / MAX_MONTH_LABELS);
+    return monthStarts.map((date) => ({
+      label: date.toLocaleString("en-US", { month: "short" }),
+      time: date.getTime(),
+      x: ((date.getTime() - startTime) / range) * 100,
+      showLabel: (date.getFullYear() * 12 + date.getMonth()) % labelEvery === 0,
+    }));
+  }
+
+  private targetDomain(): ChartDomain {
+    return {
+      ...this.chartTimeDomain(),
+      ...this.chartDomain(this.filteredEntries.map((entry) => entry.weightKg)),
+    };
+  }
+
+  private prefersReducedMotion(): boolean {
+    return (
+      typeof window !== "undefined" &&
+      !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    );
+  }
+
   private chartTimeDomain(): { startTime: number; endTime: number } {
     const today = this.parseDate(this.todayString());
     if (this.selectedPeriod !== 0) {
@@ -313,6 +463,14 @@ export class BodyWeightComponent implements OnInit {
     const entries = this.filteredEntries;
     const start = this.parseDate(entries[0]?.date ?? this.todayString());
     const end = this.parseDate(entries.at(-1)?.date ?? this.todayString());
+    // A single day still gets a window (centred on it) so it can be animated
+    // to and from without the point jumping.
+    if (start.getTime() === end.getTime()) {
+      return {
+        startTime: start.getTime() - HALF_DAY_MS,
+        endTime: end.getTime() + HALF_DAY_MS,
+      };
+    }
     return { startTime: start.getTime(), endTime: end.getTime() };
   }
 

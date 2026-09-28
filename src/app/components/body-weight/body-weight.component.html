@@ -121,15 +121,19 @@
           </div>
         </section>
 
-        @if (chartPoints.length > 0) {
-          <section class="card chart-panel" aria-label="Body weight trend">
+        @if (hasChartData) {
+          <section
+            class="card chart-panel"
+            [class.is-revealing]="chartRevealing"
+            aria-label="Body weight trend"
+          >
             <div
               class="chart"
               role="img"
               aria-label="Body weight trend over time"
             >
               <div class="chart__axis" aria-hidden="true">
-                @for (label of chartAxisLabels; track $index) {
+                @for (label of chartView.axisLabels; track $index) {
                   <span>{{ formatValue(label) }}</span>
                 }
               </div>
@@ -138,7 +142,7 @@
                   <span></span><span></span><span></span><span></span>
                 </div>
                 <div class="chart__months" aria-hidden="true">
-                  @for (marker of chartMonthMarkers; track marker.x) {
+                  @for (marker of chartView.monthMarkers; track marker.time) {
                     <span [style.left.%]="marker.x"></span>
                   }
                 </div>
@@ -146,20 +150,23 @@
                   viewBox="0 0 100 100"
                   preserveAspectRatio="none"
                   aria-hidden="true"
+                  (animationend)="onChartRevealEnd($event)"
                 >
                   <polyline
                     class="chart__raw-line"
-                    [attr.points]="chartWeightPoints"
+                    [attr.points]="chartView.linePoints"
                   />
                 </svg>
                 <div class="chart__points" aria-hidden="true">
-                  @for (point of chartPoints; track point.date) {
+                  @for (point of chartView.points; track point.date) {
                     <span
                       class="chart__point"
                       [class.is-increased]="point.trend === 'increased'"
                       [class.is-decreased]="point.trend === 'decreased'"
                       [style.left.%]="point.x"
                       [style.top.%]="point.weightY"
+                      [style.opacity]="point.opacity"
+                      [style.--x]="point.x"
                       [title]="
                         formatDate(point.date) +
                         ': ' +
@@ -169,14 +176,13 @@
                   }
                 </div>
                 <div class="chart__labels" aria-hidden="true">
-                  @for (marker of chartMonthMarkers; track marker.x) {
-                    @if (marker.showLabel) {
-                      <span
-                        [style.left.%]="marker.x"
-                        [class.is-end]="marker.x > 88"
-                        >{{ marker.label }}</span
-                      >
-                    }
+                  @for (marker of chartView.monthMarkers; track marker.time) {
+                    <span
+                      [style.left.%]="marker.x"
+                      [class.is-end]="marker.x > 88"
+                      [class.is-hidden]="!marker.showLabel"
+                      >{{ marker.label }}</span
+                    >
                   }
                 </div>
               </div>
@@ -185,6 +191,7 @@
               class="period-switcher"
               role="tablist"
               aria-label="Progress period"
+              [style.--selected-index]="selectedPeriodIndex"
             >
               @for (option of periodOptions; track option.value) {
                 <button
