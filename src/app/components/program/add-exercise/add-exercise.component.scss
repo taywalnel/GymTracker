@@ -24,11 +24,6 @@
   overflow-y: auto;
 }
 
-.row {
-  display: flex;
-  gap: 12px;
-}
-
 .progress-indicator {
   display: flex;
   align-items: center;
@@ -64,41 +59,11 @@
   line-height: 1.05;
 }
 
-.stepper-container {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
-}
-
-.weight-container {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .recovery-container {
   display: flex;
   flex-direction: column;
   gap: 6px;
   width: 100%;
-}
-
-.weight-input-row {
-  display: flex;
-  align-items: stretch;
-  gap: 10px;
-
-  .weight-stepper {
-    flex: 1;
-    min-width: 0;
-  }
-
-  app-unit-toggle {
-    flex: 1;
-    min-width: 0;
-  }
 }
 
 .form-actions {
@@ -173,18 +138,7 @@
   }
 }
 
-.save-choice {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--color-text);
-}
-
 @media (max-width: 360px) {
-  .weight-input-row {
-    flex-direction: column;
-  }
-
   .overview-list {
     grid-template-columns: 1fr;
   }

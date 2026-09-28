@@ -2,7 +2,14 @@ import { Component, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { ActivatedRoute, Router } from "@angular/router";
 
-import { ExerciseLog, WorkoutSession } from "../../models/workout.models";
+import {
+  ExerciseLog,
+  WorkoutSession,
+  formatTargetReps,
+  setTargetReps,
+  targetRepsFields,
+  targetWeightFields,
+} from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { formatLocalDate, todayLocalDate } from "../../utils/dates";
@@ -26,11 +33,11 @@ import { RoutineCardComponent } from "../routine-card/routine-card.component";
 import {
   WeightAndRepsComponent,
   WeightAndRepsSet,
+  logToWeightAndRepsSets,
 } from "../weight-and-reps/weight-and-reps.component";
 
 interface ExerciseDisplay {
   log: ExerciseLog;
-  weightKg: number;
   sets: WeightAndRepsSet[];
   /** e.g. "Target 3 × 10"; null on older logs without a rep target. */
   target: string | null;
@@ -264,34 +271,46 @@ export class SessionDetailComponent implements OnInit {
     log: ExerciseLog,
     earlierSessions: readonly WorkoutSession[],
   ): Omit<ExerciseDisplay, "isRecord"> {
-    const weightKg = log.completedSets[0].weightKg;
     const targetSets = log.targetSets ?? log.completedSets.length;
+    const setTargets = log.completedSets.map(
+      (set) => setTargetReps(log, set) ?? 0,
+    );
     const previousLog =
       log.targetReps === undefined
         ? null
         : findComparableLog(earlierSessions, {
             id: log.exerciseId,
-            targetWeightKg: weightKg,
-            targetReps: log.targetReps,
+            ...targetWeightFields(
+              log.completedSets.map((set) => set.weightKg),
+            ),
+            ...targetRepsFields(setTargets),
             targetSets,
             order: 0,
           });
 
     return {
       log,
-      weightKg,
-      sets: log.completedSets.map((set) => ({
-        targetAmount: log.targetReps ?? set.reps,
-        achievedAmount: log.targetReps === undefined ? undefined : set.reps,
-      })),
+      sets: logToWeightAndRepsSets(log),
       target:
         log.targetReps === undefined
           ? null
-          : `Target ${targetSets} × ${log.targetReps}` +
+          : this.describeTarget(log.targetReps, setTargets, targetSets) +
             (log.completedSets.length < targetSets ? " · finished early" : ""),
       repDelta: previousLog
         ? totalReps(log.completedSets) - totalReps(previousLog.completedSets)
         : null,
     };
+  }
+
+  /** "Target 3 × 10", or each set's reps when they differ, e.g. "Target 12/10/8". */
+  private describeTarget(
+    targetReps: number,
+    setTargets: readonly number[],
+    targetSets: number,
+  ): string {
+    const perSet = formatTargetReps(setTargets);
+    return setTargets.length && perSet.includes("/")
+      ? `Target ${perSet}`
+      : `Target ${targetSets} × ${targetReps}`;
   }
 }

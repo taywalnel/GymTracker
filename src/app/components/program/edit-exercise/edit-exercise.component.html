@@ -13,43 +13,10 @@
     <div class="card edit-body">
       <h2>{{ existingExercise?.name }}</h2>
 
-      <div class="weight-container">
-        <p class="form-label">Target weight</p>
-        <div class="weight-input-row">
-          <app-stepper
-            class="weight-stepper"
-            [value]="weight ?? 0"
-            [minimum]="0"
-            [step]="weightStep"
-            [unit]="weightUnit"
-            ariaLabel="target weight"
-            (valueChange)="setWeight($event)"
-          ></app-stepper>
-          <app-unit-toggle />
-        </div>
-      </div>
-      <div class="row">
-        <div class="stepper-container">
-          <p class="form-label">Sets</p>
-          <app-stepper
-            [value]="sets"
-            [minimum]="1"
-            unit="sets"
-            ariaLabel="sets"
-            (valueChange)="sets = $event"
-          ></app-stepper>
-        </div>
-        <div class="stepper-container">
-          <p class="form-label">Reps</p>
-          <app-stepper
-            [value]="reps"
-            [minimum]="1"
-            unit="reps"
-            ariaLabel="reps"
-            (valueChange)="reps = $event"
-          ></app-stepper>
-        </div>
-      </div>
+      <app-set-targets
+        [targets]="targets"
+        (targetsChange)="targets = $event"
+      />
       <div class="recovery-container">
         <p class="form-label">Recovery time</p>
         <app-stepper

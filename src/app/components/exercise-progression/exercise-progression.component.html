@@ -12,7 +12,6 @@
         <span>{{ formatDate(bestEntry.date) }}</span>
       </div>
       <app-weight-and-reps
-        [weight]="bestEntry.log.completedSets[0].weightKg"
         [sets]="toWeightAndRepsSets(bestEntry.log)"
         [size]="'small'"
       />

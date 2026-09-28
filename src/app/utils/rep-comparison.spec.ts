@@ -3,7 +3,11 @@ import {
   ExercisePrescription,
   WorkoutSession,
 } from "../models/workout.models";
-import { findComparableLog, totalReps } from "./rep-comparison";
+import {
+  averageTargetReps,
+  findComparableLog,
+  totalReps,
+} from "./rep-comparison";
 
 describe("rep comparison", () => {
   const benchPress: ExercisePrescription = {
@@ -101,6 +105,68 @@ describe("rep comparison", () => {
     expect(
       findComparableLog([session("short", sets([10, 8]))], benchPress),
     ).toBeNull();
+  });
+
+  it("compares each set against its own target weight", () => {
+    const pyramid: ExercisePrescription = {
+      ...benchPress,
+      setWeightsKg: [30, 35, 40],
+    };
+    const atPlannedWeights = [30, 35, 40].map((weightKg, index) => ({
+      setNumber: index + 1,
+      reps: 10,
+      weightKg,
+    }));
+
+    expect(
+      findComparableLog([session("pyramid", atPlannedWeights)], pyramid),
+    ).not.toBeNull();
+    expect(
+      findComparableLog([session("flat", sets([10, 10, 10]))], pyramid),
+    ).toBeNull();
+  });
+
+  it("compares each set against its own target reps", () => {
+    const pyramid: ExercisePrescription = {
+      ...benchPress,
+      targetReps: 12,
+      setReps: [12, 10, 8],
+    };
+    const atPlannedReps = [12, 10, 8].map((targetReps, index) => ({
+      setNumber: index + 1,
+      reps: targetReps,
+      weightKg: 30,
+      targetReps,
+    }));
+
+    expect(
+      findComparableLog(
+        [session("pyramid", atPlannedReps, { targetReps: 12 })],
+        pyramid,
+      ),
+    ).not.toBeNull();
+    expect(
+      findComparableLog([session("flat", sets([10, 10, 10]))], pyramid),
+    ).toBeNull();
+  });
+
+  it("still matches logs saved before per-set targets against a plain routine", () => {
+    // sets() builds sets without targetReps, like older saved logs.
+    expect(
+      findComparableLog([session("legacy", sets([10, 9, 8]))], benchPress),
+    ).not.toBeNull();
+  });
+
+  it("averages per-set targets, falling back to the log's target", () => {
+    const log = session("mixed", [
+      { setNumber: 1, reps: 12, weightKg: 30, targetReps: 12 },
+      { setNumber: 2, reps: 8, weightKg: 30 },
+    ]).exerciseLogs[0];
+
+    expect(averageTargetReps(log)).toBe(11);
+    expect(
+      averageTargetReps({ ...log, targetReps: undefined, completedSets: sets([8]) }),
+    ).toBeUndefined();
   });
 
   it("skips in-progress sessions", () => {

@@ -172,6 +172,82 @@ input:focus-visible,
   text-transform: uppercase;
 }
 
+/* A label row with its text on the left and a .switch on the right */
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--color-text);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* A native checkbox drawn as a sliding switch, so it keeps keyboard and
+   screen reader support. Use with role="switch". */
+.switch {
+  --switch-width: 46px;
+  --switch-height: 28px;
+  --thumb-size: 22px;
+  --thumb-inset: 2px;
+
+  position: relative;
+  flex-shrink: 0;
+  width: var(--switch-width);
+  height: var(--switch-height);
+  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--control-bg);
+  cursor: pointer;
+  appearance: none;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: var(--thumb-inset);
+    left: var(--thumb-inset);
+    width: var(--thumb-size);
+    height: var(--thumb-size);
+    border-radius: 50%;
+    background: var(--color-text-muted);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+    transition:
+      transform 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  &:checked {
+    border-color: var(--color-accent);
+    background: var(--color-accent);
+
+    &::before {
+      background: var(--color-accent-contrast);
+      transform: translateX(
+        calc(
+          var(--switch-width) - var(--thumb-size) - 2 * var(--thumb-inset) -
+            2px
+        )
+      );
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &,
+    &::before {
+      transition: none;
+    }
+  }
+}
+
 /* Accent-coloured variant of the label, for card kickers like "Personal best" */
 .eyebrow {
   display: block;

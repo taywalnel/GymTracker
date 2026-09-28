@@ -72,6 +72,13 @@ export class UnitPreferenceService {
     const rounded = Math.round(this.fromKg(kg) * factor) / factor;
     return rounded.toString();
   }
+
+  /** "20", or "20–25" when the weights differ once formatted. */
+  formatWeightRange(weightsKg: readonly number[]): string {
+    const lightest = this.formatWeight(Math.min(...weightsKg));
+    const heaviest = this.formatWeight(Math.max(...weightsKg));
+    return lightest === heaviest ? heaviest : `${lightest}–${heaviest}`;
+  }
 }
 
 function readStoredUnitSystem(): UnitSystem {

@@ -45,6 +45,8 @@ export interface CompletedSet {
   setNumber: number;
   reps: number;
   weightKg: number;
+  /** The planned reps for this set; absent on older logs, where the log's targetReps applies. */
+  targetReps?: number;
 }
 
 /** A reusable exercise definition, stored in users/{uid}/exercises. */
@@ -98,13 +100,82 @@ export function exerciseCategory(exercise: Exercise): ExerciseCategory {
  */
 export interface ExercisePrescription {
   id: string;
+  /** The first set's target weight; every set's when setWeightsKg is absent. */
   targetWeightKg: number;
+  /** A target weight for each set, only stored when the sets' weights differ. */
+  setWeightsKg?: number[];
+  /** The first set's target reps; every set's when setReps is absent. */
   targetReps: number;
+  /** Target reps for each set, only stored when the sets' reps differ. */
+  setReps?: number[];
   targetSets: number;
   /** Rest between sets in seconds; absent on legacy routines and defaults to 60. */
   restSeconds?: number;
   /** Order within the routine, for display */
   order: number;
+}
+
+/** The target weight for one set (0-indexed) of a prescription. */
+export function targetWeightKgForSet(
+  prescription: ExercisePrescription,
+  setIndex: number,
+): number {
+  return prescription.setWeightsKg?.[setIndex] ?? prescription.targetWeightKg;
+}
+
+/** The target weight for every set of a prescription. */
+export function targetWeightsKg(prescription: ExercisePrescription): number[] {
+  return Array.from({ length: prescription.targetSets }, (_, index) =>
+    targetWeightKgForSet(prescription, index),
+  );
+}
+
+/**
+ * The prescription weight fields for these per-set weights. setWeightsKg is
+ * left out when every set is the same, so a plain exercise stays plain.
+ */
+export function targetWeightFields(
+  weightsKg: readonly number[],
+): Pick<ExercisePrescription, "targetWeightKg" | "setWeightsKg"> {
+  const [targetWeightKg = 0] = weightsKg;
+  return weightsKg.every((weightKg) => weightKg === targetWeightKg)
+    ? { targetWeightKg }
+    : { targetWeightKg, setWeightsKg: [...weightsKg] };
+}
+
+/** The target reps for one set (0-indexed) of a prescription. */
+export function targetRepsForSet(
+  prescription: ExercisePrescription,
+  setIndex: number,
+): number {
+  return prescription.setReps?.[setIndex] ?? prescription.targetReps;
+}
+
+/** The target reps for every set of a prescription. */
+export function targetRepsPerSet(prescription: ExercisePrescription): number[] {
+  return Array.from({ length: prescription.targetSets }, (_, index) =>
+    targetRepsForSet(prescription, index),
+  );
+}
+
+/**
+ * The prescription rep fields for these per-set reps. setReps is left out
+ * when every set is the same, so a plain exercise stays plain.
+ */
+export function targetRepsFields(
+  reps: readonly number[],
+): Pick<ExercisePrescription, "targetReps" | "setReps"> {
+  const [targetReps = 0] = reps;
+  return reps.every((count) => count === targetReps)
+    ? { targetReps }
+    : { targetReps, setReps: [...reps] };
+}
+
+/** "10" when every set is the same, otherwise each set's, e.g. "12/10/8". */
+export function formatTargetReps(reps: readonly number[]): string {
+  return reps.every((count) => count === reps[0])
+    ? String(reps[0] ?? "")
+    : reps.join("/");
 }
 
 /** An exercise prescription with its catalog name resolved for the UI. */
@@ -142,11 +213,47 @@ export interface StoredRoutine {
 export interface ExerciseLog {
   exerciseId: string;
   exerciseName: string;
-  /** The planned rep target at the time of the session, used to colour-code dots in history. */
+  /**
+   * The planned rep target at the time of the session (the first set's when
+   * sets have their own), used to colour-code dots in history.
+   */
   targetReps?: number;
   /** The planned number of sets; absent on older logs. */
   targetSets?: number;
   completedSets: CompletedSet[];
+}
+
+/**
+ * The target reps a logged set was done against: its own, or on older logs
+ * the log's single target. Undefined on logs from before targets were saved.
+ */
+export function setTargetReps(
+  log: ExerciseLog,
+  set: CompletedSet,
+): number | undefined {
+  return set.targetReps ?? log.targetReps;
+}
+
+/**
+ * The log to save for an exercise from its working sets: only sets with reps
+ * are kept, each stamped with its planned reps from the prescription.
+ */
+export function exerciseLogFromWorkingSets(
+  prescription: ResolvedExercisePrescription,
+  workingSets: readonly CompletedSet[],
+): ExerciseLog {
+  return {
+    exerciseId: prescription.id,
+    exerciseName: prescription.name,
+    targetReps: prescription.targetReps,
+    targetSets: prescription.targetSets,
+    completedSets: workingSets
+      .map((set, index) => ({
+        ...set,
+        targetReps: targetRepsForSet(prescription, index),
+      }))
+      .filter((set) => set.reps > 0),
+  };
 }
 
 /**

@@ -1,0 +1,87 @@
+<div class="set-targets">
+  @if (perSet && setCount > 1) {
+    <div class="field">
+      <p class="form-label">Sets</p>
+      <app-stepper
+        [value]="setCount"
+        [minimum]="1"
+        unit="sets"
+        ariaLabel="sets"
+        (valueChange)="setSetCount($event)"
+      ></app-stepper>
+    </div>
+    @for (reps of targets.reps; track $index) {
+      <div class="field">
+        <p class="form-label">Set {{ $index + 1 }}</p>
+        <div class="row">
+          <app-stepper
+            [value]="toDisplay(targets.weightsKg[$index])"
+            [minimum]="0"
+            [step]="units.weightStep"
+            [unit]="units.unitLabel()"
+            [ariaLabel]="'target weight for set ' + ($index + 1)"
+            (valueChange)="setWeight($index, $event)"
+          ></app-stepper>
+          <app-stepper
+            [value]="reps"
+            [minimum]="1"
+            unit="reps"
+            [ariaLabel]="'target reps for set ' + ($index + 1)"
+            (valueChange)="setReps($index, $event)"
+          ></app-stepper>
+        </div>
+      </div>
+    }
+    <app-unit-toggle />
+  } @else {
+    <div class="field">
+      <p class="form-label">Target weight</p>
+      <div class="weight-input-row">
+        <app-stepper
+          class="weight-stepper"
+          [value]="toDisplay(targets.weightsKg[0])"
+          [minimum]="0"
+          [step]="units.weightStep"
+          [unit]="units.unitLabel()"
+          ariaLabel="target weight"
+          (valueChange)="setAllWeights($event)"
+        ></app-stepper>
+        <app-unit-toggle />
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <p class="form-label">Sets</p>
+        <app-stepper
+          [value]="setCount"
+          [minimum]="1"
+          unit="sets"
+          ariaLabel="sets"
+          (valueChange)="setSetCount($event)"
+        ></app-stepper>
+      </div>
+      <div class="field">
+        <p class="form-label">Reps</p>
+        <app-stepper
+          [value]="targets.reps[0]"
+          [minimum]="1"
+          unit="reps"
+          ariaLabel="reps"
+          (valueChange)="setAllReps($event)"
+        ></app-stepper>
+      </div>
+    </div>
+  }
+  @if (setCount > 1) {
+    <label class="switch-row">
+      <span>Different weight or reps per set</span>
+      <input
+        type="checkbox"
+        role="switch"
+        class="switch"
+        [checked]="perSet"
+        (change)="setPerSet($any($event.target).checked)"
+      />
+    </label>
+  }
+</div>

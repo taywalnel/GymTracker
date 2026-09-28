@@ -46,6 +46,11 @@
   align-items: center;
 }
 
+// Keeps the edit button beside the first row when sets split into rows.
+.exercise-card__progress-row {
+  align-items: flex-start;
+}
+
 .exercise-card__target-summary {
   margin: 0;
   display: grid;

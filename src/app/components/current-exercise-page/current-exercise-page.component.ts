@@ -4,6 +4,8 @@ import {
   CompletedSet,
   ExerciseLog,
   ResolvedExercisePrescription,
+  targetRepsForSet,
+  targetWeightKgForSet,
 } from "../../models/workout.models";
 import {
   InProgressState,
@@ -17,6 +19,7 @@ import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.comp
 import {
   WeightAndRepsComponent,
   WeightAndRepsSet,
+  logToWeightAndRepsSets,
 } from "../weight-and-reps/weight-and-reps.component";
 import { StepperComponent } from "../stepper/stepper.component";
 import { ConfirmationModalComponent } from "../confirmation-modal/confirmation-modal.component";
@@ -54,6 +57,7 @@ export class CurrentExercisePageComponent implements OnInit {
   private restDrain?: Animation;
   protected setTouched: boolean[] = [];
   readonly repStep = 1;
+  protected readonly toWeightAndRepsSets = logToWeightAndRepsSets;
 
   constructor(
     private route: ActivatedRoute,
@@ -237,23 +241,46 @@ export class CurrentExercisePageComponent implements OnInit {
   }
 
   get targetSetReps(): WeightAndRepsSet[] {
-    return Array.from({ length: this.exercise?.targetSets ?? 0 }, () => ({
-      targetAmount: this.exercise!.targetReps,
+    return Array.from({ length: this.exercise?.targetSets ?? 0 }, (_, index) => ({
+      targetAmount: targetRepsForSet(this.exercise!, index),
     }));
   }
 
   get currentWeightKg(): number {
-    return this.workingSets[0]?.weightKg ?? this.exercise?.targetWeightKg ?? 0;
+    return (
+      this.workingSets[this.activeSetIndex]?.weightKg ??
+      this.exercise?.targetWeightKg ??
+      0
+    );
+  }
+
+  /** The planned weight for the set being done. */
+  get activeTargetWeightKg(): number {
+    return this.exercise
+      ? targetWeightKgForSet(this.exercise, this.activeSetIndex)
+      : 0;
+  }
+
+  /** The planned reps for the set being done. */
+  get activeTargetReps(): number {
+    return this.exercise
+      ? targetRepsForSet(this.exercise, this.activeSetIndex)
+      : 0;
   }
 
   get currentWeightDisplay(): number {
     return Number(this.formatWeight(this.currentWeightKg));
   }
 
+  /**
+   * The reps shown for the active set before it's changed: its planned reps
+   * when reps are planned per set, otherwise a repeat of the last set done.
+   */
   get activeSetDefaultReps(): number {
     if (this.setTouched[this.activeSetIndex]) {
       return this.workingSets[this.activeSetIndex].reps;
     }
+    if (this.exercise?.setReps) return this.activeTargetReps;
 
     const previousCompletedSet = [...this.completedSetIndices]
       .sort((a, b) => b - a)
@@ -271,8 +298,9 @@ export class CurrentExercisePageComponent implements OnInit {
         const isComplete = this.completedSetIndices.has(index);
 
         return {
-          targetAmount: this.exercise!.targetReps,
+          targetAmount: targetRepsForSet(this.exercise!, index),
           achievedAmount: isComplete ? set!.reps : undefined,
+          weightKg: set?.weightKg,
         };
       },
     );
@@ -349,11 +377,23 @@ export class CurrentExercisePageComponent implements OnInit {
     this.onSetsChanged(this.workingSets);
   }
 
-  toWeightAndRepsSets(log: ExerciseLog): WeightAndRepsSet[] {
-    return log.completedSets.map((set) => ({
-      targetAmount: log.targetReps ?? set.reps,
-      achievedAmount: log.targetReps === undefined ? undefined : set.reps,
-    }));
+  /**
+   * Sets the weight for this set. With one planned weight, the change carries
+   * forward to later sets not yet completed; with a weight planned for each
+   * set, the later sets keep theirs.
+   */
+  stepWeight(setIndex: number, displayWeight: number): void {
+    const weightKg = this.units.toKg(Math.max(0, displayWeight));
+    const carryForward = !this.exercise?.setWeightsKg;
+    this.workingSets = this.workingSets.map((set, index) =>
+      index === setIndex ||
+      (carryForward &&
+        index > setIndex &&
+        !this.completedSetIndices.has(index))
+        ? { ...set, weightKg }
+        : set,
+    );
+    this.onSetsChanged(this.workingSets);
   }
 
   formatWeight(weightKg: number): string {
@@ -426,7 +466,7 @@ export class CurrentExercisePageComponent implements OnInit {
       (_, index) => ({
         setNumber: index + 1,
         reps: 0,
-        weightKg: this.exercise!.targetWeightKg,
+        weightKg: targetWeightKgForSet(this.exercise!, index),
       }),
     );
     this.setStarted = Array.from(
@@ -472,9 +512,9 @@ export class CurrentExercisePageComponent implements OnInit {
     if (
       firstSets.length !== this.exercise.targetSets ||
       firstSets.some(
-        (set) =>
-          set.weightKg !== this.exercise!.targetWeightKg ||
-          set.reps < this.exercise!.targetReps,
+        (set, index) =>
+          set.weightKg !== targetWeightKgForSet(this.exercise!, index) ||
+          set.reps < targetRepsForSet(this.exercise!, index),
       )
     ) {
       return false;

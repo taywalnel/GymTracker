@@ -31,6 +31,7 @@ import { ConfirmationModalComponent } from "../confirmation-modal/confirmation-m
 import {
   WeightAndRepsComponent,
   WeightAndRepsSet,
+  logToWeightAndRepsSets,
 } from "../weight-and-reps/weight-and-reps.component";
 import { EmptyStateComponent } from "../empty-state/empty-state.component";
 import { formatLocalDate } from "../../utils/dates";
@@ -158,10 +159,7 @@ export class ExerciseHistoryPageComponent implements OnInit {
   }
 
   toWeightAndRepsSets(log: ExerciseLog): WeightAndRepsSet[] {
-    return log.completedSets.map((set) => ({
-      targetAmount: log.targetReps ?? set.reps,
-      achievedAmount: log.targetReps === undefined ? undefined : set.reps,
-    }));
+    return logToWeightAndRepsSets(log);
   }
 
   private humanizeExerciseId(id: string): string {

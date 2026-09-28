@@ -46,7 +46,6 @@
           <p class="section-label">History</p>
           <div class="exercise-card__history-row">
             <app-weight-and-reps
-              [weight]="lastHistoryEntry.log.completedSets[0].weightKg"
               [sets]="toWeightAndRepsSets(lastHistoryEntry.log)"
             ></app-weight-and-reps>
             <app-button
@@ -70,6 +69,7 @@
             [weight]="currentWeightKg"
             [sets]="currentSetReps"
             [activeIndex]="activeSetIndex"
+            [splitByWeight]="true"
             (setSelected)="navigateToSet($event)"
           ></app-weight-and-reps>
           <app-button
@@ -86,13 +86,13 @@
       <div class="card stepper-container">
         <p class="section-label">Reps</p>
         <span class="exercise-card__target-value">{{
-          exercise.targetReps
+          activeTargetReps
         }}</span>
       </div>
       <div class="card stepper-container">
         <p class="section-label">Weight ({{ units.unitLabel() }})</p>
         <span class="exercise-card__target-value">
-          {{ formatWeight(exercise.targetWeightKg) }}
+          {{ formatWeight(activeTargetWeightKg) }}
         </span>
       </div>
     </div>
@@ -123,7 +123,10 @@
             [value]="currentWeightDisplay"
             [step]="units.weightStep"
             [unit]="units.unitLabel()"
-            ariaLabel="weight"
+            [ariaLabel]="
+              'weight for set ' + workingSets[activeSetIndex].setNumber
+            "
+            (valueChange)="stepWeight(activeSetIndex, $event)"
           ></app-stepper>
         </div>
       </div>

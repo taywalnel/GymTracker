@@ -32,42 +32,13 @@
   font-weight: 600;
 }
 
-.weight-input-row,
 .form-actions {
   display: flex;
   gap: 10px;
 }
 
-.row {
-  display: flex;
-  gap: 12px;
-}
-
-.stepper-container,
-.weight-stepper {
-  min-width: 0;
-  flex: 1;
-}
-
-.weight-input-row {
-  align-items: stretch;
-}
-
-.weight-input-row app-unit-toggle {
-  min-width: 0;
-  flex: 1;
-}
-
-.stepper-container,
-.weight-container,
 .recovery-container {
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-
-@media (max-width: 360px) {
-  .weight-input-row {
-    flex-direction: column;
-  }
 }

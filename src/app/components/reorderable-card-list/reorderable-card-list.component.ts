@@ -18,7 +18,13 @@ import {
 import { DomSanitizer, SafeHtml } from "@angular/platform-browser";
 
 import { REORDER_SVG } from "../../constants/svg.constants";
-import { ResolvedExercisePrescription } from "../../models/workout.models";
+import {
+  ResolvedExercisePrescription,
+  formatTargetReps,
+  targetRepsPerSet,
+  targetWeightsKg,
+} from "../../models/workout.models";
+import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { ButtonComponent } from "../button/button.component";
 import { RoutineCardComponent } from "../routine-card/routine-card.component";
 
@@ -45,6 +51,7 @@ export class ReorderableCardListComponent {
   // which makes iOS stop delivering touchmove events to the CDK.
   readonly reorderIcon: SafeHtml =
     inject(DomSanitizer).bypassSecurityTrustHtml(REORDER_SVG);
+  private readonly units = inject(UnitPreferenceService);
 
   @Input({ required: true }) exercises: ResolvedExercisePrescription[] = [];
   @Input() disabled = false;
@@ -70,5 +77,12 @@ export class ReorderableCardListComponent {
 
   deleteExercise(exerciseId: string): void {
     this.exerciseDeleted.emit(exerciseId);
+  }
+
+  /** e.g. "3 sets · 12/10/8 reps · 60–80 kg". */
+  describeExercise(exercise: ResolvedExercisePrescription): string {
+    const reps = formatTargetReps(targetRepsPerSet(exercise));
+    const weight = this.units.formatWeightRange(targetWeightsKg(exercise));
+    return `${exercise.targetSets} sets · ${reps} reps · ${weight} ${this.units.unitLabel()}`;
   }
 }

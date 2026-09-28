@@ -10,6 +10,7 @@ import {
 } from "../../../models/workout.models";
 import { WorkoutService } from "../../../services/workout.service";
 import { formatDaysAgo } from "../../../utils/dates";
+import { averageTargetReps } from "../../../utils/rep-comparison";
 import { ButtonComponent } from "../../button/button.component";
 import { ConfirmationModalComponent } from "../../confirmation-modal/confirmation-modal.component";
 import { LoadingSpinnerComponent } from "../../loading-spinner/loading-spinner.component";
@@ -203,15 +204,16 @@ export class WorkoutDetailComponent implements OnInit {
   readonly formatDaysAgo = formatDaysAgo;
 
   getExerciseDotClass(log: ExerciseLog): string {
-    if (log.targetReps === undefined) return "status-dot";
+    const averageTarget = averageTargetReps(log);
+    if (averageTarget === undefined) return "status-dot";
     if (!log.completedSets.length) return "status-dot danger";
 
     const averageReps =
       log.completedSets.reduce((total, set) => total + set.reps, 0) /
       log.completedSets.length;
 
-    if (averageReps >= log.targetReps) return "status-dot success";
-    if (log.targetReps - averageReps <= 2) return "status-dot warn";
+    if (averageReps >= averageTarget) return "status-dot success";
+    if (averageTarget - averageReps <= 2) return "status-dot warn";
     return "status-dot danger";
   }
 }

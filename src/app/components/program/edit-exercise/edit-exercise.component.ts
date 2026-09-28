@@ -5,14 +5,20 @@ import {
   Exercise,
   ResolvedExercisePrescription,
   Routine,
+  targetRepsFields,
+  targetRepsPerSet,
+  targetWeightFields,
+  targetWeightsKg,
 } from "../../../models/workout.models";
-import { UnitPreferenceService } from "../../../services/unit-preference.service";
 import { WorkoutService } from "../../../services/workout.service";
 import { ButtonComponent } from "../../button/button.component";
 import { LoadingSpinnerComponent } from "../../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
 import { StepperComponent } from "../../stepper/stepper.component";
-import { UnitToggleComponent } from "../../unit-toggle/unit-toggle.component";
+import {
+  SetTargets,
+  SetTargetsComponent,
+} from "../set-targets/set-targets.component";
 
 @Component({
   selector: "app-edit-exercise",
@@ -22,7 +28,7 @@ import { UnitToggleComponent } from "../../unit-toggle/unit-toggle.component";
     LoadingSpinnerComponent,
     PageHeaderComponent,
     StepperComponent,
-    UnitToggleComponent,
+    SetTargetsComponent,
   ],
   templateUrl: "./edit-exercise.component.html",
   styleUrl: "./edit-exercise.component.scss",
@@ -31,9 +37,8 @@ export class EditExerciseComponent implements OnInit {
   exerciseId = "";
   exercises: Exercise[] = [];
   isLoadingExercises = true;
-  weightKg: number | null = null;
-  sets = 1;
-  reps = 1;
+  /** Target weight (kg) and reps for each set. */
+  targets: SetTargets = { weightsKg: [0], reps: [1] };
   restSeconds = 60;
   validationAttempted = false;
 
@@ -43,14 +48,6 @@ export class EditExerciseComponent implements OnInit {
 
   get invalidRestSeconds(): boolean {
     return !Number.isInteger(this.restSeconds) || this.restSeconds < 0;
-  }
-
-  get weightUnit(): string {
-    return this.units.unitLabel();
-  }
-
-  get weightStep(): number {
-    return this.units.weightStep;
   }
 
   private routine: Routine | undefined;
@@ -65,7 +62,6 @@ export class EditExerciseComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private workoutService: WorkoutService,
-    private units: UnitPreferenceService,
   ) {
     const state =
       this.router.getCurrentNavigation()?.extras.state ?? history.state;
@@ -134,31 +130,13 @@ export class EditExerciseComponent implements OnInit {
     }
 
     this.exerciseId = this.existingExercise.id;
-    this.weightKg = this.existingExercise.targetWeightKg;
-    this.sets = this.existingExercise.targetSets;
-    this.reps = this.existingExercise.targetReps;
+    this.targets = {
+      weightsKg: targetWeightsKg(this.existingExercise),
+      reps: targetRepsPerSet(this.existingExercise),
+    };
     this.restSeconds = this.existingExercise.restSeconds ?? 60;
   }
 
-  get weight(): number | null {
-    if (this.weightKg === null) {
-      return null;
-    }
-
-    return Number(this.units.fromKg(this.weightKg).toFixed(1));
-  }
-
-  set weight(value: number | null) {
-    if (value !== null && Number.isFinite(value) && value >= 0) {
-      this.weightKg = this.units.toKg(value);
-    } else if (value === null) {
-      this.weightKg = null;
-    }
-  }
-
-  setWeight(value: number): void {
-    this.weight = value;
-  }
 
   save(): void {
     const selectedExercise = this.exercises.find(
@@ -167,9 +145,8 @@ export class EditExerciseComponent implements OnInit {
     this.validationAttempted = true;
     if (
       !selectedExercise ||
-      this.weightKg === null ||
-      this.sets < 1 ||
-      this.reps < 1 ||
+      this.targets.reps.length < 1 ||
+      this.targets.reps.some((reps) => reps < 1) ||
       this.invalidRestSeconds
     ) {
       return;
@@ -178,9 +155,9 @@ export class EditExerciseComponent implements OnInit {
     const exercise: ResolvedExercisePrescription = {
       id: selectedExercise.id,
       name: selectedExercise.name,
-      targetWeightKg: this.weightKg,
-      targetSets: this.sets,
-      targetReps: this.reps,
+      ...targetWeightFields(this.targets.weightsKg),
+      ...targetRepsFields(this.targets.reps),
+      targetSets: this.targets.reps.length,
       restSeconds: this.restSeconds,
       order: this.existingExercise?.order ?? 0,
     };

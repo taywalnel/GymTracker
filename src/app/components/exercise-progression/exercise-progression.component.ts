@@ -150,6 +150,7 @@ export class ExerciseProgressionComponent {
   toWeightAndRepsSets(log: ExerciseLog): WeightAndRepsSet[] {
     return log.completedSets.map((set) => ({
       targetAmount: set.reps,
+      weightKg: set.weightKg,
     }));
   }
 

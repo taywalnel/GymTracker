@@ -10,6 +10,9 @@ import {
   findExerciseByName,
   ResolvedExercisePrescription,
   Routine,
+  formatTargetReps,
+  targetRepsFields,
+  targetWeightFields,
 } from "../../../models/workout.models";
 import { UnitPreferenceService } from "../../../services/unit-preference.service";
 import { WorkoutService } from "../../../services/workout.service";
@@ -22,7 +25,10 @@ import { InputComponent } from "../../input/input.component";
 import { LoadingSpinnerComponent } from "../../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
 import { StepperComponent } from "../../stepper/stepper.component";
-import { UnitToggleComponent } from "../../unit-toggle/unit-toggle.component";
+import {
+  SetTargets,
+  SetTargetsComponent,
+} from "../set-targets/set-targets.component";
 
 @Component({
   selector: "app-add-exercise",
@@ -34,7 +40,7 @@ import { UnitToggleComponent } from "../../unit-toggle/unit-toggle.component";
     LoadingSpinnerComponent,
     PageHeaderComponent,
     StepperComponent,
-    UnitToggleComponent,
+    SetTargetsComponent,
   ],
   templateUrl: "./add-exercise.component.html",
   styleUrl: "./add-exercise.component.scss",
@@ -43,9 +49,10 @@ export class AddExerciseComponent implements OnInit {
   exercises: Exercise[] = [];
   isLoadingExercises = true;
   loadError = false;
-  weightKg: number | null = null;
-  sets = 1;
-  reps = 1;
+  /** Target weight (kg) and reps for each set. */
+  targets: SetTargets = { weightsKg: [0], reps: [1] };
+  // A weight must be chosen before continuing, even if it's 0.
+  weightChosen = false;
   restSeconds = 60;
   step = 1;
   saving = false;
@@ -119,9 +126,9 @@ export class AddExerciseComponent implements OnInit {
           : this.selectedExercise !== null;
       case 3:
         return (
-          this.weightKg !== null &&
-          this.sets >= 1 &&
-          this.reps >= 1 &&
+          this.weightChosen &&
+          this.targets.reps.length >= 1 &&
+          this.targets.reps.every((reps) => reps >= 1) &&
           !this.invalidRestSeconds
         );
       default:
@@ -136,17 +143,13 @@ export class AddExerciseComponent implements OnInit {
   }
 
   get formattedWeight(): string {
-    return this.weightKg === null
-      ? ""
-      : `${this.units.formatWeight(this.weightKg)} ${this.units.unitLabel()}`;
+    return this.weightChosen
+      ? `${this.units.formatWeightRange(this.targets.weightsKg)} ${this.units.unitLabel()}`
+      : "";
   }
 
-  get weightUnit(): string {
-    return this.units.unitLabel();
-  }
-
-  get weightStep(): number {
-    return this.units.weightStep;
+  get formattedReps(): string {
+    return formatTargetReps(this.targets.reps);
   }
 
   private get returnDestination(): string {
@@ -247,24 +250,16 @@ export class AddExerciseComponent implements OnInit {
     this.routine = routine;
   }
 
-  get weight(): number | null {
-    if (this.weightKg === null) {
-      return null;
+  setTargets(targets: SetTargets): void {
+    // Only a weight change (not adding sets or changing reps) counts as
+    // choosing the weight.
+    if (
+      targets.weightsKg !== this.targets.weightsKg &&
+      targets.weightsKg.length === this.targets.weightsKg.length
+    ) {
+      this.weightChosen = true;
     }
-
-    return Number(this.units.fromKg(this.weightKg).toFixed(1));
-  }
-
-  set weight(value: number | null) {
-    if (value !== null && Number.isFinite(value) && value >= 0) {
-      this.weightKg = this.units.toKg(value);
-    } else if (value === null) {
-      this.weightKg = null;
-    }
-  }
-
-  setWeight(value: number): void {
-    this.weight = value;
+    this.targets = targets;
   }
 
   chooseMuscleGroup(group: ExerciseCategory): void {
@@ -356,16 +351,16 @@ export class AddExerciseComponent implements OnInit {
   }
 
   save(): void {
-    if (!this.selectedExercise || this.weightKg === null || !this.routine) {
+    if (!this.selectedExercise || !this.weightChosen || !this.routine) {
       return;
     }
 
     const exercise: ResolvedExercisePrescription = {
       id: this.selectedExercise.id,
       name: this.selectedExercise.name,
-      targetWeightKg: this.weightKg,
-      targetSets: this.sets,
-      targetReps: this.reps,
+      ...targetWeightFields(this.targets.weightsKg),
+      ...targetRepsFields(this.targets.reps),
+      targetSets: this.targets.reps.length,
       restSeconds: this.restSeconds,
       order:
         this.routine.exercises.find(

@@ -15,6 +15,8 @@ import {
   ExerciseLog,
   ResolvedExercisePrescription,
   WorkoutSession,
+  exerciseLogFromWorkingSets,
+  targetRepsForSet,
 } from "../../models/workout.models";
 import {
   InProgressState,
@@ -183,15 +185,8 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
       this.state.workingSets.map(({ exerciseId, sets }) => [exerciseId, sets]),
     );
     const exerciseLogs: ExerciseLog[] = this.sortedPrescriptions().map(
-      (exercise) => ({
-        exerciseId: exercise.id,
-        exerciseName: exercise.name,
-        targetReps: exercise.targetReps,
-        targetSets: exercise.targetSets,
-        completedSets: (workingSets.get(exercise.id) ?? []).filter(
-          (set) => set.reps > 0,
-        ),
-      }),
+      (exercise) =>
+        exerciseLogFromWorkingSets(exercise, workingSets.get(exercise.id) ?? []),
     );
     const session: WorkoutSession = {
       id: this.workoutService.generateSessionId(),
@@ -371,7 +366,7 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
           const set = sets[index];
           const isComplete = (set?.reps ?? 0) > 0;
           return {
-            targetAmount: exercise.targetReps,
+            targetAmount: targetRepsForSet(exercise, index),
             achievedAmount: isComplete ? set!.reps : undefined,
           };
         }),

@@ -89,7 +89,6 @@
               <span class="date-header">{{ formatDate(entry.date) }}</span>
               <div class="set-list">
                 <app-weight-and-reps
-                  [weight]="entry.log.completedSets[0].weightKg"
                   [sets]="toWeightAndRepsSets(entry.log)"
                   [size]="'small'"
                 />

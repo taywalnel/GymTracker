@@ -24,14 +24,7 @@
       </span>
       <app-card
         [title]="exercise.name"
-        [description]="
-          exercise.targetSets +
-          ' sets · ' +
-          exercise.targetReps +
-          ' reps · ' +
-          exercise.targetWeightKg +
-          ' kg'
-        "
+        [description]="describeExercise(exercise)"
         [showChevron]="true"
         (click)="selectExercise(exercise.id)"
       />

@@ -3,9 +3,19 @@
   gap: 4px;
 }
 
+// Rows share columns so their weight boxes are the same width and the sets
+// line up, and leave room under each for the active-set dot.
+.weight-and-reps-rows {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: start;
+  gap: 12px 4px;
+}
+
 .weight-and-reps {
-  display: flex;
-  gap: 4px;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
 }
 
 .sets-container {
@@ -55,6 +65,18 @@
   border: 0;
   border-radius: var(--radius-sm);
   padding: 0;
+}
+
+// A set done at a different weight stacks its weight under the reps.
+.set-container:has(.set-weight) {
+  align-content: center;
+  line-height: 1;
+  gap: 2px;
+}
+
+.set-weight {
+  font-size: 0.55em;
+  opacity: 0.85;
 }
 
 .set-container--selectable {

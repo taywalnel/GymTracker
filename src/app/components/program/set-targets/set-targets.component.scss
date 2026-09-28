@@ -1,0 +1,45 @@
+.set-targets {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+
+  > app-stepper {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.weight-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+
+  app-unit-toggle {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.weight-stepper {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 360px) {
+  .weight-input-row {
+    flex-direction: column;
+  }
+}

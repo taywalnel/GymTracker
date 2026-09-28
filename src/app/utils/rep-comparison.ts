@@ -3,6 +3,9 @@ import {
   ExerciseLog,
   ExercisePrescription,
   WorkoutSession,
+  setTargetReps,
+  targetRepsForSet,
+  targetWeightKgForSet,
 } from "../models/workout.models";
 
 // Weights entered in lb are stored as converted kg, so allow for rounding.
@@ -13,9 +16,24 @@ export function totalReps(sets: readonly CompletedSet[]): number {
 }
 
 /**
+ * Average planned reps across a log's sets, or undefined for older logs
+ * saved without a rep target.
+ */
+export function averageTargetReps(log: ExerciseLog): number | undefined {
+  if (log.targetReps === undefined) return undefined;
+  if (!log.completedSets.length) return log.targetReps;
+  return (
+    log.completedSets.reduce(
+      (total, set) => total + (setTargetReps(log, set) ?? 0),
+      0,
+    ) / log.completedSets.length
+  );
+}
+
+/**
  * The most recent finished log of this exercise done with exactly the same
- * prescription: same rep target, every set done, and every set at the target
- * weight. Rest time is ignored.
+ * prescription: every set done, each at its target reps and target weight.
+ * Rest time is ignored.
  */
 export function findComparableLog(
   sessionsNewestFirst: readonly WorkoutSession[],
@@ -28,12 +46,12 @@ export function findComparableLog(
     );
     if (
       log &&
-      log.targetReps === prescription.targetReps &&
       log.completedSets.length === prescription.targetSets &&
       log.completedSets.every(
-        (set) =>
-          Math.abs(set.weightKg - prescription.targetWeightKg) <=
-          WEIGHT_TOLERANCE_KG,
+        (set, index) =>
+          setTargetReps(log, set) === targetRepsForSet(prescription, index) &&
+          Math.abs(set.weightKg - targetWeightKgForSet(prescription, index)) <=
+            WEIGHT_TOLERANCE_KG,
       )
     ) {
       return log;
