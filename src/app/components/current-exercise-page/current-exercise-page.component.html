@@ -48,12 +48,22 @@
             <app-weight-and-reps
               [sets]="toWeightAndRepsSets(lastHistoryEntry.log)"
             ></app-weight-and-reps>
-            <app-button
-              variant="icon"
-              iconName="history"
-              ariaLabel="View exercise history"
-              (click)="viewExerciseHistory()"
-            />
+            <div class="exercise-card__history-actions">
+              @if (canRequestFeedback) {
+                <app-button
+                  variant="icon"
+                  iconName="sparkle"
+                  ariaLabel="Get AI feedback on these targets"
+                  (click)="requestFeedback()"
+                />
+              }
+              <app-button
+                variant="icon"
+                iconName="history"
+                ariaLabel="View exercise history"
+                (click)="viewExerciseHistory()"
+              />
+            </div>
           </div>
         </div>
       }
@@ -173,6 +183,20 @@
       cancelLabel="Keep"
       (confirmed)="adjustRoutine()"
       (cancelled)="dismissProgressionSuggestion()"
+    />
+  }
+
+  @if (showFeedback && currentPrescription) {
+    <app-exercise-feedback-modal
+      [feedback]="feedback"
+      [isLoading]="isLoadingFeedback"
+      [error]="feedbackError"
+      [current]="currentPrescription"
+      [appliesToday]="feedbackAppliesToday"
+      [isApplying]="isApplyingFeedback"
+      (apply)="applyFeedback()"
+      (retry)="requestFeedback()"
+      (closed)="closeFeedback()"
     />
   }
 

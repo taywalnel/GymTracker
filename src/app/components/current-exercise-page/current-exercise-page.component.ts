@@ -5,7 +5,9 @@ import {
   ExerciseLog,
   ResolvedExercisePrescription,
   targetRepsForSet,
+  targetRepsPerSet,
   targetWeightKgForSet,
+  targetWeightsKg,
 } from "../../models/workout.models";
 import {
   InProgressState,
@@ -23,10 +25,37 @@ import {
 } from "../weight-and-reps/weight-and-reps.component";
 import { StepperComponent } from "../stepper/stepper.component";
 import { ConfirmationModalComponent } from "../confirmation-modal/confirmation-modal.component";
+import { ExerciseFeedbackModalComponent } from "../exercise-feedback-modal/exercise-feedback-modal.component";
+import {
+  ExerciseFeedbackService,
+  FeedbackOfflineError,
+} from "../../services/exercise-feedback.service";
+import {
+  ExerciseFeedback,
+  FEEDBACK_MIN_HISTORY,
+  FeedbackPrescription,
+  applyRecommendation,
+} from "../../models/exercise-feedback.models";
 
 interface ExerciseHistoryEntry {
   date: string;
   log: ExerciseLog;
+}
+
+/** The function's own message for errors it explains, otherwise a general one. */
+function feedbackErrorMessage(error: unknown): string {
+  if (error instanceof FeedbackOfflineError) {
+    return "You're offline. Feedback needs a connection, so try again once you're back online.";
+  }
+  const { code, message } = (error ?? {}) as { code?: string; message?: string };
+  const explained = [
+    "functions/resource-exhausted",
+    "functions/failed-precondition",
+    "functions/unavailable",
+  ];
+  return code && explained.includes(code) && message
+    ? message
+    : "Feedback isn't available right now. Try again in a moment.";
 }
 
 @Component({
@@ -34,6 +63,7 @@ interface ExerciseHistoryEntry {
   imports: [
     ButtonComponent,
     ConfirmationModalComponent,
+    ExerciseFeedbackModalComponent,
     LoadingSpinnerComponent,
     PageHeaderComponent,
     StepperComponent,
@@ -50,7 +80,16 @@ export class CurrentExercisePageComponent implements OnInit {
   workingSets: CompletedSet[] = [];
   activeSetIndex = 0;
   lastHistoryEntry: ExerciseHistoryEntry | null = null;
+  /** Past sessions with this exercise that have logged sets, newest first. */
+  private completedHistory: ExerciseHistoryEntry[] = [];
   showProgressionSuggestion = false;
+  showFeedback = false;
+  feedback: ExerciseFeedback | null = null;
+  feedbackError: string | null = null;
+  isLoadingFeedback = false;
+  isApplyingFeedback = false;
+  /** Whether a change can go into today's workout: no sets were logged when asked. */
+  feedbackAppliesToday = false;
   showExerciseActions = false;
   completedSetIndices = new Set<number>();
   private setStarted: boolean[] = [];
@@ -65,6 +104,7 @@ export class CurrentExercisePageComponent implements OnInit {
     private workoutService: WorkoutService,
     public units: UnitPreferenceService,
     public restTimer: RestTimerService,
+    private feedbackService: ExerciseFeedbackService,
   ) {}
 
   ngOnInit(): void {
@@ -369,6 +409,136 @@ export class CurrentExercisePageComponent implements OnInit {
     this.showProgressionSuggestion = false;
   }
 
+  /** Feedback needs a few past sessions to go on. */
+  get canRequestFeedback(): boolean {
+    return this.completedHistory.length >= FEEDBACK_MIN_HISTORY;
+  }
+
+  /** The exercise's targets with every set spelled out, for the feedback modal. */
+  get currentPrescription(): FeedbackPrescription | null {
+    if (!this.exercise) return null;
+    return {
+      setWeightsKg: targetWeightsKg(this.exercise),
+      setReps: targetRepsPerSet(this.exercise),
+      restSeconds: this.exercise.restSeconds ?? 60,
+    };
+  }
+
+  requestFeedback(): void {
+    if (!this.exercise) return;
+    this.showFeedback = true;
+    this.feedback = null;
+    this.feedbackError = null;
+    this.feedbackAppliesToday = this.completedSetCount === 0;
+
+    const todaySets = [...this.completedSetIndices]
+      .sort((a, b) => a - b)
+      .map((index) => ({
+        ...this.workingSets[index],
+        targetReps: targetRepsForSet(this.exercise!, index),
+      }));
+    this.isLoadingFeedback = true;
+    this.feedbackService
+      .getFeedback(
+        this.exercise.id,
+        this.exercise.name,
+        this.exercise,
+        this.completedHistory,
+        todaySets,
+      )
+      .then(
+        (feedback) => (this.feedback = feedback),
+        (error) => (this.feedbackError = feedbackErrorMessage(error)),
+      )
+      .finally(() => (this.isLoadingFeedback = false));
+  }
+
+  closeFeedback(): void {
+    this.showFeedback = false;
+  }
+
+  /**
+   * Saves the recommended targets to the routine. Before any set is logged
+   * they also replace today's targets; after, today's workout stays as it is
+   * and the change starts next time.
+   */
+  applyFeedback(): void {
+    const recommendation = this.feedback?.recommendation;
+    if (!this.state || !this.exercise || !recommendation) return;
+
+    const routineId = this.state.today.routine.id;
+    const exerciseId = this.exercise.id;
+    const appliesToday =
+      this.feedbackAppliesToday && this.completedSetCount === 0;
+    this.isApplyingFeedback = true;
+
+    this.workoutService.getRoutineById(routineId).subscribe({
+      next: (routine) => {
+        const saved = routine?.exercises.find((item) => item.id === exerciseId);
+        if (!routine || !saved) {
+          // Added to this workout only, so there's no routine to update.
+          if (appliesToday) {
+            this.applyToToday(recommendation);
+            this.closeFeedback();
+          } else {
+            this.feedbackError =
+              "This exercise isn't in your saved routine, so there's nothing to update for next time.";
+          }
+          this.isApplyingFeedback = false;
+          return;
+        }
+
+        this.workoutService
+          .saveRoutine({
+            ...routine,
+            exercises: routine.exercises.map((item) =>
+              item.id === exerciseId
+                ? applyRecommendation(item, recommendation)
+                : item,
+            ),
+          })
+          .subscribe({
+            next: () => {
+              if (appliesToday) this.applyToToday(recommendation);
+              this.isApplyingFeedback = false;
+              this.closeFeedback();
+            },
+            error: () => {
+              this.isApplyingFeedback = false;
+              this.feedbackError = "Couldn't save the change. Try again.";
+            },
+          });
+      },
+      error: () => {
+        this.isApplyingFeedback = false;
+        this.feedbackError = "Couldn't load your routine. Try again.";
+      },
+    });
+  }
+
+  /** Swaps in the new targets for this exercise in today's workout. */
+  private applyToToday(recommendation: FeedbackPrescription): void {
+    if (!this.state || !this.exercise) return;
+    const exercise = applyRecommendation(this.exercise, recommendation);
+    this.saveState({
+      ...this.state,
+      today: {
+        ...this.state.today,
+        routine: {
+          ...this.state.today.routine,
+          exercises: this.state.today.routine.exercises.map((item) =>
+            item.id === exercise.id ? exercise : item,
+          ),
+        },
+      },
+      workingSets: this.state.workingSets.filter(
+        (entry) => entry.exerciseId !== exercise.id,
+      ),
+    });
+    this.exercise = exercise;
+    this.initSets();
+  }
+
   stepReps(setIndex: number, nextReps: number): void {
     const current = this.workingSets[setIndex];
     this.setStarted[setIndex] = nextReps > 0;
@@ -484,11 +654,14 @@ export class CurrentExercisePageComponent implements OnInit {
   private loadExerciseHistory(): void {
     if (!this.exercise) return;
     this.lastHistoryEntry = null;
+    this.completedHistory = [];
     this.workoutService
       .getExerciseHistory(this.exercise.id)
       .subscribe((entries) => {
-        this.lastHistoryEntry =
-          entries.find((entry) => entry.log.completedSets.length > 0) ?? null;
+        this.completedHistory = entries.filter(
+          (entry) => entry.log.completedSets.length > 0,
+        );
+        this.lastHistoryEntry = this.completedHistory[0] ?? null;
         const shouldShowSuggestion =
           this.hasEarnedProgressionSuggestion(entries);
         this.showProgressionSuggestion = shouldShowSuggestion;

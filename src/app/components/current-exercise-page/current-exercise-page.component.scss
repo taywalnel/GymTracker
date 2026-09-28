@@ -46,6 +46,12 @@
   align-items: center;
 }
 
+.exercise-card__history-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
 // Keeps the edit button beside the first row when sets split into rows.
 .exercise-card__progress-row {
   align-items: flex-start;

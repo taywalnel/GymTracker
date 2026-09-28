@@ -8,6 +8,7 @@ import {
   EDIT_SVG,
   HISTORY_SVG,
   PLUS_SVG,
+  SPARKLE_SVG,
 } from "../../constants/svg.constants";
 
 // The variant sets how prominent a button is; `danger` only changes its tone.
@@ -15,7 +16,13 @@ import {
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "icon";
 export type ButtonSize = "sm" | "md" | "lg";
 export type ButtonIconName =
-  "chevron-left" | "chevron-right" | "delete" | "edit" | "history" | "plus";
+  | "chevron-left"
+  | "chevron-right"
+  | "delete"
+  | "edit"
+  | "history"
+  | "plus"
+  | "sparkle";
 
 const BUTTON_ICONS: Record<ButtonIconName, string> = {
   "chevron-left": CHEVRON_LEFT_SVG,
@@ -24,6 +31,7 @@ const BUTTON_ICONS: Record<ButtonIconName, string> = {
   edit: EDIT_SVG,
   history: HISTORY_SVG,
   plus: PLUS_SVG,
+  sparkle: SPARKLE_SVG,
 };
 
 @Component({

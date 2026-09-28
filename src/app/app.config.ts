@@ -9,6 +9,7 @@ import {
   persistentMultipleTabManager,
 } from "@angular/fire/firestore";
 import { provideAuth, getAuth } from "@angular/fire/auth";
+import { provideFunctions, getFunctions } from "@angular/fire/functions";
 import { provideServiceWorker } from "@angular/service-worker";
 import { environment } from "../environments/environment";
 
@@ -26,6 +27,8 @@ export const appConfig: ApplicationConfig = {
       }),
     ),
     provideAuth(() => getAuth()),
+    // Same region as Firestore; see functions/.
+    provideFunctions(() => getFunctions(getApp(), "asia-southeast1")),
     // Caches the app itself so it opens with no connection. Production only.
     provideServiceWorker("ngsw-worker.js", {
       enabled: !isDevMode(),

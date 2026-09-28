@@ -1,4 +1,5 @@
 import { ActivatedRoute, Router } from "@angular/router";
+import { of } from "rxjs";
 
 import { ResolvedExercisePrescription } from "../../models/workout.models";
 import {
@@ -6,6 +7,7 @@ import {
   WorkoutService,
 } from "../../services/workout.service";
 import { RestTimerService } from "../../services/rest-timer.service";
+import { ExerciseFeedbackService } from "../../services/exercise-feedback.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { CurrentExercisePageComponent } from "./current-exercise-page.component";
 
@@ -43,6 +45,8 @@ describe("CurrentExercisePageComponent", () => {
   let startRestTimer: jasmine.Spy;
   let clearRestTimer: jasmine.Spy;
   let toKg: jasmine.Spy;
+  let getRoutineById: jasmine.Spy;
+  let saveRoutine: jasmine.Spy;
 
   beforeEach(() => {
     navigate = jasmine.createSpy("navigate");
@@ -50,15 +54,28 @@ describe("CurrentExercisePageComponent", () => {
     startRestTimer = jasmine.createSpy("start");
     clearRestTimer = jasmine.createSpy("clear");
     toKg = jasmine.createSpy("toKg").and.callFake((value: number) => value);
+    getRoutineById = jasmine
+      .createSpy("getRoutineById")
+      .and.callFake(() =>
+        of({ id: "workout-1", name: "Workout", rotationOrder: 0, exercises }),
+      );
+    saveRoutine = jasmine
+      .createSpy("saveRoutine")
+      .and.callFake((routine) => of(routine));
     component = new CurrentExercisePageComponent(
       {} as ActivatedRoute,
       { navigate } as unknown as Router,
-      { saveInProgressState } as unknown as WorkoutService,
+      {
+        saveInProgressState,
+        getRoutineById,
+        saveRoutine,
+      } as unknown as WorkoutService,
       { toKg } as unknown as UnitPreferenceService,
       {
         start: startRestTimer,
         clear: clearRestTimer,
       } as unknown as RestTimerService,
+      {} as ExerciseFeedbackService,
     );
   });
 
@@ -315,6 +332,76 @@ describe("CurrentExercisePageComponent", () => {
     setCurrentExercise("first", []);
 
     expect(component.canFinishEarly).toBeFalse();
+  });
+
+  describe("applying AI feedback", () => {
+    const recommendation = {
+      setWeightsKg: [12.5, 12.5, 12.5],
+      setReps: [8, 8, 8],
+      restSeconds: 90,
+    };
+
+    beforeEach(() => {
+      setCurrentExercise("first", []);
+      component.workingSets = [
+        { setNumber: 1, reps: 0, weightKg: 10 },
+        { setNumber: 2, reps: 0, weightKg: 10 },
+        { setNumber: 3, reps: 0, weightKg: 10 },
+      ];
+      component.completedSetIndices = new Set();
+      component.feedback = {
+        verdict: "change",
+        summary: "Go up",
+        recommendation,
+      };
+      component.showFeedback = true;
+    });
+
+    it("updates the routine and today's targets when no sets are logged", () => {
+      component.feedbackAppliesToday = true;
+
+      component.applyFeedback();
+
+      const savedFirst = saveRoutine.calls
+        .mostRecent()
+        .args[0].exercises.find(
+          (exercise: ResolvedExercisePrescription) => exercise.id === "first",
+        );
+      expect(savedFirst).toEqual(
+        jasmine.objectContaining({
+          targetWeightKg: 12.5,
+          targetReps: 8,
+          targetSets: 3,
+          restSeconds: 90,
+          order: 1,
+        }),
+      );
+      expect(component.exercise?.targetWeightKg).toBe(12.5);
+      expect(component.workingSets.map((set) => set.weightKg)).toEqual([
+        12.5, 12.5, 12.5,
+      ]);
+      const todayFirst = component.state!.today.routine.exercises.find(
+        (exercise) => exercise.id === "first",
+      );
+      expect(todayFirst?.targetWeightKg).toBe(12.5);
+      expect(component.showFeedback).toBeFalse();
+    });
+
+    it("only updates the routine once a set is logged", () => {
+      component.feedbackAppliesToday = false;
+      component.workingSets[0] = { setNumber: 1, reps: 10, weightKg: 10 };
+      component.completedSetIndices = new Set([0]);
+
+      component.applyFeedback();
+
+      expect(saveRoutine).toHaveBeenCalled();
+      expect(component.exercise?.targetWeightKg).toBe(10);
+      expect(component.workingSets[0].reps).toBe(10);
+      const todayFirst = component.state!.today.routine.exercises.find(
+        (exercise) => exercise.id === "first",
+      );
+      expect(todayFirst?.targetWeightKg).toBe(10);
+    });
   });
 
   function setCurrentExercise(

@@ -1,0 +1,81 @@
+<div class="modal-backdrop" (click)="close()">
+  <section
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="exercise-feedback-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div>
+      <span class="eyebrow">AI feedback</span>
+      <h2 id="exercise-feedback-title">{{ title }}</h2>
+    </div>
+
+    @if (isLoading) {
+      <div class="feedback__loading" role="status" aria-label="Loading feedback">
+        <app-loading-spinner />
+      </div>
+    } @else if (error) {
+      <p class="modal__message">{{ error }}</p>
+      <div class="modal__actions">
+        <app-button variant="secondary" [fullWidth]="true" (click)="close()">
+          Close
+        </app-button>
+        <app-button variant="primary" [fullWidth]="true" (click)="retry.emit()">
+          Try again
+        </app-button>
+      </div>
+    } @else if (feedback) {
+      <p class="modal__message">{{ feedback.summary }}</p>
+
+      @if (recommendation) {
+        <dl class="feedback__change">
+          <div class="feedback__row">
+            <dt class="section-label">Now</dt>
+            <dd>
+              {{ formatSets(current) }}
+              <span class="feedback__rest">{{ formatRest(current.restSeconds) }}</span>
+            </dd>
+          </div>
+          <div class="feedback__row feedback__row--new">
+            <dt class="section-label">Suggested</dt>
+            <dd>
+              {{ formatSets(recommendation) }}
+              <span class="feedback__rest">{{
+                formatRest(recommendation.restSeconds)
+              }}</span>
+            </dd>
+          </div>
+        </dl>
+        @if (!appliesToday) {
+          <p class="feedback__note">
+            You've started this exercise, so the change applies from your next
+            workout.
+          </p>
+        }
+      }
+
+      <div class="modal__actions">
+        @if (recommendation) {
+          <app-button variant="secondary" [fullWidth]="true" (click)="close()">
+            Keep
+          </app-button>
+          <app-button
+            variant="primary"
+            [fullWidth]="true"
+            [loading]="isApplying"
+            (click)="apply.emit()"
+          >
+            {{ appliesToday ? "Apply now" : "Apply next time" }}
+          </app-button>
+        } @else {
+          <div class="feedback__full">
+            <app-button variant="primary" [fullWidth]="true" (click)="close()">
+              Done
+            </app-button>
+          </div>
+        }
+      </div>
+    }
+  </section>
+</div>

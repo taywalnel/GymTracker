@@ -1,8 +1,11 @@
 # Dependencies
 /node_modules
 
+/functions/node_modules
+
 # Build output
 /dist
+/functions/lib
 /out-tsc
 /.angular/cache
 
