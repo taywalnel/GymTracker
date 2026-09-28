@@ -8,7 +8,11 @@
     <meta name="theme-color" content="#1d2024" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- Not black-translucent: iOS 26 then draws under the status bar but
+         reports a viewport short by the top inset (WebKit bug 301108), so the
+         page sits under the Dynamic Island and the tab bar floats above the
+         bottom edge. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <!-- Route titles change the document title, so pin the home screen name. -->
     <meta name="apple-mobile-web-app-title" content="Gym Tracker" />
     <link rel="icon" type="image/svg+xml" href="icons/icon.svg" />
