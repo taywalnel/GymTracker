@@ -22,6 +22,11 @@ export class RestTimerService implements OnDestroy {
     return this.remainingSeconds;
   }
 
+  /** Milliseconds until the current rest ends, or 0 when no rest is running. */
+  get remainingMs(): number {
+    return this.endsAt === null ? 0 : Math.max(0, this.endsAt - Date.now());
+  }
+
   start(durationSeconds = this.defaultDuration): void {
     this.clear();
     this.duration = durationSeconds;

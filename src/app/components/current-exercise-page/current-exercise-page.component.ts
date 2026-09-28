@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, ElementRef, OnInit, ViewChild } from "@angular/core";
 import { ActivatedRoute, Router } from "@angular/router";
 import {
   CompletedSet,
@@ -51,6 +51,7 @@ export class CurrentExercisePageComponent implements OnInit {
   showExerciseActions = false;
   completedSetIndices = new Set<number>();
   private setStarted: boolean[] = [];
+  private restDrain?: Animation;
   protected setTouched: boolean[] = [];
   readonly repStep = 1;
 
@@ -210,11 +211,29 @@ export class CurrentExercisePageComponent implements OnInit {
     return this.completedSetIndices.size;
   }
 
-  get restTimerProgress(): number {
-    const secondsLeft = this.restTimer.secondsLeft;
-    return secondsLeft === null
-      ? 0
-      : (secondsLeft / this.restTimer.duration) * 100;
+  // The tide is recreated for each rest, so its drain starts whenever it
+  // appears, picking up however much of the rest has already passed (e.g.
+  // after a reload).
+  @ViewChild("restTide")
+  set restTide(ref: ElementRef<HTMLElement> | undefined) {
+    this.restDrain?.cancel();
+    this.restDrain = undefined;
+    if (!ref) return;
+
+    const durationMs = this.restTimer.duration * 1000;
+    this.restDrain = ref.nativeElement.animate(
+      [{ transform: "translateY(0)" }, { transform: "translateY(100%)" }],
+      { duration: durationMs, easing: "linear", fill: "forwards" },
+    );
+    this.restDrain.currentTime = durationMs - this.restTimer.remainingMs;
+  }
+
+  /** Remaining rest as m:ss, e.g. 1:05. */
+  get restTimeLabel(): string {
+    const secondsLeft = this.restTimer.secondsLeft ?? 0;
+    const minutes = Math.floor(secondsLeft / 60);
+    const seconds = String(secondsLeft % 60).padStart(2, "0");
+    return `${minutes}:${seconds}`;
   }
 
   get targetSetReps(): WeightAndRepsSet[] {
@@ -225,6 +244,10 @@ export class CurrentExercisePageComponent implements OnInit {
 
   get currentWeightKg(): number {
     return this.workingSets[0]?.weightKg ?? this.exercise?.targetWeightKg ?? 0;
+  }
+
+  get currentWeightDisplay(): number {
+    return Number(this.formatWeight(this.currentWeightKg));
   }
 
   get activeSetDefaultReps(): number {

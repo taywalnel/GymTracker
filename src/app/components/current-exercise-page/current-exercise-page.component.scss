@@ -16,6 +16,14 @@
   flex: 1;
 }
 
+// Lifted above the full-page rest tide.
+.top-section,
+.section-content,
+.set-row {
+  position: relative;
+  z-index: 1;
+}
+
 .top-section {
   display: flex;
   flex-direction: column;
@@ -61,57 +69,142 @@
   color: var(--color-text);
 }
 
+// Both panels share one grid cell, so the rest timer takes the height of the
+// set controls.
 .set-row {
+  display: grid;
+}
+
+.set-panel {
+  grid-area: 1 / 1;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
+
+  .section-label {
+    margin-bottom: -4px;
+  }
+}
+
+.set-panel--hidden {
+  visibility: hidden;
 }
 
 .rest-timer {
   display: flex;
+  flex: 1;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
   box-sizing: border-box;
   width: 100%;
-  height: 52px;
   padding: 0 var(--card-padding);
 }
 
-.rest-timer__header {
+.rest-timer__body {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
 
-.rest-timer__countdown {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.rest-timer__track {
-  width: 100%;
-  height: 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--color-border);
-}
-
-.rest-timer__progress {
-  display: block;
-  height: 100%;
-  background: var(--color-accent);
-  transition: width 1s linear;
-}
-
 .rest-timer__time {
   font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: 700;
+  font-size: 2.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
   line-height: 1;
+  color: var(--color-text);
+  transition: color 0.3s ease;
+}
+
+// The last few seconds pick up the accent, a cue that the next set is close.
+.rest-timer--ending .rest-timer__time {
   color: var(--color-accent);
+}
+
+// Full-page tide that sits behind the page content and drains down the screen
+// over the rest (the drain itself is driven from the component). Cards are
+// opaque, so it shows in the gaps around them. It ends at the top of the tab
+// bar so the final seconds stay in view.
+.rest-tide {
+  --tide-color: color-mix(in srgb, var(--color-accent) 11%, transparent);
+  --wave-height: 28px;
+  position: fixed;
+  inset: 0 0 calc(var(--tab-bar-height, 0px) + var(--tab-bar-inset, 0px));
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.rest-tide__water {
+  position: relative;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.rest-tide__wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: var(--wave-height);
+  animation: tide-roll 6s linear infinite;
+}
+
+.rest-tide__wave--back {
+  top: -6px;
+  fill: color-mix(in srgb, var(--color-accent) 6%, transparent);
+  animation-duration: 9s;
+  animation-direction: reverse;
+}
+
+.rest-tide__wave--front {
+  fill: var(--tide-color);
+}
+
+.rest-tide__crest {
+  fill: none;
+  stroke: var(--color-accent);
+  stroke-opacity: 0.55;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 6px var(--color-accent));
+}
+
+.rest-tide__body {
+  flex: 1;
+  margin-top: var(--wave-height);
+  background: linear-gradient(
+    180deg,
+    var(--tide-color),
+    color-mix(in srgb, var(--color-accent) 3%, transparent) 70%
+  );
+}
+
+// Near the end the crest breathes, echoing the countdown turning accent.
+.rest-tide--ending .rest-tide__crest {
+  animation: tide-pulse 1s ease-in-out infinite;
+}
+
+@keyframes tide-roll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes tide-pulse {
+  50% {
+    stroke-opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rest-tide__wave,
+  .rest-tide--ending .rest-tide__crest {
+    animation: none;
+  }
 }
 
 .stepper-container {

@@ -3,6 +3,37 @@
     <app-loading-spinner />
   </div>
 } @else if (state && exercise) {
+  @if (restTimer.secondsLeft !== null) {
+    <!-- Full-page tide behind the content that drains as rest runs out. -->
+    <div
+      class="rest-tide"
+      [class.rest-tide--ending]="restTimer.secondsLeft <= 5"
+      aria-hidden="true"
+    >
+      <div #restTide class="rest-tide__water">
+        <svg
+          class="rest-tide__wave rest-tide__wave--back"
+          viewBox="0 0 800 40"
+          preserveAspectRatio="none"
+        >
+          <path d="M0 20 Q100 8 200 20 T400 20 T600 20 T800 20 V40 H0 Z" />
+        </svg>
+        <svg
+          class="rest-tide__wave rest-tide__wave--front"
+          viewBox="0 0 800 40"
+          preserveAspectRatio="none"
+        >
+          <path d="M0 20 Q100 32 200 20 T400 20 T600 20 T800 20 V40 H0 Z" />
+          <path
+            class="rest-tide__crest"
+            d="M0 20 Q100 32 200 20 T400 20 T600 20 T800 20"
+          />
+        </svg>
+        <div class="rest-tide__body"></div>
+      </div>
+    </div>
+  }
+
   <div class="top-section">
     <app-page-header
       [title]="exercise.name"
@@ -67,15 +98,56 @@
     </div>
   </div>
 
+  <!-- The controls stay rendered (hidden) while resting so the rest timer
+       fills exactly the same height and its label doesn't shift. -->
   <div class="set-row">
+    <div
+      class="set-panel set-panel--controls"
+      [class.set-panel--hidden]="restTimer.secondsLeft !== null"
+      [attr.inert]="restTimer.secondsLeft !== null ? '' : null"
+    >
+      <p class="section-label">Completed</p>
+      <div class="row">
+        <div class="row-item">
+          <app-stepper
+            [value]="activeSetDefaultReps"
+            unit="reps"
+            [ariaLabel]="
+              'reps for set ' + workingSets[activeSetIndex].setNumber
+            "
+            (valueChange)="stepReps(activeSetIndex, $event)"
+          ></app-stepper>
+        </div>
+        <div class="row-item">
+          <app-stepper
+            [value]="currentWeightDisplay"
+            [step]="units.weightStep"
+            [unit]="units.unitLabel()"
+            ariaLabel="weight"
+          ></app-stepper>
+        </div>
+      </div>
+      <app-button
+        variant="primary"
+        size="lg"
+        [fullWidth]="true"
+        (click)="completeCurrentSet()"
+      >
+        Complete set
+      </app-button>
+    </div>
+
     @if (restTimer.secondsLeft !== null) {
-      <div>
+      <div class="set-panel">
         <p class="section-label">Rest</p>
-        <div class="card rest-timer" role="status" aria-live="polite">
-          <div class="rest-timer__header">
-            <div class="rest-timer__countdown">
-              <span class="rest-timer__time">{{ restTimer.secondsLeft }}s</span>
-            </div>
+        <div
+          class="card card--highlight rest-timer"
+          [class.rest-timer--ending]="restTimer.secondsLeft <= 5"
+          role="timer"
+          aria-label="Rest timer"
+        >
+          <div class="rest-timer__body">
+            <span class="rest-timer__time">{{ restTimeLabel }}</span>
             <app-button
               variant="secondary"
               size="sm"
@@ -83,39 +155,6 @@
               (click)="skipRestTimer()"
             >
               Skip
-            </app-button>
-          </div>
-          <div class="rest-timer__track" aria-hidden="true">
-            <span
-              class="rest-timer__progress"
-              [style.width.%]="restTimerProgress"
-            ></span>
-          </div>
-        </div>
-      </div>
-    } @else {
-      <div>
-        <p class="section-label">Completed</p>
-        <div class="row">
-          <div class="row-item">
-            <app-stepper
-              [value]="activeSetDefaultReps"
-              unit="reps"
-              [ariaLabel]="
-                'reps for set ' + workingSets[activeSetIndex].setNumber
-              "
-              (valueChange)="stepReps(activeSetIndex, $event)"
-            ></app-stepper>
-          </div>
-          <div class="row-item">
-            <app-button
-              variant="primary"
-              size="lg"
-              [fullWidth]="true"
-              [stretch]="true"
-              (click)="completeCurrentSet()"
-            >
-              Complete set
             </app-button>
           </div>
         </div>
