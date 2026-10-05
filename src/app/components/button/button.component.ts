@@ -7,6 +7,7 @@ import {
   DELETE_SVG,
   EDIT_SVG,
   HISTORY_SVG,
+  MINUS_SVG,
   PLUS_SVG,
   SPARKLE_SVG,
 } from "../../constants/svg.constants";
@@ -21,6 +22,7 @@ export type ButtonIconName =
   | "delete"
   | "edit"
   | "history"
+  | "minus"
   | "plus"
   | "sparkle";
 
@@ -30,6 +32,7 @@ const BUTTON_ICONS: Record<ButtonIconName, string> = {
   delete: DELETE_SVG,
   edit: EDIT_SVG,
   history: HISTORY_SVG,
+  minus: MINUS_SVG,
   plus: PLUS_SVG,
   sparkle: SPARKLE_SVG,
 };

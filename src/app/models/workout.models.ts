@@ -192,9 +192,17 @@ export interface Routine {
   name: string;
   /** Position in the rotation loop, 0-indexed */
   rotationOrder: number;
-  /** True when the routine belongs to the active workout rotation. */
+  /**
+   * False when the routine is kept in the library instead of the rotation.
+   * Absent on older routines, which are all in the rotation.
+   */
   active?: boolean;
   exercises: ResolvedExercisePrescription[];
+}
+
+/** Whether the routine comes up in the rotation; routines without the flag do. */
+export function isRoutineActive(routine: Pick<Routine, "active">): boolean {
+  return routine.active !== false;
 }
 
 /** The Firestore representation of a routine, without catalog exercise names. */
@@ -202,7 +210,7 @@ export interface StoredRoutine {
   id: string;
   name: string;
   rotationOrder: number;
-  /** True when the routine belongs to the active workout rotation. */
+  /** False when the routine is in the library; see Routine.active. */
   active?: boolean;
   exercises: ExercisePrescription[];
 }
@@ -285,6 +293,32 @@ export function compareSessionsNewestFirst(
     right.date.localeCompare(left.date) ||
     (right.completedAt ?? "").localeCompare(left.completedAt ?? "")
   );
+}
+
+/**
+ * The rotation routine that comes after the last one done, skipping library
+ * routines. One-off workouts from the library, and routines since deleted or
+ * moved to the library, don't move the rotation along. Null when no routine
+ * is in the rotation.
+ */
+export function nextRoutineInRotation(
+  routines: readonly Routine[],
+  sessions: readonly WorkoutSession[],
+): Routine | null {
+  const rotation = routines
+    .filter(isRoutineActive)
+    .sort((left, right) => left.rotationOrder - right.rotationOrder);
+  if (rotation.length === 0) return null;
+
+  const lastRoutine = [...sessions]
+    .filter((session) => !session.inProgress)
+    .sort(compareSessionsNewestFirst)
+    .map((session) => rotation.find((r) => r.id === session.routineId))
+    .find((routine) => routine !== undefined);
+  if (!lastRoutine) return rotation[0];
+
+  const index = rotation.indexOf(lastRoutine);
+  return rotation[(index + 1) % rotation.length];
 }
 
 /**

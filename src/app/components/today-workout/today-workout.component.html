@@ -66,6 +66,36 @@
           ></app-card>
         }
       }
+
+      @if (libraryRoutines.length > 0) {
+        @if (nextRoutineId === null) {
+          <h2 class="section-label picker-subhead">From your library</h2>
+        } @else {
+          <app-button
+            class="picker-subhead"
+            variant="ghost"
+            size="sm"
+            [fullWidth]="true"
+            (click)="showLibrary = !showLibrary"
+          >
+            {{ showLibrary ? "Hide library" : "Show library" }}
+            ({{ libraryRoutines.length }})
+          </app-button>
+        }
+        @if (isLibraryOpen) {
+          @for (routine of libraryRoutines; track routine.id) {
+            <app-card
+              [title]="routine.name"
+              [description]="
+                routine.exercises.length +
+                ' exercise' +
+                (routine.exercises.length !== 1 ? 's' : '')
+              "
+              (click)="selectRoutine(routine)"
+            ></app-card>
+          }
+        }
+      }
     </div>
   </div>
 }

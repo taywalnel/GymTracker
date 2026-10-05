@@ -22,6 +22,7 @@ import {
   ExerciseLog,
   CompletedSet,
   compareSessionsNewestFirst,
+  nextRoutineInRotation,
 } from "../models/workout.models";
 import { queueWrite } from "../utils/firestore-writes";
 import { getDocsPreferringServer } from "../utils/firestore-reads";
@@ -233,12 +234,13 @@ export class WorkoutService {
   }
 
   /**
-   * Returns all routines along with which one is up next in the rotation.
+   * Returns all routines along with which one is up next in the rotation,
+   * or null when every routine is in the library.
    * Used by the Today tab workout-picker screen.
    */
   getRoutinesWithNext(): Observable<{
     routines: Routine[];
-    nextRoutineId: string;
+    nextRoutineId: string | null;
   }> {
     return from(this._getRoutinesWithNext());
   }
@@ -398,6 +400,41 @@ export class WorkoutService {
     return from(this._saveRoutine(routine));
   }
 
+  /**
+   * Saves the routine list order and which routines are in the rotation.
+   * Each routine's rotationOrder becomes its index in the list.
+   */
+  saveRoutineOrder(routines: Routine[]): Observable<Routine[]> {
+    return defer(() => {
+      const previous = new Map(
+        this.routinesSignal().map((routine) => [routine.id, routine]),
+      );
+      const ordered = routines.map((routine, index) => ({
+        ...routine,
+        rotationOrder: index,
+      }));
+
+      const batch = writeBatch(this.firestore);
+      for (const routine of ordered) {
+        const before = previous.get(routine.id);
+        if (
+          before?.rotationOrder === routine.rotationOrder &&
+          before.active === routine.active
+        ) {
+          continue;
+        }
+        batch.set(
+          doc(this.routinesCol(), routine.id),
+          this._storeRoutine(routine),
+        );
+      }
+      queueWrite(batch.commit());
+      this.routinesSignal.set(ordered);
+      this.routinesLoaded = true;
+      return of(ordered);
+    });
+  }
+
   saveExercise(exercise: Exercise): Observable<Exercise> {
     return from(this._saveExercise(exercise));
   }
@@ -543,17 +580,19 @@ export class WorkoutService {
 
   private async _getRoutinesWithNext(): Promise<{
     routines: Routine[];
-    nextRoutineId: string;
+    nextRoutineId: string | null;
   }> {
     const [routines, sessions] = await this._loadRoutinesAndSessions();
-    const next = this._determineNextRoutine(routines, sessions);
-    return { routines, nextRoutineId: next.id };
+    if (routines.length === 0) throw new Error("No routines found");
+    const next = nextRoutineInRotation(routines, sessions);
+    return { routines, nextRoutineId: next?.id ?? null };
   }
 
   private async _getTodayWorkout(): Promise<TodayWorkout> {
     const [routines, sessions] = await this._loadRoutinesAndSessions();
 
-    const nextRoutine = this._determineNextRoutine(routines, sessions);
+    const nextRoutine = nextRoutineInRotation(routines, sessions);
+    if (!nextRoutine) throw new Error("No routines found");
     const sessionsForRoutine = sessions.filter(
       (s) => s.routineId === nextRoutine.id && !s.inProgress,
     );
@@ -743,33 +782,6 @@ export class WorkoutService {
     }
     this.exercisesSignal.set([...namesById.values()]);
     this.exercisesLoaded = true;
-  }
-
-  private _determineNextRoutine(
-    routines: Routine[],
-    sessions: WorkoutSession[],
-  ): Routine {
-    if (routines.length === 0) throw new Error("No routines found");
-
-    const completed = sessions
-      .filter((s) => !s.inProgress)
-      .sort(compareSessionsNewestFirst);
-
-    if (completed.length === 0) {
-      return routines.find((r) => r.rotationOrder === 0) ?? routines[0];
-    }
-
-    const lastRoutine = routines.find((r) => r.id === completed[0].routineId);
-    if (!lastRoutine) {
-      return routines.find((r) => r.rotationOrder === 0) ?? routines[0];
-    }
-
-    const maxOrder = Math.max(...routines.map((r) => r.rotationOrder));
-    const nextOrder =
-      lastRoutine.rotationOrder === maxOrder
-        ? 0
-        : lastRoutine.rotationOrder + 1;
-    return routines.find((r) => r.rotationOrder === nextOrder) ?? routines[0];
   }
 
   private _buildLastPerformanceMap(

@@ -1,6 +1,6 @@
 import { Component, OnInit } from "@angular/core";
 import { Router } from "@angular/router";
-import { Routine } from "../../models/workout.models";
+import { Routine, isRoutineActive } from "../../models/workout.models";
 import {
   STALE_WORKOUT_MS,
   WorkoutService,
@@ -38,6 +38,21 @@ export class TodayWorkoutComponent implements OnInit {
   }
 
   get otherRoutines(): Routine[] {
+    return this.pickableRoutines.filter(isRoutineActive);
+  }
+
+  /** Routines outside the rotation, still available for a one-off workout. */
+  get libraryRoutines(): Routine[] {
+    return this.pickableRoutines.filter((r) => !isRoutineActive(r));
+  }
+
+  /** Library starts collapsed unless it's the only place to pick from. */
+  showLibrary = false;
+  get isLibraryOpen(): boolean {
+    return this.showLibrary || this.nextRoutineId === null;
+  }
+
+  private get pickableRoutines(): Routine[] {
     // If there's an in-progress saved session, exclude that routine from the "other" list.
     // Otherwise, exclude the featured (next) routine.
     const saved = this.savedState ?? this.workoutService.getInProgressState();

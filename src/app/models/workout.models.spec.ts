@@ -1,8 +1,12 @@
 import {
   ExerciseLog,
   ExercisePrescription,
+  Routine,
+  WorkoutSession,
   exerciseLogFromWorkingSets,
   formatTargetReps,
+  isRoutineActive,
+  nextRoutineInRotation,
   setTargetReps,
   targetRepsFields,
   targetRepsForSet,
@@ -140,5 +144,98 @@ describe("logged set targets", () => {
       { setNumber: 1, reps: 12, weightKg: 60, targetReps: 12 },
       { setNumber: 3, reps: 7, weightKg: 60, targetReps: 8 },
     ]);
+  });
+});
+
+describe("routine rotation", () => {
+  const routine = (
+    id: string,
+    rotationOrder: number,
+    active?: boolean,
+  ): Routine => ({ id, name: id, rotationOrder, active, exercises: [] });
+  const session = (
+    routineId: string,
+    date: string,
+    inProgress = false,
+  ): WorkoutSession => ({
+    id: `${routineId}-${date}`,
+    routineId,
+    routineName: routineId,
+    date,
+    exerciseLogs: [],
+    inProgress,
+  });
+
+  const push = routine("push", 0);
+  const pull = routine("pull", 1);
+  const legs = routine("legs", 2);
+  const arms = routine("arms", 3, false);
+
+  it("treats routines without the flag as in the rotation", () => {
+    expect(isRoutineActive(push)).toBeTrue();
+    expect(isRoutineActive(routine("x", 0, true))).toBeTrue();
+    expect(isRoutineActive(arms)).toBeFalse();
+  });
+
+  it("starts with the first rotation routine", () => {
+    expect(nextRoutineInRotation([pull, push], [])).toBe(push);
+  });
+
+  it("follows the last routine done and loops around", () => {
+    const routines = [push, pull, legs];
+    expect(
+      nextRoutineInRotation(routines, [session("pull", "2026-01-02")]),
+    ).toBe(legs);
+    expect(
+      nextRoutineInRotation(routines, [session("legs", "2026-01-02")]),
+    ).toBe(push);
+  });
+
+  it("ignores in-progress sessions", () => {
+    expect(
+      nextRoutineInRotation(
+        [push, pull, legs],
+        [session("push", "2026-01-01"), session("legs", "2026-01-02", true)],
+      ),
+    ).toBe(pull);
+  });
+
+  it("skips library routines when choosing the next one", () => {
+    const routines = [push, routine("pull", 1, false), legs];
+    expect(
+      nextRoutineInRotation(routines, [session("push", "2026-01-01")]),
+    ).toBe(legs);
+  });
+
+  it("keeps the rotation going after a one-off library workout", () => {
+    expect(
+      nextRoutineInRotation(
+        [push, pull, legs, arms],
+        [session("arms", "2026-01-03"), session("push", "2026-01-02")],
+      ),
+    ).toBe(pull);
+  });
+
+  it("carries on from the routine before one moved to the library", () => {
+    const routines = [push, routine("pull", 1, false), legs];
+    expect(
+      nextRoutineInRotation(routines, [
+        session("pull", "2026-01-02"),
+        session("push", "2026-01-01"),
+      ]),
+    ).toBe(legs);
+  });
+
+  it("ignores sessions of deleted routines", () => {
+    expect(
+      nextRoutineInRotation(
+        [push, pull],
+        [session("gone", "2026-01-02"), session("push", "2026-01-01")],
+      ),
+    ).toBe(pull);
+  });
+
+  it("returns null when every routine is in the library", () => {
+    expect(nextRoutineInRotation([arms], [])).toBeNull();
   });
 });

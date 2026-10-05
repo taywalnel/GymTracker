@@ -13,3 +13,5 @@ export const REORDER_SVG = `<svg fill="currentColor" height="1em" viewBox="0 0 2
 export const SPARKLE_SVG = `<svg fill="none" height="1em" stroke="currentColor" stroke-linejoin="round" stroke-width="1.5" viewBox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M10 3.5 11.6 8.4 16.5 10 11.6 11.6 10 16.5 8.4 11.6 3.5 10 8.4 8.4z"/><path d="M18 14.5 18.8 16.7 21 17.5 18.8 18.3 18 20.5 17.2 18.3 15 17.5 17.2 16.7z"/></svg>`;
 
 export const PLUS_SVG =`<svg fill="none" height="1em" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14"/></svg>`;
+
+export const MINUS_SVG = `<svg fill="none" height="1em" stroke="currentColor" stroke-linecap="round" stroke-width="2" viewBox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M5 12h14"/></svg>`;

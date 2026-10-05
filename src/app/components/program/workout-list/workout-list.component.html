@@ -12,29 +12,92 @@
 @if (!loading && routines.length > 0) {
   <div class="scroll-area">
     <div class="scroll-area__content routine-list">
-      @for (routine of routines; track routine.id) {
-        <app-card
-          [title]="routine.name"
-          [description]="
-            routine.exercises.length +
-            ' exercise' +
-            (routine.exercises.length !== 1 ? 's' : '')
-          "
-          [showChevron]="true"
-          (click)="viewRoutine(routine)"
-        ></app-card>
+      @for (section of sections; track section.id; let first = $first) {
+        @if (first || section.routines.length > 0) {
+          <h2 class="section-label" [class.routine-list__subhead]="!first">
+            {{ section.label }}
+          </h2>
+          <div
+            class="routine-list__section"
+            cdkDropList
+            cdkDropListOrientation="vertical"
+            [cdkDropListDisabled]="!editing"
+            (cdkDropListDropped)="drop(section.id, $event)"
+          >
+            @for (routine of section.routines; track routine.id) {
+              <div
+                class="routine-row"
+                [class.routine-row--editing]="editing"
+                cdkDrag
+                cdkDragLockAxis="y"
+              >
+                @if (editing) {
+                  <span
+                    class="routine-row__handle"
+                    cdkDragHandle
+                    aria-hidden="true"
+                  >
+                    <span [innerHTML]="reorderIcon" aria-hidden="true"></span>
+                  </span>
+                }
+                <app-card
+                  [title]="routine.name"
+                  [description]="
+                    routine.exercises.length +
+                    ' exercise' +
+                    (routine.exercises.length !== 1 ? 's' : '')
+                  "
+                  [showChevron]="!editing"
+                  [interactive]="!editing"
+                  (click)="viewRoutine(routine)"
+                ></app-card>
+                @if (editing) {
+                  @if (section.id === "rotation") {
+                    <app-button
+                      variant="icon"
+                      iconName="minus"
+                      [stretch]="true"
+                      [ariaLabel]="'Move ' + routine.name + ' to library'"
+                      (click)="toggleActive(routine)"
+                    />
+                  } @else {
+                    <app-button
+                      variant="icon"
+                      iconName="plus"
+                      [stretch]="true"
+                      [ariaLabel]="'Add ' + routine.name + ' to rotation'"
+                      (click)="toggleActive(routine)"
+                    />
+                  }
+                }
+              </div>
+            } @empty {
+              <p class="routine-list__empty">
+                @if (editing) {
+                  Tap + on a routine in your library to add it to your
+                  rotation.
+                } @else {
+                  Nothing in your rotation. Tap Edit to add routines from your
+                  library.
+                }
+              </p>
+            }
+          </div>
+        }
       }
     </div>
   </div>
 
-  <div class="routine-list-actions">
-    <app-button
-      variant="secondary"
-      iconName="plus"
-      [fullWidth]="true"
-      (click)="createRoutine()"
-    >
-      New routine
-    </app-button>
-  </div>
+  @if (!editing) {
+    <div class="routine-list-actions">
+      <app-button
+        variant="secondary"
+        iconName="plus"
+        [fullWidth]="true"
+        (click)="createRoutine()"
+      >
+        New routine
+      </app-button>
+    </div>
+  }
 }

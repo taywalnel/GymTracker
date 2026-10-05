@@ -17,6 +17,7 @@ import {
 })
 export class ProgramHomeComponent implements OnInit {
   activeTab = "Routines";
+  editingRoutines = false;
   routineCount = 0;
   exerciseCount = 0;
 
@@ -51,6 +52,7 @@ export class ProgramHomeComponent implements OnInit {
   // Kept in the URL so returning to this page reopens the same tab.
   selectTab(tab: string): void {
     this.activeTab = tab;
+    this.editingRoutines = false;
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { tab },
