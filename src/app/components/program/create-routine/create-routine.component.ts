@@ -11,6 +11,7 @@ import { ConfirmationModalComponent } from "../../confirmation-modal/confirmatio
 import { InputComponent } from "../../input/input.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
 import { ReorderableCardListComponent } from "../../reorderable-card-list/reorderable-card-list.component";
+import { NavigationHistoryService } from "../../../services/navigation-history.service";
 
 // Builds a new routine as a draft (see WorkoutService.getRoutineDraft) so the
 // add/edit exercise screens can change it before anything is written to
@@ -37,6 +38,7 @@ export class CreateRoutineComponent implements OnInit {
   constructor(
     private workoutService: WorkoutService,
     private router: Router,
+    private navigationHistory: NavigationHistoryService,
   ) {}
 
   ngOnInit(): void {
@@ -134,7 +136,7 @@ export class CreateRoutineComponent implements OnInit {
 
   discard(): void {
     this.workoutService.clearRoutineDraft();
-    this.router.navigate(["/program"]);
+    this.navigationHistory.back("/program");
   }
 
   private updateExercises(exercises: ResolvedExercisePrescription[]): void {

@@ -1,7 +1,8 @@
 <app-page-header
   title="History"
   [tabs]="historyTabs"
-  (selectedTab)="activeTab = $event"
+  [initialTab]="activeTab"
+  (selectedTab)="selectTab($event)"
 />
 
 @if (activeTab === "Overview") {

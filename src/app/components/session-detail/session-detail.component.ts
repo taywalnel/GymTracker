@@ -35,6 +35,7 @@ import {
   WeightAndRepsSet,
   logToWeightAndRepsSets,
 } from "../weight-and-reps/weight-and-reps.component";
+import { NavigationHistoryService } from "../../services/navigation-history.service";
 
 interface ExerciseDisplay {
   log: ExerciseLog;
@@ -93,6 +94,7 @@ export class SessionDetailComponent implements OnInit {
     private router: Router,
     private workoutService: WorkoutService,
     public units: UnitPreferenceService,
+    private navigationHistory: NavigationHistoryService,
   ) {}
 
   ngOnInit(): void {
@@ -226,7 +228,7 @@ export class SessionDetailComponent implements OnInit {
     if (!this.session || this.isDeleting) return;
     this.isDeleting = true;
     this.workoutService.deleteSession(this.session.id).subscribe({
-      next: () => this.router.navigateByUrl("/history"),
+      next: () => this.navigationHistory.back("/history"),
       error: () => {
         this.isDeleting = false;
         this.showDeleteConfirmation = false;

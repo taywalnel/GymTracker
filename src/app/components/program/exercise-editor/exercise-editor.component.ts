@@ -16,6 +16,7 @@ import {
 } from "../../choice-list/choice-list.component";
 import { InputComponent } from "../../input/input.component";
 import { PageHeaderComponent } from "../../page-header/page-header.component";
+import { NavigationHistoryService } from "../../../services/navigation-history.service";
 
 // Creates a catalog exercise. Existing ones are edited on the exercise's
 // Manage tab (ExerciseHistoryPageComponent).
@@ -46,6 +47,7 @@ export class ExerciseEditorComponent implements OnInit {
   constructor(
     private workoutService: WorkoutService,
     private router: Router,
+    private navigationHistory: NavigationHistoryService,
   ) {}
 
   ngOnInit(): void {
@@ -81,7 +83,7 @@ export class ExerciseEditorComponent implements OnInit {
     };
     this.saving = true;
     this.workoutService.saveExercise(exercise).subscribe({
-      next: () => this.router.navigate(["/program"]),
+      next: () => this.navigationHistory.back("/program?tab=Exercises"),
       error: () => {
         this.saving = false;
         alert("Error saving exercise");
@@ -90,6 +92,6 @@ export class ExerciseEditorComponent implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(["/program"]);
+    this.navigationHistory.back("/program?tab=Exercises");
   }
 }

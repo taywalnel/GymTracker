@@ -77,6 +77,11 @@ export class HistoryComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const requestedTab = this.route.snapshot.queryParamMap.get("tab");
+    if (requestedTab === "Overview" || requestedTab === "Activities") {
+      this.activeTab = requestedTab;
+    }
+
     this.route.paramMap.subscribe((params) => {
       this.exerciseId = params.get("exerciseId");
       if (this.exerciseId) {
@@ -233,6 +238,16 @@ export class HistoryComponent implements OnInit {
       weekday: "short",
       month: "short",
       day: "numeric",
+    });
+  }
+
+  // Kept in the URL so returning to this page reopens the same tab.
+  selectTab(tab: string): void {
+    this.activeTab = tab;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab },
+      replaceUrl: true,
     });
   }
 

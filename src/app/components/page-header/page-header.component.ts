@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, Output, inject } from "@angular/core";
-import { Router } from "@angular/router";
 
+import { NavigationHistoryService } from "../../services/navigation-history.service";
 import { ButtonComponent } from "../button/button.component";
 
 export interface PageHeaderTab {
@@ -15,9 +15,10 @@ export interface PageHeaderTab {
   styleUrl: "./page-header.component.scss",
 })
 export class PageHeaderComponent {
-  private readonly router = inject(Router);
+  private readonly navigationHistory = inject(NavigationHistoryService);
 
   @Input() title: string | null = null;
+  // Where Back goes when there's no previous page in the app to return to.
   @Input() backLink: string | null = null;
   @Input() backLabel = "Back";
   @Input() showBack = false;
@@ -33,7 +34,7 @@ export class PageHeaderComponent {
 
   goBack(): void {
     if (this.backLink) {
-      this.router.navigateByUrl(this.backLink);
+      this.navigationHistory.back(this.backLink);
     } else {
       this.back.emit();
     }

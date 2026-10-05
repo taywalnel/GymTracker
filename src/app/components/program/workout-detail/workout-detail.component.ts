@@ -21,6 +21,7 @@ import {
 import { ReorderableCardListComponent } from "../../reorderable-card-list/reorderable-card-list.component";
 import { RoutineCardComponent } from "../../routine-card/routine-card.component";
 import { EmptyStateComponent } from "../../empty-state/empty-state.component";
+import { NavigationHistoryService } from "../../../services/navigation-history.service";
 
 @Component({
   selector: "app-workout-detail",
@@ -65,6 +66,7 @@ export class WorkoutDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private workoutService: WorkoutService,
+    private navigationHistory: NavigationHistoryService,
   ) {}
 
   ngOnInit(): void {
@@ -107,7 +109,7 @@ export class WorkoutDetailComponent implements OnInit {
 
     this.isDeleting = true;
     this.workoutService.deleteRoutine(this.routine.id).subscribe({
-      next: () => this.router.navigate(["/program"]),
+      next: () => this.navigationHistory.back("/program"),
       error: () => {
         this.isDeleting = false;
         this.showDeleteConfirmation = false;
@@ -116,7 +118,7 @@ export class WorkoutDetailComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(["/program"]);
+    this.navigationHistory.back("/program");
   }
 
   addExercise(): void {

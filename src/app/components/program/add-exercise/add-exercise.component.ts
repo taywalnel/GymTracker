@@ -29,6 +29,7 @@ import {
   SetTargets,
   SetTargetsComponent,
 } from "../set-targets/set-targets.component";
+import { NavigationHistoryService } from "../../../services/navigation-history.service";
 
 @Component({
   selector: "app-add-exercise",
@@ -173,6 +174,7 @@ export class AddExerciseComponent implements OnInit {
     private route: ActivatedRoute,
     private workoutService: WorkoutService,
     private units: UnitPreferenceService,
+    private navigationHistory: NavigationHistoryService,
   ) {
     const state =
       this.router.getCurrentNavigation()?.extras.state ?? history.state;
@@ -209,7 +211,7 @@ export class AddExerciseComponent implements OnInit {
     if (this.workoutId) {
       const state = this.workoutService.getInProgressState();
       if (!state || state.today.routine.id !== this.workoutId) {
-        this.router.navigateByUrl("/");
+        this.router.navigateByUrl("/", { replaceUrl: true });
         return;
       }
       this.routine = state.today.routine;
@@ -217,7 +219,7 @@ export class AddExerciseComponent implements OnInit {
     }
 
     if (!this.routineId) {
-      this.router.navigateByUrl("/program");
+      this.router.navigateByUrl("/program", { replaceUrl: true });
       return;
     }
 
@@ -237,12 +239,13 @@ export class AddExerciseComponent implements OnInit {
     this.workoutService.getRoutineById(this.routineId).subscribe({
       next: (routine) => {
         if (!routine) {
-          this.router.navigateByUrl("/program");
+          this.router.navigateByUrl("/program", { replaceUrl: true });
           return;
         }
         this.initializeFromRoutine(routine);
       },
-      error: () => this.router.navigateByUrl("/program"),
+      error: () =>
+        this.router.navigateByUrl("/program", { replaceUrl: true }),
     });
   }
 
@@ -379,7 +382,7 @@ export class AddExerciseComponent implements OnInit {
       };
       const inProgressState = this.workoutService.getInProgressState();
       if (!inProgressState) {
-        this.router.navigateByUrl("/");
+        this.router.navigateByUrl("/", { replaceUrl: true });
         return;
       }
 
@@ -417,7 +420,7 @@ export class AddExerciseComponent implements OnInit {
               `/${exercise.id}`,
             )
           : `/current-workout/${this.workoutId}`;
-        this.router.navigateByUrl(destination);
+        this.navigationHistory.leave(destination);
       };
 
       if (!this.saveToRoutine) {
@@ -442,13 +445,13 @@ export class AddExerciseComponent implements OnInit {
     };
     if (this.isDraft) {
       this.workoutService.saveRoutineDraft(updatedRoutine);
-      this.router.navigateByUrl(this.returnDestination);
+      this.navigationHistory.leave(this.returnDestination);
       return;
     }
 
     this.saving = true;
     this.workoutService.saveRoutine(updatedRoutine).subscribe({
-      next: () => this.router.navigateByUrl(this.returnDestination),
+      next: () => this.navigationHistory.leave(this.returnDestination),
       error: () => {
         this.saving = false;
         alert("Error saving routine");
@@ -457,6 +460,6 @@ export class AddExerciseComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigateByUrl(this.returnDestination);
+    this.navigationHistory.back(this.returnDestination);
   }
 }

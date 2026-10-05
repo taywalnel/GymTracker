@@ -8,6 +8,7 @@ import {
 } from "../../services/workout.service";
 import { RestTimerService } from "../../services/rest-timer.service";
 import { ExerciseFeedbackService } from "../../services/exercise-feedback.service";
+import { NavigationHistoryService } from "../../services/navigation-history.service";
 import { UnitPreferenceService } from "../../services/unit-preference.service";
 import { CurrentExercisePageComponent } from "./current-exercise-page.component";
 
@@ -41,6 +42,7 @@ describe("CurrentExercisePageComponent", () => {
 
   let component: CurrentExercisePageComponent;
   let navigate: jasmine.Spy;
+  let leave: jasmine.Spy;
   let saveInProgressState: jasmine.Spy;
   let startRestTimer: jasmine.Spy;
   let clearRestTimer: jasmine.Spy;
@@ -50,6 +52,7 @@ describe("CurrentExercisePageComponent", () => {
 
   beforeEach(() => {
     navigate = jasmine.createSpy("navigate");
+    leave = jasmine.createSpy("leave");
     saveInProgressState = jasmine.createSpy("saveInProgressState");
     startRestTimer = jasmine.createSpy("start");
     clearRestTimer = jasmine.createSpy("clear");
@@ -76,6 +79,7 @@ describe("CurrentExercisePageComponent", () => {
         clear: clearRestTimer,
       } as unknown as RestTimerService,
       {} as ExerciseFeedbackService,
+      { leave } as unknown as NavigationHistoryService,
     );
   });
 
@@ -92,6 +96,100 @@ describe("CurrentExercisePageComponent", () => {
     component.completeCurrentSet();
 
     expect(component.workingSets[1].reps).toBe(8);
+  });
+
+  describe("resetting a completed set", () => {
+    beforeEach(() => {
+      setCurrentExercise("first", []);
+      component.workingSets = [
+        { setNumber: 1, reps: 8, weightKg: 12.5 },
+        { setNumber: 2, reps: 0, weightKg: 10 },
+        { setNumber: 3, reps: 0, weightKg: 10 },
+      ];
+      component.completedSetIndices = new Set([0]);
+      component.activeSetIndex = 0;
+    });
+
+    it("offers reset only while a completed set is selected", () => {
+      expect(component.isActiveSetComplete).toBeTrue();
+
+      component.navigateToSet(1);
+
+      expect(component.isActiveSetComplete).toBeFalse();
+    });
+
+    it("saves the set as not done and keeps its weight", () => {
+      component.resetCurrentSet();
+
+      expect(component.completedSetIndices.has(0)).toBeFalse();
+      expect(component.isActiveSetComplete).toBeFalse();
+      expect(component.activeSetIndex).toBe(0);
+      const saved = saveInProgressState.calls.mostRecent()
+        .args[0] as InProgressState;
+      expect(saved.workingSets).toEqual([
+        {
+          exerciseId: "first",
+          sets: [
+            { setNumber: 1, reps: 0, weightKg: 12.5 },
+            { setNumber: 2, reps: 0, weightKg: 10 },
+            { setNumber: 3, reps: 0, weightKg: 10 },
+          ],
+        },
+      ]);
+      expect(navigate).not.toHaveBeenCalled();
+      expect(startRestTimer).not.toHaveBeenCalled();
+    });
+
+    it("also resets the sets done after it", () => {
+      component.workingSets[1] = { setNumber: 2, reps: 9, weightKg: 10 };
+      component.completedSetIndices = new Set([0, 1]);
+
+      expect(component.resetSetLabel).toBe("Reset sets 1–2");
+      component.resetCurrentSet();
+
+      expect(component.completedSetIndices.size).toBe(0);
+      expect(component.workingSets.map((set) => set.reps)).toEqual([0, 0, 0]);
+    });
+
+    it("keeps the sets done before it", () => {
+      component.workingSets[1] = { setNumber: 2, reps: 9, weightKg: 10 };
+      component.completedSetIndices = new Set([0, 1]);
+      component.navigateToSet(1);
+
+      expect(component.resetSetLabel).toBe("Reset set");
+      component.resetCurrentSet();
+
+      expect([...component.completedSetIndices]).toEqual([0]);
+      expect(component.workingSets[0].reps).toBe(8);
+    });
+
+    it("lets any completed set be selected", () => {
+      component.completedSetIndices = new Set([2]);
+
+      component.navigateToSet(2);
+
+      expect(component.activeSetIndex).toBe(2);
+    });
+
+    it("shows the suggested reps again", () => {
+      component.stepReps(0, 5);
+
+      component.resetCurrentSet();
+
+      expect(component.activeSetDefaultReps).toBe(10);
+    });
+
+    it("reopens an exercise already marked complete", () => {
+      setCurrentExercise("first", ["first", "second"]);
+      component.state = { ...component.state!, activeExerciseId: null };
+
+      component.resetCurrentSet();
+
+      const saved = saveInProgressState.calls.mostRecent()
+        .args[0] as InProgressState;
+      expect(saved.completedExerciseIds).toEqual(["second"]);
+      expect(saved.activeExerciseId).toBe("first");
+    });
   });
 
   it("starts the rest timer with the exercise duration", () => {
@@ -124,11 +222,10 @@ describe("CurrentExercisePageComponent", () => {
 
     component.onMarkComplete();
 
-    expect(navigate).toHaveBeenCalledWith([
-      "/current-workout",
-      "workout-1",
-      "second",
-    ]);
+    expect(navigate).toHaveBeenCalledWith(
+      ["/current-workout", "workout-1", "second"],
+      { replaceUrl: true },
+    );
   });
 
   it("navigates to the first incomplete exercise when none after the current exercise remain", () => {
@@ -136,11 +233,10 @@ describe("CurrentExercisePageComponent", () => {
 
     component.onMarkComplete();
 
-    expect(navigate).toHaveBeenCalledWith([
-      "/current-workout",
-      "workout-1",
-      "first",
-    ]);
+    expect(navigate).toHaveBeenCalledWith(
+      ["/current-workout", "workout-1", "first"],
+      { replaceUrl: true },
+    );
   });
 
   it("navigates to the workout overview when every exercise is complete", () => {
@@ -148,7 +244,7 @@ describe("CurrentExercisePageComponent", () => {
 
     component.onMarkComplete();
 
-    expect(navigate).toHaveBeenCalledWith(["/current-workout", "workout-1"]);
+    expect(leave).toHaveBeenCalledWith("/current-workout/workout-1");
   });
 
   it("does not save reps stepped on a set that hasn't been completed", () => {
@@ -321,11 +417,10 @@ describe("CurrentExercisePageComponent", () => {
       .args[0] as InProgressState;
     expect(saved.completedExerciseIds).toEqual(["first"]);
     expect(clearRestTimer).toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith([
-      "/current-workout",
-      "workout-1",
-      "second",
-    ]);
+    expect(navigate).toHaveBeenCalledWith(
+      ["/current-workout", "workout-1", "second"],
+      { replaceUrl: true },
+    );
   });
 
   it("can't finish early before any set is logged", () => {

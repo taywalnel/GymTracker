@@ -1,6 +1,7 @@
 import { ActivatedRoute, Router } from "@angular/router";
 import { Subject, of, throwError } from "rxjs";
 import { Routine, WorkoutSession } from "../../../models/workout.models";
+import { NavigationHistoryService } from "../../../services/navigation-history.service";
 import { WorkoutService } from "../../../services/workout.service";
 import { WorkoutDetailComponent } from "./workout-detail.component";
 
@@ -68,6 +69,7 @@ describe("WorkoutDetailComponent", () => {
   let deleteRoutine: jasmine.Spy;
   let saveRoutine: jasmine.Spy;
   let navigate: jasmine.Spy;
+  let back: jasmine.Spy;
 
   beforeEach(() => {
     deleteRoutine = jasmine
@@ -75,6 +77,7 @@ describe("WorkoutDetailComponent", () => {
       .and.returnValue(of(true));
     saveRoutine = jasmine.createSpy("saveRoutine").and.returnValue(of(routine));
     navigate = jasmine.createSpy("navigate");
+    back = jasmine.createSpy("back");
     component = new WorkoutDetailComponent(
       {
         snapshot: { paramMap: { get: () => "routine-1" } },
@@ -86,6 +89,7 @@ describe("WorkoutDetailComponent", () => {
         deleteRoutine,
         saveRoutine,
       } as unknown as WorkoutService,
+      { back } as unknown as NavigationHistoryService,
     );
   });
 
@@ -117,7 +121,7 @@ describe("WorkoutDetailComponent", () => {
     component.confirmDelete();
 
     expect(deleteRoutine).toHaveBeenCalledWith("routine-1");
-    expect(navigate).toHaveBeenCalledWith(["/program"]);
+    expect(back).toHaveBeenCalledWith("/program");
   });
 
   it("restores deletion state when deletion fails", () => {
@@ -129,7 +133,7 @@ describe("WorkoutDetailComponent", () => {
 
     expect(component.isDeleting).toBeFalse();
     expect(component.showDeleteConfirmation).toBeFalse();
-    expect(navigate).not.toHaveBeenCalled();
+    expect(back).not.toHaveBeenCalled();
   });
 
   it("persists reordered exercises with sequential order values", () => {

@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { forkJoin } from "rxjs";
 import { WorkoutService } from "../../../services/workout.service";
 import { ExercisesListComponent } from "../exercises-list/exercises-list.component";
@@ -29,6 +29,7 @@ export class ProgramHomeComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private workoutService: WorkoutService,
   ) {}
 
@@ -47,7 +48,13 @@ export class ProgramHomeComponent implements OnInit {
     });
   }
 
+  // Kept in the URL so returning to this page reopens the same tab.
   selectTab(tab: string): void {
     this.activeTab = tab;
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab },
+      replaceUrl: true,
+    });
   }
 }

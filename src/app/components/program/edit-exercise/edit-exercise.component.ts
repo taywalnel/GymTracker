@@ -19,6 +19,7 @@ import {
   SetTargets,
   SetTargetsComponent,
 } from "../set-targets/set-targets.component";
+import { NavigationHistoryService } from "../../../services/navigation-history.service";
 
 @Component({
   selector: "app-edit-exercise",
@@ -62,6 +63,7 @@ export class EditExerciseComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private workoutService: WorkoutService,
+    private navigationHistory: NavigationHistoryService,
   ) {
     const state =
       this.router.getCurrentNavigation()?.extras.state ?? history.state;
@@ -90,7 +92,7 @@ export class EditExerciseComponent implements OnInit {
 
   private loadRoutine(): void {
     if (!this.routineId) {
-      this.router.navigateByUrl("/program");
+      this.router.navigateByUrl("/program", { replaceUrl: true });
       return;
     }
 
@@ -110,12 +112,13 @@ export class EditExerciseComponent implements OnInit {
     this.workoutService.getRoutineById(this.routineId).subscribe({
       next: (routine) => {
         if (!routine) {
-          this.router.navigateByUrl("/program");
+          this.router.navigateByUrl("/program", { replaceUrl: true });
           return;
         }
         this.initializeFromRoutine(routine);
       },
-      error: () => this.router.navigateByUrl("/program"),
+      error: () =>
+        this.router.navigateByUrl("/program", { replaceUrl: true }),
     });
   }
 
@@ -125,7 +128,7 @@ export class EditExerciseComponent implements OnInit {
       (exercise) => exercise.id === this.routeExerciseId,
     );
     if (!this.existingExercise) {
-      this.router.navigateByUrl(this.returnDestination);
+      this.router.navigateByUrl(this.returnDestination, { replaceUrl: true });
       return;
     }
 
@@ -173,11 +176,11 @@ export class EditExerciseComponent implements OnInit {
       };
       if (this.isDraft) {
         this.workoutService.saveRoutineDraft(updatedRoutine);
-        this.router.navigateByUrl(this.returnDestination);
+        this.navigationHistory.leave(this.returnDestination);
         return;
       }
       this.workoutService.saveRoutine(updatedRoutine).subscribe({
-        next: () => this.router.navigateByUrl(this.returnDestination),
+        next: () => this.navigationHistory.leave(this.returnDestination),
         error: () => alert("Error saving routine"),
       });
       return;
@@ -231,7 +234,7 @@ export class EditExerciseComponent implements OnInit {
                 `/${exercise.id}`,
               )
             : this.returnUrl;
-          this.router.navigateByUrl(adjustedReturnUrl);
+          this.navigationHistory.leave(adjustedReturnUrl);
         },
         error: () => alert("Error saving routine"),
       });
@@ -239,7 +242,7 @@ export class EditExerciseComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigateByUrl(this.returnDestination);
+    this.navigationHistory.back(this.returnDestination);
   }
 
   private get isActiveWorkoutAdjustment(): boolean {

@@ -35,6 +35,7 @@ import {
 } from "../weight-and-reps/weight-and-reps.component";
 import { EmptyStateComponent } from "../empty-state/empty-state.component";
 import { formatLocalDate } from "../../utils/dates";
+import { NavigationHistoryService } from "../../services/navigation-history.service";
 
 @Component({
   selector: "app-exercise-history-page",
@@ -121,6 +122,7 @@ export class ExerciseHistoryPageComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private workoutService: WorkoutService,
+    private navigationHistory: NavigationHistoryService,
   ) {}
 
   ngOnInit(): void {
@@ -220,7 +222,7 @@ export class ExerciseHistoryPageComponent implements OnInit {
 
     this.isDeleting = true;
     this.workoutService.deleteExercise(this.exerciseId).subscribe({
-      next: () => this.router.navigate(["/program/exercises"]),
+      next: () => this.navigationHistory.back("/program?tab=Exercises"),
       error: () => {
         this.isDeleting = false;
         this.showDeleteConfirmation = false;
@@ -229,8 +231,6 @@ export class ExerciseHistoryPageComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(["/program"], {
-      queryParams: { tab: "Exercises" },
-    });
+    this.navigationHistory.back("/program?tab=Exercises");
   }
 }

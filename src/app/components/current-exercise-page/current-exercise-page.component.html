@@ -140,14 +140,25 @@
           ></app-stepper>
         </div>
       </div>
-      <app-button
-        variant="primary"
-        size="lg"
-        [fullWidth]="true"
-        (click)="completeCurrentSet()"
-      >
-        Complete set
-      </app-button>
+      @if (isActiveSetComplete) {
+        <app-button
+          variant="secondary"
+          size="lg"
+          [fullWidth]="true"
+          (click)="resetCurrentSet()"
+        >
+          {{ resetSetLabel }}
+        </app-button>
+      } @else {
+        <app-button
+          variant="primary"
+          size="lg"
+          [fullWidth]="true"
+          (click)="completeCurrentSet()"
+        >
+          Complete set
+        </app-button>
+      }
     </div>
 
     @if (restTimer.secondsLeft !== null) {

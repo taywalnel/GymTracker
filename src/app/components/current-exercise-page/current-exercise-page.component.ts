@@ -36,6 +36,7 @@ import {
   FeedbackPrescription,
   applyRecommendation,
 } from "../../models/exercise-feedback.models";
+import { NavigationHistoryService } from "../../services/navigation-history.service";
 
 interface ExerciseHistoryEntry {
   date: string;
@@ -47,7 +48,10 @@ function feedbackErrorMessage(error: unknown): string {
   if (error instanceof FeedbackOfflineError) {
     return "You're offline. Feedback needs a connection, so try again once you're back online.";
   }
-  const { code, message } = (error ?? {}) as { code?: string; message?: string };
+  const { code, message } = (error ?? {}) as {
+    code?: string;
+    message?: string;
+  };
   const explained = [
     "functions/resource-exhausted",
     "functions/failed-precondition",
@@ -105,6 +109,7 @@ export class CurrentExercisePageComponent implements OnInit {
     public units: UnitPreferenceService,
     public restTimer: RestTimerService,
     private feedbackService: ExerciseFeedbackService,
+    private navigationHistory: NavigationHistoryService,
   ) {}
 
   ngOnInit(): void {
@@ -119,7 +124,7 @@ export class CurrentExercisePageComponent implements OnInit {
   ): void {
     const state = this.workoutService.getInProgressState();
     if (!state || state.today.routine.id !== workoutId) {
-      this.router.navigate(["/"]);
+      this.router.navigate(["/"], { replaceUrl: true });
       return;
     }
 
@@ -127,7 +132,9 @@ export class CurrentExercisePageComponent implements OnInit {
       (item) => item.id === exerciseId,
     );
     if (!exercise) {
-      this.router.navigate(["/current-workout", workoutId]);
+      this.router.navigate(["/current-workout", workoutId], {
+        replaceUrl: true,
+      });
       return;
     }
 
@@ -171,20 +178,29 @@ export class CurrentExercisePageComponent implements OnInit {
     });
 
     if (nextExercise) {
-      this.router.navigate([
-        "/current-workout",
-        this.state.today.routine.id,
-        nextExercise.id,
-      ]);
+      this.advanceTo(nextExercise.id);
       return;
     }
 
-    this.router.navigate(["/current-workout", this.state.today.routine.id]);
+    this.navigationHistory.leave(
+      `/current-workout/${this.state.today.routine.id}`,
+    );
   }
 
   goToWorkout(): void {
     if (!this.state) return;
-    this.router.navigate(["/current-workout", this.state.today.routine.id]);
+    this.navigationHistory.back(
+      `/current-workout/${this.state.today.routine.id}`,
+    );
+  }
+
+  // Moving on to another exercise replaces this one, so Back from any
+  // exercise returns to the workout rather than stepping through each one.
+  private advanceTo(exerciseId: string): void {
+    this.router.navigate(
+      ["/current-workout", this.state!.today.routine.id, exerciseId],
+      { replaceUrl: true },
+    );
   }
 
   adjustRoutine(): void {
@@ -281,9 +297,12 @@ export class CurrentExercisePageComponent implements OnInit {
   }
 
   get targetSetReps(): WeightAndRepsSet[] {
-    return Array.from({ length: this.exercise?.targetSets ?? 0 }, (_, index) => ({
-      targetAmount: targetRepsForSet(this.exercise!, index),
-    }));
+    return Array.from(
+      { length: this.exercise?.targetSets ?? 0 },
+      (_, index) => ({
+        targetAmount: targetRepsForSet(this.exercise!, index),
+      }),
+    );
   }
 
   get currentWeightKg(): number {
@@ -346,9 +365,11 @@ export class CurrentExercisePageComponent implements OnInit {
     );
   }
 
+  // Any completed set can be revisited; otherwise only up to the next set to do.
   navigateToSet(index: number): void {
     if (
       index > this.activeSetIndex &&
+      !this.completedSetIndices.has(index) &&
       !Array.from({ length: index }, (_, setIndex) => setIndex).every(
         (setIndex) => this.completedSetIndices.has(setIndex),
       )
@@ -359,9 +380,28 @@ export class CurrentExercisePageComponent implements OnInit {
     this.activeSetIndex = index;
   }
 
+  get isActiveSetComplete(): boolean {
+    return this.completedSetIndices.has(this.activeSetIndex);
+  }
+
+  /** Names every set a reset clears: the selected one and those done after it. */
+  get resetSetLabel(): string {
+    const lastSetNumber = Math.max(...this.setIndicesToReset) + 1;
+    const firstSetNumber = this.activeSetIndex + 1;
+    return lastSetNumber > firstSetNumber
+      ? `Reset sets ${firstSetNumber}–${lastSetNumber}`
+      : "Reset set";
+  }
+
+  // Sets are done in order, so resetting one also resets any done after it.
+  private get setIndicesToReset(): number[] {
+    return [...this.completedSetIndices].filter(
+      (index) => index >= this.activeSetIndex,
+    );
+  }
+
   completeCurrentSet(): void {
     const idx = this.activeSetIndex;
-    const wasAlreadyComplete = this.completedSetIndices.has(idx);
     if (!this.setTouched[idx]) {
       this.workingSets[idx] = {
         ...this.workingSets[idx],
@@ -372,11 +412,6 @@ export class CurrentExercisePageComponent implements OnInit {
 
     this.completedSetIndices = new Set([...this.completedSetIndices, idx]);
     this.onSetsChanged(this.workingSets);
-
-    if (wasAlreadyComplete) {
-      this.activeSetIndex = (idx + 1) % this.workingSets.length;
-      return;
-    }
 
     const total = this.workingSets.length;
     let advanced = false;
@@ -395,6 +430,35 @@ export class CurrentExercisePageComponent implements OnInit {
     }
 
     this.restTimer.start(this.exercise?.restSeconds ?? 60);
+  }
+
+  /**
+   * Returns the selected set, and any done after it, to not done. Weights
+   * stay; reps go back to the suggestion. An exercise already marked complete
+   * reopens, since it now has sets left to do.
+   */
+  resetCurrentSet(): void {
+    if (!this.state || !this.exercise) return;
+    const resetIndices = new Set(this.setIndicesToReset);
+    this.completedSetIndices = new Set(
+      [...this.completedSetIndices].filter((index) => !resetIndices.has(index)),
+    );
+    for (const idx of resetIndices) {
+      this.setTouched[idx] = false;
+      this.setStarted[idx] = false;
+      this.workingSets[idx] = { ...this.workingSets[idx], reps: 0 };
+    }
+
+    if (this.state.completedExerciseIds.includes(this.exercise.id)) {
+      this.state = {
+        ...this.state,
+        completedExerciseIds: this.state.completedExerciseIds.filter(
+          (id) => id !== this.exercise!.id,
+        ),
+        activeExerciseId: this.exercise.id,
+      };
+    }
+    this.onSetsChanged(this.workingSets);
   }
 
   skipRestTimer(): void {
@@ -557,9 +621,7 @@ export class CurrentExercisePageComponent implements OnInit {
     const carryForward = !this.exercise?.setWeightsKg;
     this.workingSets = this.workingSets.map((set, index) =>
       index === setIndex ||
-      (carryForward &&
-        index > setIndex &&
-        !this.completedSetIndices.has(index))
+      (carryForward && index > setIndex && !this.completedSetIndices.has(index))
         ? { ...set, weightKg }
         : set,
     );
@@ -580,15 +642,13 @@ export class CurrentExercisePageComponent implements OnInit {
     const nextExercise = exercises[currentIndex + 1];
 
     if (nextExercise) {
-      this.router.navigate([
-        "/current-workout",
-        this.state.today.routine.id,
-        nextExercise.id,
-      ]);
+      this.advanceTo(nextExercise.id);
       return;
     }
 
-    this.router.navigate(["/current-workout", this.state.today.routine.id]);
+    this.navigationHistory.leave(
+      `/current-workout/${this.state.today.routine.id}`,
+    );
   }
 
   get savedSets(): CompletedSet[] | null {
