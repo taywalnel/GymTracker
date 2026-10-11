@@ -28,7 +28,7 @@ import { ButtonComponent } from "../button/button.component";
 import { ConfirmationModalComponent } from "../confirmation-modal/confirmation-modal.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
-import { WeightAndRepsSet } from "../weight-and-reps/weight-and-reps.component";
+import { SetStripSet } from "../set-strip/set-strip.component";
 import { RoutineCardComponent } from "../routine-card/routine-card.component";
 import {
   describeRepDelta,
@@ -47,7 +47,7 @@ interface CurrentExerciseDisplay {
   id: string;
   name: string;
   targetWeightKg: number;
-  setReps: WeightAndRepsSet[];
+  setReps: SetStripSet[];
   isCompleted: boolean;
   /** Not completed, with at least one set logged. */
   isInProgress: boolean;
@@ -472,7 +472,7 @@ export class CurrentWorkoutComponent implements OnInit, OnDestroy {
     }
   }
 
-  getSetDotClass(set: WeightAndRepsSet): string {
+  getSetDotClass(set: SetStripSet): string {
     if (set.achievedAmount === undefined) return "status-dot";
     if (set.achievedAmount >= set.targetAmount) return "status-dot success";
     if (set.achievedAmount + 2 >= set.targetAmount) return "status-dot warn";

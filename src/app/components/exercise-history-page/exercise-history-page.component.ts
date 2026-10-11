@@ -1,21 +1,17 @@
 import { Component, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, RouterLink } from "@angular/router";
 import { forkJoin } from "rxjs";
 import {
   EXERCISE_CATEGORIES,
   EXERCISE_CATEGORY_LABELS,
   Exercise,
   ExerciseCategory,
-  ExerciseLog,
+  ExerciseHistoryEntry,
   exerciseCategory,
   findExerciseByName,
 } from "../../models/workout.models";
 import { WorkoutService } from "../../services/workout.service";
-import {
-  ExerciseHistoryEntry,
-  ExerciseProgressionComponent,
-} from "../exercise-progression/exercise-progression.component";
 import {
   PageHeaderComponent,
   PageHeaderTab,
@@ -29,24 +25,34 @@ import {
 import { InputComponent } from "../input/input.component";
 import { ConfirmationModalComponent } from "../confirmation-modal/confirmation-modal.component";
 import {
-  WeightAndRepsComponent,
-  WeightAndRepsSet,
-  logToWeightAndRepsSets,
-} from "../weight-and-reps/weight-and-reps.component";
+  SetStripComponent,
+  SetStripSet,
+  logToSetStripSets,
+} from "../set-strip/set-strip.component";
 import { EmptyStateComponent } from "../empty-state/empty-state.component";
-import { formatLocalDate } from "../../utils/dates";
+import { formatDaysAgo, formatLocalDate } from "../../utils/dates";
+import {
+  ExerciseHistoryItem,
+  ExerciseHistorySummary,
+  groupByMonth,
+  markRecordSessions,
+  summarizeHistory,
+} from "../../utils/exercise-history";
 import { NavigationHistoryService } from "../../services/navigation-history.service";
+import { UnitPreferenceService } from "../../services/unit-preference.service";
+
+type HistoryRow = ExerciseHistoryItem & { sets: SetStripSet[] };
 
 @Component({
   selector: "app-exercise-history-page",
   imports: [
     FormsModule,
+    RouterLink,
     ChoiceListComponent,
     InputComponent,
-    ExerciseProgressionComponent,
     PageHeaderComponent,
     LoadingSpinnerComponent,
-    WeightAndRepsComponent,
+    SetStripComponent,
     ButtonComponent,
     ConfirmationModalComponent,
     EmptyStateComponent,
@@ -56,8 +62,11 @@ import { NavigationHistoryService } from "../../services/navigation-history.serv
 })
 export class ExerciseHistoryPageComponent implements OnInit {
   exerciseName = "Exercise";
-  historyEntries: ExerciseHistoryEntry[] = [];
-  activeTab = "Progression";
+  // Sessions that logged at least one set, newest first.
+  historyMonths: { month: string; items: HistoryRow[] }[] = [];
+  historySummary: ExerciseHistorySummary | null = null;
+  sessionCount = 0;
+  activeTab = "History";
   isLoading = true;
   exerciseId: string | null = null;
   isDeleting = false;
@@ -102,27 +111,20 @@ export class ExerciseHistoryPageComponent implements OnInit {
 
   get historyTabs(): PageHeaderTab[] {
     return [
-      { label: "Progression" },
+      { label: "History", count: this.sessionCount },
       { label: "Manage" },
-      { label: "History", count: this.completedEntries.length },
     ];
   }
 
-  get completedEntries(): ExerciseHistoryEntry[] {
-    return this.historyEntries.filter(
-      (entry) => entry.log.completedSets.length > 0,
-    );
-  }
-
-  get historyDisplayEntries(): ExerciseHistoryEntry[] {
-    return this.completedEntries.slice().reverse();
+  get latestSessionId(): string | null {
+    return this.historyMonths[0]?.items[0]?.sessionId ?? null;
   }
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
     private workoutService: WorkoutService,
     private navigationHistory: NavigationHistoryService,
+    public units: UnitPreferenceService,
   ) {}
 
   ngOnInit(): void {
@@ -137,32 +139,58 @@ export class ExerciseHistoryPageComponent implements OnInit {
       entries: this.workoutService.getExerciseHistory(exerciseId),
       exercises: this.workoutService.getAllExercises(),
     }).subscribe(({ entries, exercises }) => {
-      this.historyEntries = entries
-        .slice()
-        .sort((left, right) => left.date.localeCompare(right.date));
+      this.setHistory(entries);
       this.allExercises = exercises;
       this.exercise =
         exercises.find((exercise) => exercise.id === exerciseId) ?? null;
       this.exerciseName =
         this.exercise?.name ??
-        this.historyEntries[0]?.log.exerciseName ??
+        entries[0]?.log.exerciseName ??
         this.humanizeExerciseId(exerciseId);
       this.resetEditForm();
       this.isLoading = false;
     });
   }
 
+  private setHistory(entriesNewestFirst: ExerciseHistoryEntry[]): void {
+    const completed = entriesNewestFirst.filter(
+      (entry) => entry.log.completedSets.length > 0,
+    );
+    this.sessionCount = completed.length;
+    this.historySummary = summarizeHistory(completed);
+    this.historyMonths = groupByMonth(
+      markRecordSessions(completed).map((item) => ({
+        ...item,
+        sets: logToSetStripSets(item.log),
+      })),
+    );
+  }
+
   formatDate(date: string): string {
     return formatLocalDate(
       date,
-      { month: "long", day: "numeric", year: "numeric" },
+      { weekday: "long", month: "long", day: "numeric", year: "numeric" },
       "en-GB",
     );
   }
 
-  toWeightAndRepsSets(log: ExerciseLog): WeightAndRepsSet[] {
-    return logToWeightAndRepsSets(log);
+  formatMonth(month: string): string {
+    return formatLocalDate(
+      `${month}-01`,
+      { month: "long", year: "numeric" },
+      "en-GB",
+    );
   }
+
+  dayOfMonth(date: string): string {
+    return formatLocalDate(date, { day: "numeric" }, "en-GB");
+  }
+
+  weekday(date: string): string {
+    return formatLocalDate(date, { weekday: "short" }, "en-GB");
+  }
+
+  readonly daysAgo = formatDaysAgo;
 
   private humanizeExerciseId(id: string): string {
     return id.replace("ex-", "").replace(/-/g, " ");

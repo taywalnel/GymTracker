@@ -3,17 +3,14 @@
     <app-loading-spinner />
   </div>
 } @else if (!session) {
-  <app-page-header
-    backLink="/history"
-    backLabel="All history"
-  ></app-page-header>
+  <app-page-header backLink="/history" backLabel="Back"></app-page-header>
   <p class="state-message">Session not found.</p>
 } @else {
   <div class="detail-fixed">
     <app-page-header
       [title]="session.routineName"
       [backLink]="justCompleted ? null : '/history'"
-      backLabel="All history"
+      backLabel="Back"
       [showRightAction]="true"
       rightActionLabel="Edit"
       (rightAction)="openEdit()"
@@ -117,7 +114,7 @@
         @if (ex.target) {
           <span class="session-exercise__target">{{ ex.target }}</span>
         }
-        <app-weight-and-reps [sets]="ex.sets" />
+        <app-set-strip [sets]="ex.sets" />
       </article>
     }
 

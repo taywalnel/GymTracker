@@ -1,0 +1,66 @@
+@if (label || sharedWeightKg !== null) {
+  <p class="section-label">
+    {{ label }}
+    @if (sharedWeightKg !== null) {
+      @if (label) {
+        ·
+      }
+      <span class="set-strip__weight"
+        >{{ units.formatWeight(sharedWeightKg) }} {{ units.unitLabel() }}</span
+      >
+    }
+  </p>
+}
+
+<div
+  #track
+  class="set-strip__track"
+  role="group"
+  [attr.aria-label]="label || 'Sets'"
+>
+  <div class="set-strip__tiles">
+    @if (activeIndex !== null) {
+      <div
+        class="set-strip__ring"
+        [style.transform]="ringTransform(activeIndex)"
+        aria-hidden="true"
+      ></div>
+    }
+
+    @for (set of sets; track $index) {
+      @if (isInteractive) {
+        <button
+          type="button"
+          [class]="'set-strip__tile set-strip__tile--' + status(set)"
+          [attr.aria-label]="tileAriaLabel(set, $index)"
+          [attr.aria-current]="$index === activeIndex ? 'step' : null"
+          (click)="setSelected.emit($index)"
+        >
+          <ng-container
+            *ngTemplateOutlet="tileContent; context: { $implicit: set }"
+          />
+        </button>
+      } @else {
+        <div
+          [class]="'set-strip__tile set-strip__tile--' + status(set)"
+          role="img"
+          [attr.aria-label]="tileAriaLabel(set, $index)"
+        >
+          <ng-container
+            *ngTemplateOutlet="tileContent; context: { $implicit: set }"
+          />
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<ng-template #tileContent let-set>
+  <span class="set-strip__reps">{{ shownReps(set) }}</span>
+  @if (showsTileWeights && set.weightKg !== undefined) {
+    <span class="set-strip__tile-weight"
+      >{{ units.formatWeight(set.weightKg)
+      }}<span class="set-strip__tile-unit">{{ units.unitLabel() }}</span></span
+    >
+  }
+</ng-template>

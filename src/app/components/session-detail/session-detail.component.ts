@@ -31,15 +31,15 @@ import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.comp
 import { PageHeaderComponent } from "../page-header/page-header.component";
 import { RoutineCardComponent } from "../routine-card/routine-card.component";
 import {
-  WeightAndRepsComponent,
-  WeightAndRepsSet,
-  logToWeightAndRepsSets,
-} from "../weight-and-reps/weight-and-reps.component";
+  SetStripComponent,
+  SetStripSet,
+  logToSetStripSets,
+} from "../set-strip/set-strip.component";
 import { NavigationHistoryService } from "../../services/navigation-history.service";
 
 interface ExerciseDisplay {
   log: ExerciseLog;
-  sets: WeightAndRepsSet[];
+  sets: SetStripSet[];
   /** e.g. "Target 3 × 10"; null on older logs without a rep target. */
   target: string | null;
   /** Total reps vs the matching session before this one; null when there's no match. */
@@ -65,7 +65,7 @@ const RECORD_LABELS: Record<PersonalRecord["kind"], string> = {
     LoadingSpinnerComponent,
     PageHeaderComponent,
     RoutineCardComponent,
-    WeightAndRepsComponent,
+    SetStripComponent,
   ],
   templateUrl: "./session-detail.component.html",
   styleUrl: "./session-detail.component.scss",
@@ -292,7 +292,7 @@ export class SessionDetailComponent implements OnInit {
 
     return {
       log,
-      sets: logToWeightAndRepsSets(log),
+      sets: logToSetStripSets(log),
       target:
         log.targetReps === undefined
           ? null

@@ -242,6 +242,14 @@ export function setTargetReps(
   return set.targetReps ?? log.targetReps;
 }
 
+/** One session's log of an exercise, as listed in that exercise's history. */
+export interface ExerciseHistoryEntry {
+  date: string;
+  log: ExerciseLog;
+  sessionId: string;
+  routineName: string;
+}
+
 /**
  * The log to save for an exercise from its working sets: only sets with reps
  * are kept, each stamped with its planned reps from the prescription.

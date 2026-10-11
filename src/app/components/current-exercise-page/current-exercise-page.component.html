@@ -40,58 +40,52 @@
       [showBack]="true"
       (back)="goToWorkout()"
     />
-    <div class="section-content">
-      @if (lastHistoryEntry) {
-        <div class="section">
-          <p class="section-label">History</p>
-          <div class="exercise-card__history-row">
-            <app-weight-and-reps
-              [sets]="toWeightAndRepsSets(lastHistoryEntry.log)"
-            ></app-weight-and-reps>
-            <div class="exercise-card__history-actions">
-              @if (canRequestFeedback) {
-                <app-button
-                  variant="icon"
-                  iconName="sparkle"
-                  ariaLabel="Get AI feedback on these targets"
-                  (click)="requestFeedback()"
-                />
-              }
-              <app-button
-                variant="icon"
-                iconName="history"
-                ariaLabel="View exercise history"
-                (click)="viewExerciseHistory()"
-              />
-            </div>
-          </div>
-        </div>
-      }
+    <div class="exercise-card__sets">
+      <div class="exercise-card__strips">
+        @if (lastHistoryEntry) {
+          <app-set-strip
+            label="Last time"
+            [sets]="toSetStripSets(lastHistoryEntry.log)"
+          />
+        }
+        <app-set-strip
+          label="Today"
+          [sets]="currentSetReps"
+          [activeIndex]="activeSetIndex"
+          (setSelected)="navigateToSet($event)"
+        />
+      </div>
+      <div class="exercise-card__actions">
+        @if (canRequestFeedback) {
+          <app-button
+            variant="icon"
+            size="sm"
+            iconName="sparkle"
+            ariaLabel="Get AI feedback on these targets"
+            (click)="requestFeedback()"
+          />
+        }
+        @if (lastHistoryEntry) {
+          <app-button
+            variant="icon"
+            size="sm"
+            iconName="history"
+            ariaLabel="View exercise history"
+            (click)="viewExerciseHistory()"
+          />
+        }
+        <app-button
+          variant="icon"
+          size="sm"
+          iconName="edit"
+          ariaLabel="Edit exercise"
+          (click)="showExerciseActions = true"
+        />
+      </div>
     </div>
   </div>
 
   <div class="section-content">
-    <div class="section">
-      <p class="section-label">Target</p>
-      <div class="section">
-        <div class="exercise-card__progress-row">
-          <app-weight-and-reps
-            [weight]="currentWeightKg"
-            [sets]="currentSetReps"
-            [activeIndex]="activeSetIndex"
-            [splitByWeight]="true"
-            (setSelected)="navigateToSet($event)"
-          ></app-weight-and-reps>
-          <app-button
-            variant="icon"
-            iconName="edit"
-            ariaLabel="Edit exercise"
-            (click)="showExerciseActions = true"
-          />
-        </div>
-      </div>
-    </div>
-
     <div class="exercise-card__target-summary">
       <div class="card stepper-container">
         <p class="section-label">Reps</p>

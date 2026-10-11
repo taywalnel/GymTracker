@@ -392,6 +392,29 @@ input:focus-visible,
   }
 }
 
+/* Marks a session or exercise that set a personal record */
+.pr-badge {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-accent-contrast);
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+/* Read by screen readers but not shown */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 /* Change in total reps vs the last matching session: +n, -n or 0 */
 .rep-delta {
   flex-shrink: 0;

@@ -23,24 +23,26 @@
         (ngSubmit)="saveExercise()"
       >
         @if (exercise) {
-          <app-input
-            id="exerciseName"
-            name="exerciseName"
-            label="Exercise name"
-            [(ngModel)]="editName"
-            (ngModelChange)="onEditChange()"
-            [required]="true"
-            [disabled]="isSaving"
-            [invalid]="!!nameError"
-            [error]="nameError"
-          />
-          <app-choice-list
-            label="Muscle group"
-            [options]="categoryOptions"
-            [(value)]="editCategory"
-            (valueChange)="onEditChange()"
-            [fill]="true"
-          />
+          <div class="card manage-form__fields">
+            <app-input
+              id="exerciseName"
+              name="exerciseName"
+              label="Exercise name"
+              [(ngModel)]="editName"
+              (ngModelChange)="onEditChange()"
+              [required]="true"
+              [disabled]="isSaving"
+              [invalid]="!!nameError"
+              [error]="nameError"
+            />
+            <app-choice-list
+              label="Muscle group"
+              [options]="categoryOptions"
+              [(value)]="editCategory"
+              (valueChange)="onEditChange()"
+              [fill]="true"
+            />
+          </div>
         } @else {
           <p class="state-message">
             This exercise is no longer in your exercise list.
@@ -52,15 +54,6 @@
         }
 
         <div class="manage-form__actions">
-          <app-button
-            variant="ghost"
-            [danger]="true"
-            [fullWidth]="true"
-            [disabled]="isSaving || isDeleting"
-            (click)="deleteExercise()"
-          >
-            Delete exercise
-          </app-button>
           @if (exercise) {
             <app-button
               variant="primary"
@@ -72,31 +65,124 @@
               Save changes
             </app-button>
           }
+          <app-button
+            variant="ghost"
+            [danger]="true"
+            [fullWidth]="true"
+            [disabled]="isSaving || isDeleting"
+            (click)="deleteExercise()"
+          >
+            Delete exercise
+          </app-button>
         </div>
       </form>
-    } @else if (completedEntries.length === 0) {
+    } @else if (!historySummary) {
       <app-empty-state
         title="No sets logged yet"
-        message="Complete this exercise in a workout to see its history and progress."
+        message="Complete this exercise in a workout to see its history."
       />
-    } @else if (activeTab === "Progression") {
-      <app-exercise-progression [entries]="completedEntries" />
     } @else {
-      <section class="history-section" aria-labelledby="history-title">
-        <div class="history-list">
-          @for (entry of historyDisplayEntries; track entry.date) {
-            <div class="card history-entry">
-              <span class="date-header">{{ formatDate(entry.date) }}</span>
-              <div class="set-list">
-                <app-weight-and-reps
-                  [sets]="toWeightAndRepsSets(entry.log)"
-                  [size]="'small'"
-                />
-              </div>
-            </div>
-          }
+      <section class="stat-strip" aria-label="Exercise summary">
+        <div class="stat-strip__stats">
+          <div class="stat-strip__stat">
+            <span class="stat-strip__value">{{
+              daysAgo(historySummary.lastDate)
+            }}</span>
+            <span class="stat-strip__label">Last done</span>
+          </div>
+          <div class="stat-strip__stat">
+            @if (historySummary.heaviestKg > 0) {
+              <span class="stat-strip__value"
+                >{{ units.formatWeight(historySummary.heaviestKg) }}
+                <span class="stat-strip__unit">{{
+                  units.unitLabel()
+                }}</span></span
+              >
+            } @else {
+              <span
+                class="stat-strip__value stat-strip__value--empty"
+                aria-label="None"
+                >–</span
+              >
+            }
+            <span class="stat-strip__label">Heaviest</span>
+          </div>
+          <div class="stat-strip__stat">
+            @if (historySummary.bestOneRepMaxKg > 0) {
+              <span class="stat-strip__value"
+                >{{ units.formatWeight(historySummary.bestOneRepMaxKg, 0) }}
+                <span class="stat-strip__unit">{{
+                  units.unitLabel()
+                }}</span></span
+              >
+            } @else {
+              <span
+                class="stat-strip__value stat-strip__value--empty"
+                aria-label="None"
+                >–</span
+              >
+            }
+            <span class="stat-strip__label">Est. 1-rep max</span>
+          </div>
         </div>
       </section>
+
+      <div class="scroll-area">
+        <div class="scroll-area__content history-list">
+          @for (group of historyMonths; track group.month) {
+            <section
+              class="history-month"
+              [attr.aria-label]="formatMonth(group.month)"
+            >
+              <h2 class="section-label history-month__label">
+                {{ formatMonth(group.month) }}
+              </h2>
+              @for (item of group.items; track item.sessionId) {
+                <a
+                  class="card history-entry"
+                  [class.card--highlight]="item.sessionId === latestSessionId"
+                  [routerLink]="['/history/session', item.sessionId]"
+                >
+                  <span class="visually-hidden">{{
+                    formatDate(item.date)
+                  }}</span>
+                  <div class="history-entry__date" aria-hidden="true">
+                    <span class="history-entry__day">{{
+                      dayOfMonth(item.date)
+                    }}</span>
+                    <span class="history-entry__weekday">{{
+                      weekday(item.date)
+                    }}</span>
+                  </div>
+
+                  <div class="history-entry__body">
+                    @if (item.sessionId === latestSessionId) {
+                      <span class="eyebrow history-entry__kicker"
+                        >Latest session</span
+                      >
+                    }
+                    <div class="history-entry__top">
+                      <span class="history-entry__routine">{{
+                        item.routineName
+                      }}</span>
+                      @if (item.isRecord) {
+                        <span class="pr-badge" aria-label="Personal record"
+                          >PR</span
+                        >
+                      }
+                    </div>
+                    <app-set-strip [sets]="item.sets" size="small" />
+                  </div>
+
+                  <span class="history-entry__chevron" aria-hidden="true"
+                    >›</span
+                  >
+                </a>
+              }
+            </section>
+          }
+        </div>
+      </div>
     }
   </main>
 }

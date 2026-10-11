@@ -1,0 +1,135 @@
+// Sizes match the constants in the component, which places the ring by index.
+:host {
+  --tile-size: 48px;
+  --tile-gap: 6px;
+  --ring-room: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+:host(.set-strip--small) {
+  --tile-size: 40px;
+  --tile-gap: 4px;
+
+  .set-strip__reps {
+    font-size: var(--text-md);
+  }
+
+  .set-strip__tile-weight {
+    font-size: 0.625rem;
+  }
+}
+
+.set-strip__weight {
+  color: var(--color-text);
+}
+
+// Scrolls sideways when there are more sets than fit, fading at the edge so a
+// cut-off tile reads as more to scroll to. The padding keeps the ring from
+// being clipped; the negative margin keeps tiles in line with the label.
+.set-strip__track {
+  margin: calc(-1 * var(--ring-room));
+  padding: var(--ring-room);
+  overflow-x: auto;
+  scrollbar-width: none;
+  mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.set-strip__tiles {
+  position: relative;
+  display: flex;
+  gap: var(--tile-gap);
+  width: max-content;
+}
+
+.set-strip__tile {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  box-sizing: border-box;
+  width: var(--tile-size);
+  height: var(--tile-size);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-border);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  transition:
+    background-color 200ms,
+    color 200ms;
+}
+
+button.set-strip__tile {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+.set-strip__reps {
+  font-size: var(--text-lg);
+}
+
+// The unit marks the small number as the weight, so it can't be read as reps.
+.set-strip__tile-weight {
+  font-size: var(--text-xs);
+  opacity: 0.7;
+  white-space: nowrap;
+  letter-spacing: -0.02em;
+}
+
+.set-strip__tile-unit {
+  margin-left: 1px;
+  font-size: 0.8em;
+}
+
+.set-strip__tile--good {
+  background-color: var(--color-status-good);
+  color: var(--color-accent-contrast);
+}
+
+.set-strip__tile--close {
+  background-color: var(--color-status-close);
+  color: var(--color-accent-contrast);
+}
+
+.set-strip__tile--miss {
+  background-color: var(--color-status-miss);
+  color: var(--color-accent-contrast);
+}
+
+// Sits just outside a tile and slides between sets as the selection moves.
+.set-strip__ring {
+  position: absolute;
+  top: calc(-1 * var(--ring-room));
+  left: calc(-1 * var(--ring-room));
+  box-sizing: border-box;
+  width: calc(var(--tile-size) + 2 * var(--ring-room));
+  height: calc(var(--tile-size) + 2 * var(--ring-room));
+  border: 2px solid var(--color-accent);
+  border-radius: calc(var(--radius-sm) + var(--ring-room));
+  pointer-events: none;
+  transition: transform 220ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .set-strip__ring {
+    transition: none;
+  }
+}

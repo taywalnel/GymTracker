@@ -20,6 +20,7 @@ import {
   WorkoutSession,
   TodayWorkout,
   ExerciseLog,
+  ExerciseHistoryEntry,
   CompletedSet,
   compareSessionsNewestFirst,
   nextRoutineInRotation,
@@ -319,16 +320,24 @@ export class WorkoutService {
     return from(this._loadSessions());
   }
 
-  getExerciseHistory(
-    exerciseId: string,
-  ): Observable<{ date: string; log: ExerciseLog }[]> {
+  /** Every finished log of an exercise, newest first, with its session. */
+  getExerciseHistory(exerciseId: string): Observable<ExerciseHistoryEntry[]> {
     return from(this._loadSessions()).pipe(
       map((sessions) =>
         sessions
           .filter((s) => !s.inProgress)
           .flatMap((s) => {
             const log = s.exerciseLogs.find((l) => l.exerciseId === exerciseId);
-            return log ? [{ date: s.date, log }] : [];
+            return log
+              ? [
+                  {
+                    date: s.date,
+                    log,
+                    sessionId: s.id,
+                    routineName: s.routineName,
+                  },
+                ]
+              : [];
           }),
       ),
     );
@@ -644,16 +653,21 @@ export class WorkoutService {
       r.rotationOrder = i;
     });
 
+    // Catalog entries are only added for exercises the catalog is missing,
+    // never rewritten: the catalog here may be a stale offline copy, and
+    // writing it back would undo changes such as a muscle group set on another
+    // device. Merging means even an add can't remove a field.
     const batch = writeBatch(this.firestore);
-    const catalogExercises = await this._loadExercises();
+    const catalogIds = new Set(
+      (await this._loadExercises()).map((exercise) => exercise.id),
+    );
     for (const r of current) {
       for (const exercise of r.exercises) {
-        const catalogExercise = catalogExercises.find(
-          (item) => item.id === exercise.id,
-        );
+        if (catalogIds.has(exercise.id)) continue;
         batch.set(
           doc(this.exercisesCol(), exercise.id),
-          catalogExercise ?? { id: exercise.id, name: exercise.name },
+          { id: exercise.id, name: exercise.name },
+          { merge: true },
         );
       }
       batch.set(doc(this.routinesCol(), r.id), this._storeRoutine(r));
@@ -800,21 +814,19 @@ export class WorkoutService {
     };
   }
 
+  // Adds routine exercises the catalog is missing. Existing entries are kept
+  // as they are, so a routine's older copy of a name can't undo a rename.
   private _setExercisesFromRoutines(routines: Routine[]): void {
-    const namesById = new Map(
+    const exercisesById = new Map(
       this.exercisesSignal().map((exercise) => [exercise.id, exercise]),
     );
     for (const routine of routines) {
       for (const exercise of routine.exercises) {
-        // Keeps the catalog entry's other fields, e.g. its muscle group.
-        namesById.set(exercise.id, {
-          ...namesById.get(exercise.id),
-          id: exercise.id,
-          name: exercise.name,
-        });
+        if (exercisesById.has(exercise.id)) continue;
+        exercisesById.set(exercise.id, { id: exercise.id, name: exercise.name });
       }
     }
-    this.exercisesSignal.set([...namesById.values()]);
+    this.exercisesSignal.set([...exercisesById.values()]);
     this.exercisesLoaded = true;
   }
 

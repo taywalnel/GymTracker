@@ -19,10 +19,10 @@ import { ButtonComponent } from "../button/button.component";
 import { PageHeaderComponent } from "../page-header/page-header.component";
 import { LoadingSpinnerComponent } from "../loading-spinner/loading-spinner.component";
 import {
-  WeightAndRepsComponent,
-  WeightAndRepsSet,
-  logToWeightAndRepsSets,
-} from "../weight-and-reps/weight-and-reps.component";
+  SetStripComponent,
+  SetStripSet,
+  logToSetStripSets,
+} from "../set-strip/set-strip.component";
 import { StepperComponent } from "../stepper/stepper.component";
 import { ConfirmationModalComponent } from "../confirmation-modal/confirmation-modal.component";
 import { ExerciseFeedbackModalComponent } from "../exercise-feedback-modal/exercise-feedback-modal.component";
@@ -70,8 +70,8 @@ function feedbackErrorMessage(error: unknown): string {
     ExerciseFeedbackModalComponent,
     LoadingSpinnerComponent,
     PageHeaderComponent,
+    SetStripComponent,
     StepperComponent,
-    WeightAndRepsComponent,
   ],
   templateUrl: "./current-exercise-page.component.html",
   styleUrl: "./current-exercise-page.component.scss",
@@ -100,7 +100,7 @@ export class CurrentExercisePageComponent implements OnInit {
   private restDrain?: Animation;
   protected setTouched: boolean[] = [];
   readonly repStep = 1;
-  protected readonly toWeightAndRepsSets = logToWeightAndRepsSets;
+  protected readonly toSetStripSets = logToSetStripSets;
 
   constructor(
     private route: ActivatedRoute,
@@ -296,7 +296,7 @@ export class CurrentExercisePageComponent implements OnInit {
     return `${minutes}:${seconds}`;
   }
 
-  get targetSetReps(): WeightAndRepsSet[] {
+  get targetSetReps(): SetStripSet[] {
     return Array.from(
       { length: this.exercise?.targetSets ?? 0 },
       (_, index) => ({
@@ -349,7 +349,7 @@ export class CurrentExercisePageComponent implements OnInit {
     return previousCompletedSet?.reps ?? this.exercise?.targetReps ?? 0;
   }
 
-  get currentSetReps(): WeightAndRepsSet[] {
+  get currentSetReps(): SetStripSet[] {
     return Array.from(
       { length: this.exercise?.targetSets ?? 0 },
       (_, index) => {
