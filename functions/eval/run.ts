@@ -14,7 +14,7 @@ import {
   ExerciseFeedbackRequest,
   normaliseFeedback,
 } from "../src/feedback";
-import { feedbackMessageParams, parseFeedbackReply } from "../src/prompt";
+import { feedbackMessageParams, parseJsonReply } from "../src/prompt";
 import { CASES, EvalCase, Expected } from "./cases";
 
 const CONCURRENCY = 4;
@@ -42,7 +42,7 @@ async function runCase(client: Anthropic, evalCase: EvalCase) {
   const response = await client.messages.create(
     feedbackMessageParams(evalCase.request),
   );
-  const raw = parseFeedbackReply(response) as ExerciseFeedback;
+  const raw = parseJsonReply(response) as ExerciseFeedback;
   const final = normaliseFeedback(raw, evalCase.request);
   return {
     evalCase,

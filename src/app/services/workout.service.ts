@@ -125,6 +125,35 @@ export class WorkoutService {
 
   clearRoutineDraft(): void {
     this.saveRoutineDraft(null);
+    this.saveRoutineDraftExercises([]);
+  }
+
+  /**
+   * Exercises the draft uses that aren't in the catalog yet (from an AI-built
+   * routine). They're added to the catalog only when the routine is created.
+   */
+  getRoutineDraftExercises(): Exercise[] {
+    try {
+      const raw = sessionStorage.getItem("gym:routineDraftExercises");
+      return raw ? (JSON.parse(raw) as Exercise[]) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  saveRoutineDraftExercises(exercises: Exercise[]): void {
+    try {
+      if (exercises.length === 0) {
+        sessionStorage.removeItem("gym:routineDraftExercises");
+      } else {
+        sessionStorage.setItem(
+          "gym:routineDraftExercises",
+          JSON.stringify(exercises),
+        );
+      }
+    } catch (e) {
+      // ignore storage errors
+    }
   }
 
   // In-memory copy of the in-progress session, persisted to localStorage so it
@@ -777,7 +806,12 @@ export class WorkoutService {
     );
     for (const routine of routines) {
       for (const exercise of routine.exercises) {
-        namesById.set(exercise.id, { id: exercise.id, name: exercise.name });
+        // Keeps the catalog entry's other fields, e.g. its muscle group.
+        namesById.set(exercise.id, {
+          ...namesById.get(exercise.id),
+          id: exercise.id,
+          name: exercise.name,
+        });
       }
     }
     this.exercisesSignal.set([...namesById.values()]);

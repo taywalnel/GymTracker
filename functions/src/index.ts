@@ -11,13 +11,37 @@ import {
   normaliseFeedback,
   requestError,
 } from "./feedback";
-import { feedbackMessageParams, parseFeedbackReply } from "./prompt";
+import { feedbackMessageParams, parseJsonReply } from "./prompt";
+import {
+  GenerateRoutineRequest,
+  GeneratedRoutine,
+  normaliseRoutine,
+  requestError as routineRequestError,
+} from "./routine";
+import { routineMessageParams } from "./routine-prompt";
 
 initializeApp();
 
 const anthropicApiKey = defineSecret("ANTHROPIC_API_KEY");
 
-const DAILY_LIMIT = 20;
+/**
+ * Daily request limits per feature. Each keeps its own count in aiUsage/{uid};
+ * feedback's fields predate this, hence the plain names.
+ */
+const LIMITS = {
+  feedback: {
+    limit: 20,
+    dateField: "date",
+    countField: "count",
+    message: "You've reached today's feedback limit. Try again tomorrow.",
+  },
+  routine: {
+    limit: 5,
+    dateField: "routineDate",
+    countField: "routineCount",
+    message: "You've built today's limit of AI routines. Try again tomorrow.",
+  },
+} as const;
 
 /**
  * Reviews an exercise's targets against the signed-in person's recent history
@@ -50,7 +74,7 @@ export const getExerciseFeedback = onCall(
       );
     }
 
-    await countRequest(uid);
+    await countRequest(uid, "feedback");
 
     const client = new Anthropic({ apiKey: anthropicApiKey.value() });
     let response: Anthropic.Message;
@@ -63,7 +87,7 @@ export const getExerciseFeedback = onCall(
 
     let output: unknown;
     try {
-      output = parseFeedbackReply(response);
+      output = parseJsonReply(response);
     } catch (e) {
       logger.error("Claude returned no usable feedback", e, response);
       throw new HttpsError("internal", "Feedback couldn't be read.");
@@ -74,22 +98,78 @@ export const getExerciseFeedback = onCall(
 );
 
 /**
- * Counts a request against the person's daily limit. Kept outside users/ so
- * security rules stop the app from resetting it.
+ * Builds a routine for the chosen muscle groups from the signed-in person's
+ * exercise catalog and recent sessions. The app shows it as a draft to review
+ * before anything is saved.
  */
-async function countRequest(uid: string): Promise<void> {
+export const generateRoutine = onCall(
+  {
+    region: "asia-southeast1",
+    secrets: [anthropicApiKey],
+    timeoutSeconds: 120,
+    memory: "256MiB",
+  },
+  async (request): Promise<GeneratedRoutine> => {
+    const uid = request.auth?.uid;
+    if (!uid) {
+      throw new HttpsError("unauthenticated", "Sign in to build a routine.");
+    }
+
+    const error = routineRequestError(request.data);
+    if (error) {
+      logger.warn("Rejected routine request", { error });
+      throw new HttpsError("invalid-argument", error);
+    }
+    const data = request.data as GenerateRoutineRequest;
+
+    await countRequest(uid, "routine");
+
+    const client = new Anthropic({ apiKey: anthropicApiKey.value() });
+    let response: Anthropic.Message;
+    try {
+      response = await client.messages.create(routineMessageParams(data));
+    } catch (e) {
+      logger.error("Claude request failed", e);
+      throw new HttpsError(
+        "unavailable",
+        "AI routines aren't available right now.",
+      );
+    }
+
+    logger.info("Routine usage", response.usage);
+    try {
+      return normaliseRoutine(parseJsonReply(response), data);
+    } catch (e) {
+      logger.error("Claude returned no usable routine", e, response);
+      throw new HttpsError("internal", "The routine couldn't be read.");
+    }
+  },
+);
+
+/**
+ * Counts a request against the person's daily limit for a feature. Kept
+ * outside users/ so security rules stop the app from resetting it.
+ */
+async function countRequest(
+  uid: string,
+  feature: keyof typeof LIMITS,
+): Promise<void> {
+  const { limit, dateField, countField, message } = LIMITS[feature];
   const today = new Date().toISOString().slice(0, 10);
   const ref = getFirestore().doc(`aiUsage/${uid}`);
   await getFirestore().runTransaction(async (transaction) => {
     const snap = await transaction.get(ref);
-    const usage = snap.data() as { date?: string; count?: number } | undefined;
-    const count = usage?.date === today ? (usage.count ?? 0) : 0;
-    if (count >= DAILY_LIMIT) {
-      throw new HttpsError(
-        "resource-exhausted",
-        "You've reached today's feedback limit. Try again tomorrow.",
-      );
+    const usage = snap.data() as Record<string, unknown> | undefined;
+    const count =
+      usage?.[dateField] === today ? Number(usage[countField]) || 0 : 0;
+    if (count >= limit) {
+      throw new HttpsError("resource-exhausted", message);
     }
-    transaction.set(ref, { date: today, count: count + 1 });
+    // Merged so each feature's count leaves the others alone.
+    transaction.set(
+      ref,
+      { [dateField]: today, [countField]: count + 1 },
+      { merge: true },
+    );
   });
 }

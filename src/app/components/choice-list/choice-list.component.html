@@ -13,7 +13,7 @@
           type="button"
           variant="secondary"
           [fullWidth]="true"
-          [selected]="value === option.value"
+          [selected]="isSelected(option.value)"
           (click)="choose(option.value)"
           >{{ option.label }}</app-button
         >

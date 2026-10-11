@@ -23,7 +23,8 @@
     </h2>
     @if (draft.exercises.length === 0) {
       <p class="exercise-section__hint">
-        Add exercises now, or create the routine and add them later.
+        Add exercises now, let AI build the routine for you, or create it and
+        add them later.
       </p>
     }
     <app-reorderable-card-list
@@ -35,15 +36,26 @@
       (exerciseSelected)="editExercise($event)"
       (exerciseDeleted)="requestDeleteExercise($event)"
     />
-    <app-button
-      variant="secondary"
-      iconName="plus"
-      [fullWidth]="true"
-      [disabled]="saving"
-      (click)="addExercise()"
-    >
-      Add exercise
-    </app-button>
+    <div class="exercise-section__actions">
+      <app-button
+        variant="secondary"
+        iconName="plus"
+        [fullWidth]="true"
+        [disabled]="saving"
+        (click)="addExercise()"
+      >
+        Add exercise
+      </app-button>
+      <app-button
+        variant="secondary"
+        iconName="sparkle"
+        [fullWidth]="true"
+        [disabled]="saving"
+        (click)="buildWithAi()"
+      >
+        Build with AI
+      </app-button>
+    </div>
   </section>
 
   <div class="form-actions">
@@ -76,6 +88,25 @@
     [danger]="true"
     (confirmed)="confirmDeleteExercise()"
     (cancelled)="cancelDeleteExercise()"
+  />
+}
+
+@if (showReplaceConfirmation) {
+  <app-confirmation-modal
+    title="Replace your exercises?"
+    message="An AI routine replaces the exercises you've added so far."
+    confirmLabel="Continue"
+    (confirmed)="openGenerator()"
+    (cancelled)="showReplaceConfirmation = false"
+  />
+}
+
+@if (showGenerator) {
+  <app-routine-generator-modal
+    [isLoading]="generating"
+    [error]="generateError"
+    (generate)="generateRoutine($event)"
+    (closed)="closeGenerator()"
   />
 }
 

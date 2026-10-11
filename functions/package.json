@@ -10,7 +10,8 @@
     "build:watch": "tsc --watch",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
-    "eval": "tsx eval/run.ts"
+    "eval": "tsx eval/run.ts",
+    "test": "tsx --test src/*.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.128.0",

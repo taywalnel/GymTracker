@@ -74,7 +74,7 @@ export function feedbackMessageParams(
 }
 
 /** The model's JSON reply; throws when it stopped early or sent no text. */
-export function parseFeedbackReply(response: Anthropic.Message): unknown {
+export function parseJsonReply(response: Anthropic.Message): unknown {
   const text = response.content.find(
     (block): block is Anthropic.TextBlock => block.type === "text",
   );

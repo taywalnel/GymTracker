@@ -1,0 +1,69 @@
+<div class="modal-backdrop" (click)="close()">
+  <section
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="routine-generator-title"
+    (click)="$event.stopPropagation()"
+  >
+    <div>
+      <span class="eyebrow">AI routine</span>
+      <h2 id="routine-generator-title">What do you want to train?</h2>
+    </div>
+
+    @if (isLoading) {
+      <div
+        class="generator__loading"
+        role="status"
+        aria-label="Building your routine"
+      >
+        <app-loading-spinner />
+        <p class="modal__message">
+          Picking exercises and setting targets from your history…
+        </p>
+      </div>
+    } @else {
+      <p class="modal__message">
+        Choose up to {{ maxGroups }} muscle groups. You can change anything
+        before you create the routine.
+      </p>
+
+      <app-choice-list
+        label="Muscle groups"
+        [options]="options"
+        [multiple]="true"
+        [values]="groups"
+        (valuesChange)="groups = $event"
+      />
+
+      @if (tooManyGroups) {
+        <p class="generator__note" role="alert">
+          Choose {{ maxGroups }} or fewer for one routine.
+        </p>
+      } @else if (error) {
+        <p class="generator__note" role="alert">{{ error }}</p>
+      }
+    }
+
+    <div class="modal__actions">
+      <app-button
+        variant="secondary"
+        [fullWidth]="true"
+        [disabled]="isLoading"
+        (click)="close()"
+      >
+        Cancel
+      </app-button>
+      <app-button
+        variant="primary"
+        iconName="sparkle"
+        [fullWidth]="true"
+        [disabled]="!canGenerate"
+        [loading]="isLoading"
+        (click)="submit()"
+      >
+        {{ error ? "Try again" : "Build" }}
+      </app-button>
+    </div>
+  </section>
+</div>
