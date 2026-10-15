@@ -119,27 +119,90 @@
               </div>
             }
           </div>
+          @if (trendSummary) {
+            <div class="summary-stats">
+              <div class="summary-stat">
+                <span>Trend</span>
+                <strong>{{ formatValue(trendSummary.trendKg) }}</strong>
+              </div>
+              <div class="summary-stat">
+                <span>Weekly rate</span>
+                @if (trendSummary.weeklyRateKg !== null) {
+                  <strong
+                    [class.is-negative]="trendSummary.weeklyRateKg < 0"
+                    [class.is-positive]="trendSummary.weeklyRateKg > 0"
+                    >{{ formatChange(trendSummary.weeklyRateKg) }}/wk</strong
+                  >
+                } @else {
+                  <strong class="is-pending">Needs a week of data</strong>
+                }
+              </div>
+            </div>
+          }
         </section>
 
         @if (hasChartData) {
           <section
             class="card chart-panel"
             [class.is-revealing]="chartRevealing"
+            [class.is-trend]="chartMode === 'trend'"
             aria-label="Body weight trend"
           >
+            <div class="chart-panel__header">
+              <p class="period-change">
+                @if (periodChangeKg !== null) {
+                  <strong
+                    [class.is-negative]="periodChangeKg < 0"
+                    [class.is-positive]="periodChangeKg > 0"
+                    >{{ formatChange(periodChangeKg) }}</strong
+                  >
+                  {{ periodChangeLabel }}
+                }
+              </p>
+              <div
+                class="switcher chart-mode-switcher"
+                role="tablist"
+                aria-label="Chart style"
+                [style.--option-count]="chartModeOptions.length"
+                [style.--selected-index]="selectedChartModeIndex"
+              >
+                @for (option of chartModeOptions; track option.value) {
+                  <button
+                    type="button"
+                    role="tab"
+                    [attr.aria-selected]="chartMode === option.value"
+                    [class.is-selected]="chartMode === option.value"
+                    (click)="selectChartMode(option.value)"
+                  >
+                    {{ option.label }}
+                  </button>
+                }
+              </div>
+            </div>
             <div
               class="chart"
               role="img"
               aria-label="Body weight trend over time"
             >
               <div class="chart__axis" aria-hidden="true">
-                @for (label of chartView.axisLabels; track $index) {
-                  <span>{{ formatValue(label) }}</span>
+                <span class="chart__axis-sizer">{{ chartView.axisSizer }}</span>
+                @for (line of chartView.axisLines; track line.value) {
+                  <span
+                    class="chart__axis-label"
+                    [style.--y]="line.y"
+                    [style.opacity]="line.opacity"
+                    >{{ line.label }}</span
+                  >
                 }
               </div>
               <div class="chart__plot">
                 <div class="chart__grid" aria-hidden="true">
-                  <span></span><span></span><span></span><span></span>
+                  @for (line of chartView.axisLines; track line.value) {
+                    <span
+                      [style.top.%]="line.y"
+                      [style.opacity]="line.opacity"
+                    ></span>
+                  }
                 </div>
                 <div class="chart__months" aria-hidden="true">
                   @for (marker of chartView.monthMarkers; track marker.time) {
@@ -153,7 +216,7 @@
                   (animationend)="onChartRevealEnd($event)"
                 >
                   <polyline
-                    class="chart__raw-line"
+                    class="chart__line"
                     [attr.points]="chartView.linePoints"
                   />
                 </svg>
@@ -179,7 +242,6 @@
                   @for (marker of chartView.monthMarkers; track marker.time) {
                     <span
                       [style.left.%]="marker.x"
-                      [class.is-end]="marker.x > 88"
                       [class.is-hidden]="!marker.showLabel"
                       >{{ marker.label }}</span
                     >
@@ -188,9 +250,10 @@
               </div>
             </div>
             <div
-              class="period-switcher"
+              class="switcher"
               role="tablist"
               aria-label="Progress period"
+              [style.--option-count]="periodOptions.length"
               [style.--selected-index]="selectedPeriodIndex"
             >
               @for (option of periodOptions; track option.value) {

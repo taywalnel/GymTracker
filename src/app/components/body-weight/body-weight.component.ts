@@ -17,12 +17,16 @@ import { EmptyStateComponent } from "../empty-state/empty-state.component";
 
 type PeriodDays = 7 | 30 | 0;
 
+type ChartMode = "line" | "trend";
+
 type Trend = "increased" | "decreased" | "unchanged";
 
 interface SeriesEntry {
   date: string;
   time: number;
   weightKg: number;
+  /** Smoothed weight: a moving average that discounts day-to-day noise. */
+  trendKg: number;
   trend: Trend;
 }
 
@@ -32,6 +36,8 @@ interface ChartPoint {
   trend: Trend;
   x: number;
   weightY: number;
+  /** Where the line passes this point: between weightY and the trend. */
+  lineY: number;
   opacity: number;
 }
 
@@ -42,23 +48,57 @@ interface ChartMonthMarker {
   showLabel: boolean;
 }
 
-/** The visible window of the chart: a time range and a weight range. */
+/**
+ * The animated state of the chart: the visible window (a time range and a
+ * weight range) and how far the line has morphed from raw weights (0) to the
+ * trend (1).
+ */
 interface ChartDomain {
   startTime: number;
   endTime: number;
   min: number;
   max: number;
+  trendMix: number;
+}
+
+/** A gridline at a whole number in the displayed unit. */
+interface ChartAxisLine {
+  value: number;
+  label: string;
+  y: number;
+  opacity: number;
 }
 
 interface ChartView {
   points: ChartPoint[];
   linePoints: string;
-  axisLabels: number[];
+  axisLines: ChartAxisLine[];
+  /** The widest axis label, which sets the axis column's width. */
+  axisSizer: string;
   monthMarkers: ChartMonthMarker[];
 }
 
+interface TrendSummary {
+  trendKg: number;
+  /** Trend change per week over the last RATE_WINDOW_DAYS; null if too little data. */
+  weeklyRateKg: number | null;
+}
+
 const MAX_MONTH_LABELS = 6;
-const HALF_DAY_MS = 12 * 60 * 60 * 1000;
+// Gridline spacings, coarsest first. The axis uses the coarsest one that
+// still puts MIN_AXIS_LINES clearly visible lines on the plot, so it prefers
+// whole numbers and only drops to decimals when the range is narrow.
+const AXIS_STEPS = [100, 50, 20, 10, 5, 2, 1, 0.5, 0.2, 0.1, 0.05, 0.02, 0.01];
+const MIN_AXIS_LINES = 3;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const HALF_DAY_MS = DAY_MS / 2;
+// Share of each day's difference the trend absorbs (as in The Hacker's Diet).
+const TREND_SMOOTHING = 0.1;
+// The weekly rate is measured over this many days, and needs at least
+// MIN_RATE_SPAN_DAYS of weigh-ins to be shown.
+const RATE_WINDOW_DAYS = 28;
+const MIN_RATE_SPAN_DAYS = 7;
+const CHART_MODE_STORAGE_KEY = "gym:bodyWeightChartMode";
 // Keep in sync with --chart-duration in the stylesheet.
 const CHART_TRANSITION_MS = 550;
 // Points fade out over this distance (in plot %) once they leave the plot.
@@ -67,7 +107,8 @@ const EDGE_FADE = 4;
 const EMPTY_CHART_VIEW: ChartView = {
   points: [],
   linePoints: "",
-  axisLabels: [],
+  axisLines: [],
+  axisSizer: "",
   monthMarkers: [],
 };
 
@@ -75,10 +116,18 @@ function lerp(from: number, to: number, progress: number): number {
   return from + (to - from) * progress;
 }
 
+function readStoredChartMode(): ChartMode {
+  try {
+    return localStorage.getItem(CHART_MODE_STORAGE_KEY) === "trend"
+      ? "trend"
+      : "line";
+  } catch {
+    return "line";
+  }
+}
+
 function easeInOutCubic(progress: number): number {
-  return progress < 0.5
-    ? 4 * progress ** 3
-    : 1 - (-2 * progress + 2) ** 3 / 2;
+  return progress < 0.5 ? 4 * progress ** 3 : 1 - (-2 * progress + 2) ** 3 / 2;
 }
 
 @Component({
@@ -102,6 +151,9 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
   chartView: ChartView = EMPTY_CHART_VIEW;
   /** True while the chart plays its entrance animation after mounting. */
   chartRevealing = true;
+  trendSummary: TrendSummary | null = null;
+  /** Change between the first and last weigh-in in the period, as charted. */
+  periodChangeKg: number | null = null;
   private series: SeriesEntry[] = [];
   private displayDomain: ChartDomain | null = null;
   private animationFrame = 0;
@@ -111,6 +163,7 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
   pendingDeleteEntry: BodyWeightEntry | null = null;
   editingDate: string | null = null;
   selectedPeriod: PeriodDays = 30;
+  chartMode: ChartMode = readStoredChartMode();
   activeTab = "Overview";
   get bodyWeightTabs(): PageHeaderTab[] {
     return [
@@ -127,6 +180,11 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
     { label: "7 days", value: 7 },
     { label: "30 days", value: 30 },
     { label: "All", value: 0 },
+  ];
+
+  readonly chartModeOptions: { label: string; value: ChartMode }[] = [
+    { label: "Line", value: "line" },
+    { label: "Trend", value: "trend" },
   ];
 
   constructor(
@@ -168,6 +226,12 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
     );
   }
 
+  get selectedChartModeIndex(): number {
+    return this.chartModeOptions.findIndex(
+      (option) => option.value === this.chartMode,
+    );
+  }
+
   get latestEntry(): BodyWeightEntry | undefined {
     return this.filteredEntries.at(-1);
   }
@@ -187,6 +251,17 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
     return previousEntry ? entry.weightKg - previousEntry.weightKg : null;
   }
 
+  get periodChangeLabel(): string {
+    if (this.selectedPeriod !== 0) return `over ${this.selectedPeriod} days`;
+    const firstDate = this.filteredEntries[0]?.date;
+    return firstDate
+      ? `since ${this.parseDate(firstDate).toLocaleDateString(undefined, {
+          month: "short",
+          year: "numeric",
+        })}`
+      : "";
+  }
+
   formatChange(changeKg: number): string {
     return `${changeKg >= 0 ? "+" : ""}${this.units.formatWeight(changeKg, 2)} ${this.units.unitLabel()}`;
   }
@@ -194,6 +269,17 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
   selectPeriod(period: PeriodDays): void {
     if (period === this.selectedPeriod) return;
     this.selectedPeriod = period;
+    this.updateChart(true);
+  }
+
+  selectChartMode(mode: ChartMode): void {
+    if (mode === this.chartMode) return;
+    this.chartMode = mode;
+    try {
+      localStorage.setItem(CHART_MODE_STORAGE_KEY, mode);
+    } catch {
+      // ignore storage errors
+    }
     this.updateChart(true);
   }
 
@@ -214,7 +300,11 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
   openNewEntry(): void {
     this.editingDate = null;
     this.formDate = this.todayString();
-    this.formWeight = null;
+    // Start from the last weigh-in; usually only the decimals change.
+    const lastEntry = this.latestRecordedEntry;
+    this.formWeight = lastEntry
+      ? Number(this.units.fromKg(lastEntry.weightKg).toFixed(2))
+      : null;
     this.validationAttempted = false;
     this.showEntryForm = true;
   }
@@ -322,6 +412,8 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
    */
   private updateChart(animate: boolean): void {
     this.series = this.buildSeries();
+    this.trendSummary = this.buildTrendSummary();
+    this.periodChangeKg = this.buildPeriodChange();
     const target = this.targetDomain();
     const from = this.displayDomain;
     cancelAnimationFrame(this.animationFrame);
@@ -340,6 +432,7 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
         endTime: lerp(from.endTime, target.endTime, eased),
         min: lerp(from.min, target.min, eased),
         max: lerp(from.max, target.max, eased),
+        trendMix: lerp(from.trendMix, target.trendMix, eased),
       });
       if (progress < 1) this.animationFrame = requestAnimationFrame(step);
     };
@@ -351,18 +444,32 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
     this.chartView = this.buildChartView(domain);
   }
 
-  /** All entries oldest first, each trend relative to the previous weigh-in. */
+  /**
+   * All entries oldest first, each trend relative to the previous weigh-in.
+   * The smoothed trend moves TREND_SMOOTHING of the way toward each weigh-in
+   * per day since the last one, so gaps between weigh-ins count for more.
+   */
   private buildSeries(): SeriesEntry[] {
     const sorted = this.entries
       .slice()
       .sort((left, right) => left.date.localeCompare(right.date));
 
+    let previousTime = 0;
+    let trendKg = sorted[0]?.weightKg ?? 0;
     return sorted.map((entry, index) => {
       const previousWeightKg = sorted[index - 1]?.weightKg;
+      const time = this.parseDate(entry.date).getTime();
+      if (index > 0) {
+        const days = (time - previousTime) / DAY_MS;
+        const weight = 1 - (1 - TREND_SMOOTHING) ** days;
+        trendKg += (entry.weightKg - trendKg) * weight;
+      }
+      previousTime = time;
       return {
         date: entry.date,
-        time: this.parseDate(entry.date).getTime(),
+        time,
         weightKg: entry.weightKg,
+        trendKg,
         trend:
           previousWeightKg === undefined || entry.weightKg === previousWeightKg
             ? "unchanged"
@@ -373,12 +480,50 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * The trend at the latest weigh-in and how fast it is moving. The trend only
+   * changes at weigh-ins, so its value at the start of the rate window is the
+   * one from the last weigh-in on or before that day.
+   */
+  private buildTrendSummary(): TrendSummary | null {
+    const latest = this.series.at(-1);
+    if (!latest) return null;
+
+    const windowStart = latest.time - RATE_WINDOW_DAYS * DAY_MS;
+    const before = this.series.filter((entry) => entry.time <= windowStart);
+    const base = before.at(-1) ?? this.series[0];
+    const spanDays = (latest.time - Math.max(base.time, windowStart)) / DAY_MS;
+
+    return {
+      trendKg: latest.trendKg,
+      weeklyRateKg:
+        spanDays < MIN_RATE_SPAN_DAYS
+          ? null
+          : ((latest.trendKg - base.trendKg) / spanDays) * 7,
+    };
+  }
+
+  /** Follows the chart mode, so the number matches the line on screen. */
+  private buildPeriodChange(): number | null {
+    const inPeriod = this.series.filter((entry) =>
+      this.isInSelectedPeriod(entry.date),
+    );
+    const first = inPeriod[0];
+    const last = inPeriod.at(-1);
+    if (!first || !last || first === last) return null;
+
+    return this.chartMode === "trend"
+      ? last.trendKg - first.trendKg
+      : last.weightKg - first.weightKg;
+  }
+
   private buildChartView(domain: ChartDomain): ChartView {
     const range = domain.endTime - domain.startTime;
     const positioned = this.series.map((entry): ChartPoint => {
       const x =
         range === 0 ? 50 : ((entry.time - domain.startTime) / range) * 100;
       const weightY = this.chartY(entry.weightKg, domain.min, domain.max);
+      const trendY = this.chartY(entry.trendKg, domain.min, domain.max);
       const overshoot = Math.max(0, -x, x - 100, -weightY, weightY - 100);
       return {
         date: entry.date,
@@ -386,6 +531,7 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
         trend: entry.trend,
         x,
         weightY,
+        lineY: lerp(weightY, trendY, domain.trendMix),
         opacity: Math.max(0, 1 - overshoot / EDGE_FADE),
       };
     });
@@ -400,14 +546,63 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
       points: positioned.filter((point) => point.opacity > 0),
       linePoints: positioned
         .slice(lineStart, lineEnd)
-        .map((point) => `${point.x},${point.weightY}`)
+        .map((point) => `${point.x},${point.lineY}`)
         .join(" "),
-      axisLabels: Array.from(
-        { length: 4 },
-        (_, index) => domain.max - ((domain.max - domain.min) * index) / 3,
-      ),
+      ...this.axisLines(domain),
       monthMarkers: this.monthMarkers(domain),
     };
+  }
+
+  /**
+   * Gridlines at round numbers in the displayed unit, across the plot's
+   * weight range, spaced as coarsely as AXIS_STEPS allows. Lines fade near the
+   * top and bottom so they glide in and out as the range changes.
+   */
+  private axisLines(
+    domain: ChartDomain,
+  ): Pick<ChartView, "axisLines" | "axisSizer"> {
+    const top = this.units.fromKg(domain.max);
+    const bottom = this.units.fromKg(domain.min);
+    let axisLines: ChartAxisLine[] = [];
+    for (const step of AXIS_STEPS) {
+      axisLines = this.axisLinesAt(step, top, bottom, domain);
+      const visible = axisLines.filter((line) => line.opacity === 1);
+      if (visible.length >= MIN_AXIS_LINES) break;
+    }
+
+    return {
+      axisLines,
+      axisSizer: axisLines.reduce(
+        (widest, line) =>
+          line.label.length > widest.length ? line.label : widest,
+        "",
+      ),
+    };
+  }
+
+  /** Lines at every multiple of `step` (in the displayed unit) in range. */
+  private axisLinesAt(
+    step: number,
+    top: number,
+    bottom: number,
+    domain: ChartDomain,
+  ): ChartAxisLine[] {
+    const decimals = Math.max(0, -Math.floor(Math.log10(step)));
+    // Counting in whole steps (not adding decimals) avoids float drift.
+    const first = Math.ceil(bottom / step - 1e-9);
+    const last = Math.floor(top / step + 1e-9);
+    const lines: ChartAxisLine[] = [];
+    for (let index = first; index <= last; index++) {
+      const value = Number((index * step).toFixed(decimals));
+      const y = this.chartY(this.units.toKg(value), domain.min, domain.max);
+      lines.push({
+        value,
+        label: `${value.toFixed(decimals)} ${this.units.unitLabel()}`,
+        y,
+        opacity: Math.max(0, Math.min(1, y / EDGE_FADE, (100 - y) / EDGE_FADE)),
+      });
+    }
+    return lines;
   }
 
   /** A marker at the 1st of each month in the visible range. */
@@ -439,9 +634,15 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
   }
 
   private targetDomain(): ChartDomain {
+    const showTrend = this.chartMode === "trend";
+    // Fit whichever line is shown.
+    const values = this.series
+      .filter((entry) => this.isInSelectedPeriod(entry.date))
+      .map((entry) => (showTrend ? entry.trendKg : entry.weightKg));
     return {
       ...this.chartTimeDomain(),
-      ...this.chartDomain(this.filteredEntries.map((entry) => entry.weightKg)),
+      ...this.chartDomain(values),
+      trendMix: showTrend ? 1 : 0,
     };
   }
 
@@ -479,8 +680,9 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
 
     const rawMin = Math.min(...values);
     const rawMax = Math.max(...values);
-    const padding =
-      rawMax === rawMin ? Math.max(rawMax * 0.02, 1) : (rawMax - rawMin) * 0.1;
+    // Peaks and troughs touch the plot's edges; a flat series still gets a
+    // range so it sits in the middle.
+    const padding = rawMax === rawMin ? Math.max(rawMax * 0.02, 1) : 0;
 
     return {
       min: Math.max(0, rawMin - padding),
@@ -489,7 +691,7 @@ export class BodyWeightComponent implements OnInit, OnDestroy {
   }
 
   private chartY(value: number, min: number, max: number): number {
-    return max === min ? 50 : 92 - ((value - min) / (max - min)) * 76;
+    return max === min ? 50 : 100 - ((value - min) / (max - min)) * 100;
   }
 
   private todayString(): string {
